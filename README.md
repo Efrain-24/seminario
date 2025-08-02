@@ -1,61 +1,121 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🐟 Sistema de Gestión Piscícola - Beyond Learning
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## 📋 Descripción del Proyecto
 
-## About Laravel
+**Beyond Learning** es un sistema integral de gestión para cultivos piscícolas desarrollado como parte del seminario académico. Este software permite administrar de manera eficiente todos los aspectos relacionados con la piscicultura, desde la gestión de lotes hasta el monitoreo ambiental.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## ✨ Características Principales
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 🎯 Módulos del Sistema
+- **📊 Gestión de Lotes**: Control completo de cada grupo de organismos desde su siembra hasta su cosecha
+- **🍃 Alimentación**: Planificación y registro de raciones, tipos de alimento y conversión alimenticia
+- **🌊 Monitoreo Ambiental**: Seguimiento de parámetros de calidad del agua y condiciones ambientales
+- **🏥 Sanidad y Bioseguridad**: Control de enfermedades, tratamientos y protocolos de bioseguridad
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 🚀 Tecnologías Utilizadas
+- **Backend**: Laravel 12 (PHP Framework)
+- **Frontend**: Blade Templates + Tailwind CSS
+- **Autenticación**: Laravel Breeze
+- **Base de Datos**: SQLite (desarrollo) / MySQL (producción)
+- **Herramientas**: Vite, Node.js, Composer
 
-## Learning Laravel
+## 📦 Instalación
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Requisitos Previos
+- PHP >= 8.2
+- Composer
+- Node.js >= 18
+- SQLite o MySQL
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Pasos de Instalación
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+1. **Clonar el repositorio**
+   ```bash
+   git clone https://github.com/Efrain-24/seminario.git
+   cd seminario
+   ```
 
-## Laravel Sponsors
+2. **Instalar dependencias de PHP**
+   ```bash
+   composer install
+   ```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+3. **Instalar dependencias de Node.js**
+   ```bash
+   npm install
+   ```
 
-### Premium Partners
+4. **Configurar el archivo de entorno**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+5. **Configurar la base de datos**
+   ```bash
+   php artisan migrate
+   php artisan db:seed
+   ```
 
-## Contributing
+6. **Compilar assets**
+   ```bash
+   npm run build
+   ```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+7. **Iniciar el servidor de desarrollo**
+   ```bash
+   php artisan serve
+   ```
 
-## Code of Conduct
+## 🎨 Capturas de Pantalla
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Página Principal
+- Diseño moderno y responsivo
+- Logo personalizado en header
+- Módulos organizados en formato 2x2
 
-## Security Vulnerabilities
+### Sistema de Autenticación
+- Login y registro de usuarios
+- Recuperación de contraseñas
+- Integración con Laravel Breeze
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## 👥 Equipo de Desarrollo
 
-## License
+- **Desarrollador Principal**: Efrain-24
+- **Institución**: Beyond Learning
+- **Proyecto**: Seminario - Sistema de Gestión Piscícola
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## 🤝 Contribución
+
+Si deseas contribuir al proyecto:
+
+1. Fork el repositorio
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+
+## 📞 Contacto
+
+- **GitHub**: [@Efrain-24](https://github.com/Efrain-24)
+- **Repositorio**: [seminario](https://github.com/Efrain-24/seminario)
+
+---
+
+### 🐠 Sobre la Piscicultura
+
+La piscicultura es el cultivo controlado de especies acuáticas con fines comerciales o de conservación. Esta actividad permite la producción eficiente de proteína animal de alta calidad mientras se reduce la presión sobre las poblaciones naturales de peces.
+
+**Beneficios principales:**
+- ✅ Producción de alimento rico en proteínas y ácidos grasos esenciales
+- ✅ Uso eficiente de los recursos hídricos
+- ✅ Menor impacto ambiental que otras formas de producción animal
+- ✅ Generación de empleo en zonas rurales
+
+---
+
+*© 2025 Beyond Learning - Sistema de Gestión Piscícola. Todos los derechos reservados.*
