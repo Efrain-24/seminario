@@ -178,22 +178,15 @@
 
     <script>
     function toggleModulePermissions(moduleKey) {
-        console.log('Toggling module:', moduleKey);
-        
         const moduleToggle = document.querySelector(`[data-module="${moduleKey}"]`);
         const permissionLevels = document.querySelector(`.permission-levels-${moduleKey}`);
         const checkboxes = document.querySelectorAll(`.permission-checkbox-${moduleKey}`);
-        
-        console.log('Module toggle found:', moduleToggle);
-        console.log('Permission levels found:', permissionLevels);
-        console.log('Checkboxes found:', checkboxes.length);
         
         if (moduleToggle && permissionLevels) {
             if (moduleToggle.checked) {
                 // Habilitar módulo
                 permissionLevels.style.opacity = '1';
                 permissionLevels.style.pointerEvents = 'auto';
-                console.log('Module enabled');
             } else {
                 // Deshabilitar módulo
                 permissionLevels.style.opacity = '0.5';
@@ -202,47 +195,36 @@
                 checkboxes.forEach(checkbox => {
                     checkbox.checked = false;
                 });
-                console.log('Module disabled');
             }
         }
     }
     
     // Inicializar estado al cargar la página
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM loaded, initializing modules');
+        // Lista de módulos
+        const modules = {
+            'users': 'Gestión de Usuarios',
+            'roles': 'Gestión de Roles', 
+            'production': 'Módulo de Producción',
+            'inventory': 'Módulo de Inventario',
+            'sales': 'Módulo de Ventas',
+            'reports': 'Módulo de Reportes',
+            'finances': 'Módulo de Finanzas',
+            'maintenance': 'Módulo de Mantenimiento',
+            'system': 'Configuración del Sistema'
+        };
         
-        @php
-            $modules = [
-                'users' => 'Gestión de Usuarios',
-                'roles' => 'Gestión de Roles', 
-                'production' => 'Módulo de Producción',
-                'inventory' => 'Módulo de Inventario',
-                'sales' => 'Módulo de Ventas',
-                'reports' => 'Módulo de Reportes',
-                'finances' => 'Módulo de Finanzas',
-                'maintenance' => 'Módulo de Mantenimiento',
-                'system' => 'Configuración del Sistema'
-            ];
-        @endphp
-        
-        @foreach($modules as $moduleKey => $moduleName)
-            // Verificar si hay permisos preseleccionados para este módulo
-            const hasPermissions_{{ $moduleKey }} = {!! json_encode(collect(old('permissions', []))->filter(function($perm) use ($moduleKey) {
-                return str_starts_with($perm, $moduleKey.'.');
-            })->isNotEmpty()) !!};
+        // Verificar cada módulo si tiene permisos preseleccionados
+        Object.keys(modules).forEach(moduleKey => {
+            const modulePermissions = {!! json_encode(old('permissions', [])) !!};
+            const hasModulePermissions = modulePermissions.some(perm => perm.startsWith(moduleKey + '.'));
             
-            console.log('Module {{ $moduleKey }} has permissions:', hasPermissions_{{ $moduleKey }});
-            
-            if (hasPermissions_{{ $moduleKey }}) {
-                const moduleToggle = document.querySelector(`[data-module="{{ $moduleKey }}"]`);
-                if (moduleToggle) {
-                    moduleToggle.checked = true;
-                    toggleModulePermissions('{{ $moduleKey }}');
-                }
+            const moduleToggle = document.querySelector(`[data-module="${moduleKey}"]`);
+            if (moduleToggle && hasModulePermissions) {
+                moduleToggle.checked = true;
+                toggleModulePermissions(moduleKey);
             }
-        @endforeach
-        
-        console.log('All modules initialized');
+        });
     });
     </script>
 </x-app-layout>

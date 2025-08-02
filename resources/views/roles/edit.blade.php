@@ -156,7 +156,7 @@
                                             </label>
                                         </div>
                                         
-                                                                                <div class="permission-levels-{{ $moduleKey }} grid grid-cols-2 md:grid-cols-4 gap-3" style="opacity: 0.5; pointer-events: none; transition: opacity 0.3s ease;">
+                                                                                <div class="permission-levels-{{ $moduleKey }} grid grid-cols-2 md:grid-cols-4 gap-3" style="opacity: {{ $hasModulePermissions ? '1' : '0.5' }}; pointer-events: {{ $hasModulePermissions ? 'auto' : 'none' }}; transition: opacity 0.3s ease;">
                                             @foreach($permissionLevels as $levelKey => $levelName)
                                                 <label class="flex items-center p-2 bg-gray-50 dark:bg-gray-700 rounded">
                                                     <input type="checkbox" 
@@ -221,22 +221,15 @@
 
     <script>
     function toggleModulePermissions(moduleKey) {
-        console.log('Toggling module for edit:', moduleKey);
-        
         const moduleToggle = document.querySelector(`[data-module="${moduleKey}"]`);
         const permissionLevels = document.querySelector(`.permission-levels-${moduleKey}`);
         const checkboxes = document.querySelectorAll(`.permission-checkbox-${moduleKey}`);
-        
-        console.log('Module toggle found:', moduleToggle);
-        console.log('Permission levels found:', permissionLevels);
-        console.log('Checkboxes found:', checkboxes.length);
         
         if (moduleToggle && permissionLevels) {
             if (moduleToggle.checked) {
                 // Habilitar módulo
                 permissionLevels.style.opacity = '1';
                 permissionLevels.style.pointerEvents = 'auto';
-                console.log('Module enabled for edit');
             } else {
                 // Deshabilitar módulo
                 permissionLevels.style.opacity = '0.5';
@@ -245,44 +238,43 @@
                 checkboxes.forEach(checkbox => {
                     checkbox.checked = false;
                 });
-                console.log('Module disabled for edit');
             }
         }
     }
     
     // Inicializar estado al cargar la página
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM loaded for edit, initializing modules');
+        // Obtener permisos actuales del rol
+        const currentPermissions = {!! json_encode($role->permissions ?? []) !!};
         
-        @php
-            $modules = [
-                'users' => 'Gestión de Usuarios',
-                'roles' => 'Gestión de Roles', 
-                'production' => 'Módulo de Producción',
-                'inventory' => 'Módulo de Inventario',
-                'sales' => 'Módulo de Ventas',
-                'reports' => 'Módulo de Reportes',
-                'finances' => 'Módulo de Finanzas',
-                'maintenance' => 'Módulo de Mantenimiento',
-                'system' => 'Configuración del Sistema'
-            ];
-        @endphp
+        // Lista de módulos
+        const modules = {
+            'users': 'Gestión de Usuarios',
+            'roles': 'Gestión de Roles', 
+            'production': 'Módulo de Producción',
+            'inventory': 'Módulo de Inventario',
+            'sales': 'Módulo de Ventas',
+            'reports': 'Módulo de Reportes',
+            'finances': 'Módulo de Finanzas',
+            'maintenance': 'Módulo de Mantenimiento',
+            'system': 'Configuración del Sistema'
+        };
         
-        @foreach($modules as $moduleKey => $moduleName)
-            // Verificar si el rol actual tiene permisos para este módulo
-            const currentPermissions_{{ $moduleKey }} = {!! json_encode($role->permissions ?? []) !!};
-            const hasModulePermissions_{{ $moduleKey }} = currentPermissions_{{ $moduleKey }}.some(perm => perm.startsWith('{{ $moduleKey }}.'));
+        // Verificar cada módulo y habilitar si tiene permisos
+        Object.keys(modules).forEach(moduleKey => {
+            const hasModulePermissions = currentPermissions.some(perm => perm.startsWith(moduleKey + '.'));
+            const moduleToggle = document.querySelector(`[data-module="${moduleKey}"]`);
             
-            console.log('Module {{ $moduleKey }} has permissions in edit:', hasModulePermissions_{{ $moduleKey }});
-            
-            const moduleToggle = document.querySelector(`[data-module="{{ $moduleKey }}"]`);
-            if (moduleToggle && hasModulePermissions_{{ $moduleKey }}) {
-                moduleToggle.checked = true;
-                toggleModulePermissions('{{ $moduleKey }}');
+            if (moduleToggle) {
+                if (hasModulePermissions) {
+                    moduleToggle.checked = true;
+                    toggleModulePermissions(moduleKey);
+                } else {
+                    moduleToggle.checked = false;
+                    toggleModulePermissions(moduleKey);
+                }
             }
-        @endforeach
-        
-        console.log('All modules initialized for edit');
+        });
     });
     </script>
 </x-app-layout>
