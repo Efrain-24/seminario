@@ -156,7 +156,7 @@
                                             </label>
                                         </div>
                                         
-                                        <div class="permission-levels-{{ $moduleKey }} grid grid-cols-2 md:grid-cols-4 gap-3 {{ $hasModulePermissions ? '' : 'opacity-50 pointer-events-none' }}">
+                                                                                <div class="permission-levels-{{ $moduleKey }} grid grid-cols-2 md:grid-cols-4 gap-3" style="opacity: 0.5; pointer-events: none; transition: opacity 0.3s ease;">
                                             @foreach($permissionLevels as $levelKey => $levelName)
                                                 <label class="flex items-center p-2 bg-gray-50 dark:bg-gray-700 rounded">
                                                     <input type="checkbox" 
@@ -177,23 +177,7 @@
                             @enderror
                         </div>
 
-                        <script>
-                        function toggleModulePermissions(moduleKey) {
-                            const moduleToggle = document.querySelector(`[data-module="${moduleKey}"]`);
-                            const permissionLevels = document.querySelector(`.permission-levels-${moduleKey}`);
-                            const checkboxes = document.querySelectorAll(`.permission-checkbox-${moduleKey}`);
-                            
-                            if (moduleToggle.checked) {
-                                // Habilitar módulo
-                                permissionLevels.classList.remove('opacity-50', 'pointer-events-none');
-                            } else {
-                                // Deshabilitar módulo
-                                permissionLevels.classList.add('opacity-50', 'pointer-events-none');
-                                // Desmarcar todos los checkboxes del módulo
-                                checkboxes.forEach(checkbox => checkbox.checked = false);
-                            }
-                        }
-                        </script>
+
 
                         <!-- Estado -->
                         <div class="mt-6">
@@ -234,4 +218,71 @@
             </div>
         </div>
     </div>
+
+    <script>
+    function toggleModulePermissions(moduleKey) {
+        console.log('Toggling module for edit:', moduleKey);
+        
+        const moduleToggle = document.querySelector(`[data-module="${moduleKey}"]`);
+        const permissionLevels = document.querySelector(`.permission-levels-${moduleKey}`);
+        const checkboxes = document.querySelectorAll(`.permission-checkbox-${moduleKey}`);
+        
+        console.log('Module toggle found:', moduleToggle);
+        console.log('Permission levels found:', permissionLevels);
+        console.log('Checkboxes found:', checkboxes.length);
+        
+        if (moduleToggle && permissionLevels) {
+            if (moduleToggle.checked) {
+                // Habilitar módulo
+                permissionLevels.style.opacity = '1';
+                permissionLevels.style.pointerEvents = 'auto';
+                console.log('Module enabled for edit');
+            } else {
+                // Deshabilitar módulo
+                permissionLevels.style.opacity = '0.5';
+                permissionLevels.style.pointerEvents = 'none';
+                // Desmarcar todos los checkboxes del módulo
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                console.log('Module disabled for edit');
+            }
+        }
+    }
+    
+    // Inicializar estado al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded for edit, initializing modules');
+        
+        @php
+            $modules = [
+                'users' => 'Gestión de Usuarios',
+                'roles' => 'Gestión de Roles', 
+                'production' => 'Módulo de Producción',
+                'inventory' => 'Módulo de Inventario',
+                'sales' => 'Módulo de Ventas',
+                'reports' => 'Módulo de Reportes',
+                'finances' => 'Módulo de Finanzas',
+                'maintenance' => 'Módulo de Mantenimiento',
+                'system' => 'Configuración del Sistema'
+            ];
+        @endphp
+        
+        @foreach($modules as $moduleKey => $moduleName)
+            // Verificar si el rol actual tiene permisos para este módulo
+            const currentPermissions_{{ $moduleKey }} = {!! json_encode($role->permissions ?? []) !!};
+            const hasModulePermissions_{{ $moduleKey }} = currentPermissions_{{ $moduleKey }}.some(perm => perm.startsWith('{{ $moduleKey }}.'));
+            
+            console.log('Module {{ $moduleKey }} has permissions in edit:', hasModulePermissions_{{ $moduleKey }});
+            
+            const moduleToggle = document.querySelector(`[data-module="{{ $moduleKey }}"]`);
+            if (moduleToggle && hasModulePermissions_{{ $moduleKey }}) {
+                moduleToggle.checked = true;
+                toggleModulePermissions('{{ $moduleKey }}');
+            }
+        @endforeach
+        
+        console.log('All modules initialized for edit');
+    });
+    </script>
 </x-app-layout>
