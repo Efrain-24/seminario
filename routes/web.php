@@ -21,8 +21,8 @@ Route::middleware('auth')->group(function () {
     // Rutas para gestión de usuarios (las rutas más específicas van primero)
     Route::get('users/create', [UserController::class, 'create'])->name('users.create')->middleware('permission:users.create');
     Route::post('users', [UserController::class, 'store'])->name('users.store')->middleware('permission:users.create');
-    Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit')->middleware('permission:users.update');
-    Route::put('users/{user}', [UserController::class, 'update'])->name('users.update')->middleware('permission:users.update');
+    Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit')->middleware('permission:users.edit');
+    Route::put('users/{user}', [UserController::class, 'update'])->name('users.update')->middleware('permission:users.edit');
     Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy')->middleware('permission:users.delete');
     
     Route::middleware('permission:users.view')->group(function () {
@@ -33,8 +33,8 @@ Route::middleware('auth')->group(function () {
     // Rutas para gestión de roles (las rutas más específicas van primero)
     Route::get('roles/create', [RoleController::class, 'create'])->name('roles.create')->middleware('permission:roles.create');
     Route::post('roles', [RoleController::class, 'store'])->name('roles.store')->middleware('permission:roles.create');
-    Route::get('roles/{role}/edit', [RoleController::class, 'edit'])->name('roles.edit')->middleware('permission:roles.update');
-    Route::put('roles/{role}', [RoleController::class, 'update'])->name('roles.update')->middleware('permission:roles.update');
+    Route::get('roles/{role}/edit', [RoleController::class, 'edit'])->name('roles.edit')->middleware('permission:roles.edit');
+    Route::put('roles/{role}', [RoleController::class, 'update'])->name('roles.update')->middleware('permission:roles.edit');
     Route::delete('roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy')->middleware('permission:roles.delete');
     
     Route::middleware('permission:roles.view')->group(function () {

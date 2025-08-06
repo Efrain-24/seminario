@@ -48,6 +48,15 @@ class User extends Authenticatable
     }
 
     /**
+     * The model's default values for attributes.
+     *
+     * @var array
+     */
+    protected $attributes = [
+        'role' => 'generico',
+    ];
+
+    /**
      * Get the role display name
      */
     public function getRoleDisplayNameAttribute(): string
