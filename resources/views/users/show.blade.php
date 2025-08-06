@@ -80,12 +80,23 @@
                     <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
                             <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Rol del Usuario</h4>
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
-                                @if($user->role === 'admin') bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200
-                                @elseif($user->role === 'supervisor') bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200
-                                @else bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 @endif">
-                                {{ $user->role_display_name }}
-                            </span>
+                            @if($user->role === 'admin')
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                                    {{ $user->roleDisplayName }}
+                                </span>
+                            @elseif($user->role === 'manager')
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                    {{ $user->roleDisplayName }}
+                                </span>
+                            @elseif($user->role === 'empleado')
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                                    {{ $user->roleDisplayName }}
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                    {{ $user->roleDisplayName }}
+                                </span>
+                            @endif
                         </div>
 
                         <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">

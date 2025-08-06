@@ -82,12 +82,23 @@
                                             {{ $user->email }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                                @if($user->role === 'admin') bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200
-                                                @elseif($user->role === 'supervisor') bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200
-                                                @else bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 @endif">
-                                                {{ $user->role_display_name }}
-                                            </span>
+                                            @if($user->role === 'admin')
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                                                    {{ $user->roleDisplayName }}
+                                                </span>
+                                            @elseif($user->role === 'manager')
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                                    {{ $user->roleDisplayName }}
+                                                </span>
+                                            @elseif($user->role === 'empleado')
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                                                    {{ $user->roleDisplayName }}
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                                    {{ $user->roleDisplayName }}
+                                                </span>
+                                            @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                                             {{ $user->created_at->format('d/m/Y H:i') }}

@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
+use App\Models\User;
 
 class CheckPermission
 {
@@ -20,6 +21,7 @@ class CheckPermission
             return redirect()->route('login');
         }
 
+        /** @var User $user */
         $user = Auth::user();
         
         // Verificar si el usuario tiene el permiso requerido
