@@ -45,12 +45,45 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware('auth')->prefix('produccion')->name('produccion.')->group(function () {
-    Route::get('/', [produccionController::class, 'index'])->name('index');
-    Route::get('/lotes', [produccionController::class, 'gestionLotes'])->name('lotes');
-    Route::get('/unidades', [produccionController::class, 'gestionUnidades'])->name('unidades');
-    Route::get('/traslados', [produccionController::class, 'gestionTraslados'])->name('traslados');
-    Route::get('/seguimiento-lotes', [produccionController::class, 'seguimientoLotes'])->name('seguimiento.lotes');
-    Route::get('/seguimiento-unidades', [produccionController::class, 'seguimientoUnidades'])->name('seguimiento.unidades');
+    Route::get('/', [ProduccionController::class, 'index'])->name('index');
+    
+    // Rutas de Lotes
+    Route::get('/lotes', [ProduccionController::class, 'gestionLotes'])->name('lotes');
+    Route::get('/lotes/create', [ProduccionController::class, 'createLote'])->name('lotes.create');
+    Route::post('/lotes', [ProduccionController::class, 'storeLote'])->name('lotes.store');
+    Route::get('/lotes/{lote}', [ProduccionController::class, 'showLote'])->name('lotes.show');
+    
+    // Rutas de Unidades
+    Route::get('/unidades', [ProduccionController::class, 'gestionUnidades'])->name('unidades');
+    Route::get('/unidades/create', [ProduccionController::class, 'createUnidad'])->name('unidades.create');
+    Route::post('/unidades', [ProduccionController::class, 'storeUnidad'])->name('unidades.store');
+    Route::get('/unidades/{unidad}', [ProduccionController::class, 'showUnidad'])->name('unidades.show');
+    
+    // Otras rutas
+    Route::get('/traslados', [ProduccionController::class, 'gestionTraslados'])->name('traslados');
+    Route::get('/seguimiento-lotes', [ProduccionController::class, 'seguimientoLotes'])->name('seguimiento.lotes');
+    Route::get('/seguimiento-unidades', [ProduccionController::class, 'seguimientoUnidades'])->name('seguimiento.unidades');
+    
+    // Rutas de seguimientos específicos
+    Route::get('/lotes/{lote}/seguimiento/crear', [ProduccionController::class, 'crearSeguimiento'])->name('lotes.seguimiento.crear');
+    Route::post('/lotes/{lote}/seguimiento', [ProduccionController::class, 'storeSeguimiento'])->name('lotes.seguimiento.store');
+    Route::get('/lotes/{lote}/seguimientos', [ProduccionController::class, 'verSeguimientos'])->name('lotes.seguimientos.ver');
+    
+    // Rutas de traslados
+    Route::get('/traslados/crear/{lote?}', [ProduccionController::class, 'crearTraslado'])->name('traslados.crear');
+    Route::post('/traslados', [ProduccionController::class, 'storeTraslado'])->name('traslados.store');
+    Route::get('/traslados/{traslado}', [ProduccionController::class, 'showTraslado'])->name('traslados.show');
+    Route::patch('/traslados/{traslado}/completar', [ProduccionController::class, 'completarTraslado'])->name('traslados.completar');
+    Route::patch('/traslados/{traslado}/cancelar', [ProduccionController::class, 'cancelarTraslado'])->name('traslados.cancelar');
+    
+    // Rutas de mantenimientos
+    Route::get('/mantenimientos/{unidad?}', [ProduccionController::class, 'gestionMantenimientos'])->name('mantenimientos');
+    Route::get('/mantenimientos/crear/{unidad?}', [ProduccionController::class, 'crearMantenimiento'])->name('mantenimientos.crear');
+    Route::post('/mantenimientos', [ProduccionController::class, 'storeMantenimiento'])->name('mantenimientos.store');
+    Route::get('/mantenimiento/{mantenimiento}', [ProduccionController::class, 'showMantenimiento'])->name('mantenimiento.show');
+    Route::patch('/mantenimiento/{mantenimiento}/iniciar', [ProduccionController::class, 'iniciarMantenimiento'])->name('mantenimiento.iniciar');
+    Route::patch('/mantenimiento/{mantenimiento}/completar', [ProduccionController::class, 'completarMantenimiento'])->name('mantenimiento.completar');
+    Route::patch('/mantenimiento/{mantenimiento}/cancelar', [ProduccionController::class, 'cancelarMantenimiento'])->name('mantenimiento.cancelar');
 });
 
 

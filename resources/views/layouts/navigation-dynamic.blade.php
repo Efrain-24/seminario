@@ -68,7 +68,7 @@
                     @endif
 
                     @if (isset($accessibleModules['maintenance']))
-                        <x-nav-link href="#" :active="false">
+                        <x-nav-link :href="route('produccion.mantenimientos')" :active="request()->routeIs('produccion.mantenimientos*')">
                             {{ __('Mantenimiento') }}
                         </x-nav-link>
                     @endif
@@ -157,9 +157,9 @@
             @endif
 
             @if (isset($accessibleModules['production']))
-                <x-nav-link :href="route('produccion.index')" :active="request()->routeIs('produccion.index')">
+                <x-responsive-nav-link :href="route('produccion.index')" :active="request()->routeIs('produccion.index')">
                     {{ __('Producción') }}
-                    </x-responsive-nav-link>
+                </x-responsive-nav-link>
             @endif
 
             @if (isset($accessibleModules['inventory']))
@@ -187,7 +187,7 @@
             @endif
 
             @if (isset($accessibleModules['maintenance']))
-                <x-responsive-nav-link href="#" :active="false">
+                <x-responsive-nav-link :href="route('produccion.mantenimientos')" :active="request()->routeIs('produccion.mantenimientos*')">
                     {{ __('Mantenimiento') }}
                 </x-responsive-nav-link>
             @endif
