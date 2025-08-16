@@ -86,21 +86,21 @@ class AppServiceProvider extends ServiceProvider
             return $user->hasPermission('eliminar_mantenimientos');
         });
         
-        // Gates para otros módulos (para futuro uso)
-        Gate::define('ver_alimentacion', function (User $user) {
-            return $user->hasPermission('ver_alimentacion');
+        // Gates para Alimentación
+        Gate::define('alimentacion.view', function (User $user) {
+            return $user->hasPermission('alimentacion.view');
         });
         
-        Gate::define('crear_alimentacion', function (User $user) {
-            return $user->hasPermission('crear_alimentacion');
+        Gate::define('alimentacion.create', function (User $user) {
+            return $user->hasPermission('alimentacion.create');
         });
         
-        Gate::define('editar_alimentacion', function (User $user) {
-            return $user->hasPermission('editar_alimentacion');
+        Gate::define('alimentacion.edit', function (User $user) {
+            return $user->hasPermission('alimentacion.edit');
         });
         
-        Gate::define('eliminar_alimentacion', function (User $user) {
-            return $user->hasPermission('eliminar_alimentacion');
+        Gate::define('alimentacion.delete', function (User $user) {
+            return $user->hasPermission('alimentacion.delete');
         });
         
         Gate::define('ver_sanidad', function (User $user) {

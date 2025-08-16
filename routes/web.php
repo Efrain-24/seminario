@@ -4,15 +4,51 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ProduccionController;
+use App\Http\Controllers\TipoAlimentoController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+// Ruta de prueba temporal para tipos de alimento
+Route::get('/test-tipos-alimento', function (Request $request) {
+    $controller = new TipoAlimentoController();
+    return $controller->index($request);
+})->middleware('auth')->name('test.tipos.alimento');
+
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('aplicaciones');
 });
+
+// Ruta de prueba de permisos
+Route::get('/test-permisos', function () {
+    $user = App\Models\User::where('email', 'admin@piscicultura.com')->first();
+    
+    if (!$user) {
+        return 'Usuario no encontrado';
+    }
+    
+    $permisos = [
+        'alimentacion.view' => $user->hasPermission('alimentacion.view'),
+        'alimentacion.create' => $user->hasPermission('alimentacion.create'),
+        'alimentacion.edit' => $user->hasPermission('alimentacion.edit'),
+        'alimentacion.delete' => $user->hasPermission('alimentacion.delete'),
+    ];
+    
+    // Simular autenticación para prueba
+    \Illuminate\Support\Facades\Auth::login($user);
+    
+    return view('test-permisos', compact('user', 'permisos'));
+})->name('test.permisos');
+
+// Ruta de prueba de alimentación sin middleware
+Route::get('/test-alimentacion-simple', [App\Http\Controllers\AlimentacionController::class, 'index'])->name('test.alimentacion.simple');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::get('/aplicaciones', function () {
+    return view('aplicaciones');
+})->middleware(['auth', 'verified'])->name('aplicaciones');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -91,6 +127,27 @@ Route::middleware('auth')->prefix('produccion')->name('produccion.')->group(func
     Route::patch('/mantenimiento/{mantenimiento}/iniciar', [ProduccionController::class, 'iniciarMantenimiento'])->name('mantenimientos.iniciar')->middleware('permission:editar_mantenimientos');
     Route::patch('/mantenimiento/{mantenimiento}/completar', [ProduccionController::class, 'completarMantenimiento'])->name('mantenimientos.completar')->middleware('permission:editar_mantenimientos');
     Route::patch('/mantenimiento/{mantenimiento}/cancelar', [ProduccionController::class, 'cancelarMantenimiento'])->name('mantenimientos.cancelar')->middleware('permission:editar_mantenimientos');
+});
+
+// Rutas de Alimentación
+Route::middleware('auth')->prefix('alimentacion')->name('alimentacion.')->group(function () {
+    Route::get('/', [App\Http\Controllers\AlimentacionController::class, 'index'])->name('index')->middleware('permission:alimentacion.view');
+    Route::get('/create', [App\Http\Controllers\AlimentacionController::class, 'create'])->name('create')->middleware('permission:alimentacion.create');
+    Route::post('/', [App\Http\Controllers\AlimentacionController::class, 'store'])->name('store')->middleware('permission:alimentacion.create');
+    Route::get('/{alimentacion}', [App\Http\Controllers\AlimentacionController::class, 'show'])->name('show')->middleware('permission:alimentacion.view');
+    Route::get('/{alimentacion}/edit', [App\Http\Controllers\AlimentacionController::class, 'edit'])->name('edit')->middleware('permission:alimentacion.edit');
+    Route::put('/{alimentacion}', [App\Http\Controllers\AlimentacionController::class, 'update'])->name('update')->middleware('permission:alimentacion.edit');
+    Route::delete('/{alimentacion}', [App\Http\Controllers\AlimentacionController::class, 'destroy'])->name('destroy')->middleware('permission:alimentacion.delete');
+    
+    // Rutas para tipos de alimento
+    Route::get('/tipos-alimento', [TipoAlimentoController::class, 'index'])->name('tipos-alimento.index');
+    Route::get('/tipos-alimento/create', [TipoAlimentoController::class, 'create'])->name('tipos-alimento.create')->middleware('permission:alimentacion.create');
+    Route::post('/tipos-alimento', [TipoAlimentoController::class, 'store'])->name('tipos-alimento.store')->middleware('permission:alimentacion.create');
+    Route::get('/tipos-alimento/{tipoAlimento}', [TipoAlimentoController::class, 'show'])->name('tipos-alimento.show')->middleware('permission:alimentacion.view');
+    Route::get('/tipos-alimento/{tipoAlimento}/edit', [TipoAlimentoController::class, 'edit'])->name('tipos-alimento.edit')->middleware('permission:alimentacion.edit');
+    Route::put('/tipos-alimento/{tipoAlimento}', [TipoAlimentoController::class, 'update'])->name('tipos-alimento.update')->middleware('permission:alimentacion.edit');
+    Route::delete('/tipos-alimento/{tipoAlimento}', [TipoAlimentoController::class, 'destroy'])->name('tipos-alimento.destroy')->middleware('permission:alimentacion.delete');
+    Route::patch('/tipos-alimento/{tipoAlimento}/toggle', [TipoAlimentoController::class, 'toggle'])->name('tipos-alimento.toggle')->middleware('permission:alimentacion.edit');
 });
 
 

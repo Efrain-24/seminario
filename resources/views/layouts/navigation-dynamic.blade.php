@@ -10,82 +10,20 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
+                    <a href="{{ route('aplicaciones') }}">
                         <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
                     </a>
                 </div>
 
                 <!-- Links de Navegación -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <!-- Dashboard siempre visible -->
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
-
-                    <!-- Gestión de Usuarios (solo si tiene acceso) -->
-                    @if (isset($accessibleModules['users']))
-                        <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
-                            {{ __('Usuarios') }}
-                        </x-nav-link>
-                    @endif
-
-                    <!-- Gestión de Roles (solo si tiene acceso) -->
-                    @if (isset($accessibleModules['roles']))
-                        <x-nav-link :href="route('roles.index')" :active="request()->routeIs('roles.*')">
-                            {{ __('Roles') }}
-                        </x-nav-link>
-                    @endif
-
-                    <!-- Módulos de negocio (solo si tiene acceso) -->
-                    @if (isset($accessibleModules['production']))
-                        <x-nav-link :href="route('produccion.index')" :active="request()->routeIs('produccion.index')">
-                            {{ __('Producción') }}
-                        </x-nav-link>
-                    @endif
-
-                    <!-- Gestión de Unidades -->
-                    @if (isset($accessibleModules['production']))
-                        <x-nav-link :href="route('produccion.unidades')" :active="request()->routeIs('produccion.unidades*')">
-                            {{ __('Unidades') }}
-                        </x-nav-link>
-                    @endif
-
-                    <!-- Gestión de Mantenimientos -->
-                    @if (isset($accessibleModules['production']))
-                        <x-nav-link :href="route('produccion.mantenimientos')" :active="request()->routeIs('produccion.mantenimientos*')">
-                            {{ __('Mantenimientos') }}
-                        </x-nav-link>
-                    @endif
-
-                    @if (isset($accessibleModules['inventory']))
-                        <x-nav-link href="#" :active="false">
-                            {{ __('Inventario') }}
-                        </x-nav-link>
-                    @endif
-
-                    @if (isset($accessibleModules['sales']))
-                        <x-nav-link href="#" :active="false">
-                            {{ __('Ventas') }}
-                        </x-nav-link>
-                    @endif
-
-                    @if (isset($accessibleModules['reports']))
-                        <x-nav-link href="#" :active="false">
-                            {{ __('Reportes') }}
-                        </x-nav-link>
-                    @endif
-
-                    @if (isset($accessibleModules['finances']))
-                        <x-nav-link href="#" :active="false">
-                            {{ __('Finanzas') }}
-                        </x-nav-link>
-                    @endif
-
-                    @if (isset($accessibleModules['system']))
-                        <x-nav-link href="#" :active="false">
-                            {{ __('Sistema') }}
-                        </x-nav-link>
-                    @endif
+                    
+                    <x-nav-link :href="route('aplicaciones')" :active="request()->routeIs('aplicaciones')">
+                        {{ __('Aplicaciones') }}
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -146,71 +84,13 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{ 'block': open, 'hidden': !open }" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <!-- Dashboard -->
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
-
-            <!-- Módulos con permisos -->
-            @if (isset($accessibleModules['users']))
-                <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
-                    {{ __('Usuarios') }}
-                </x-responsive-nav-link>
-            @endif
-
-            @if (isset($accessibleModules['roles']))
-                <x-responsive-nav-link :href="route('roles.index')" :active="request()->routeIs('roles.*')">
-                    {{ __('Roles') }}
-                </x-responsive-nav-link>
-            @endif
-
-            @if (isset($accessibleModules['production']))
-                <x-responsive-nav-link :href="route('produccion.index')" :active="request()->routeIs('produccion.index')">
-                    {{ __('Producción') }}
-                </x-responsive-nav-link>
-            @endif
-
-            @if (isset($accessibleModules['production']))
-                <x-responsive-nav-link :href="route('produccion.unidades')" :active="request()->routeIs('produccion.unidades*')">
-                    {{ __('Unidades') }}
-                </x-responsive-nav-link>
-            @endif
-
-            @if (isset($accessibleModules['production']))
-                <x-responsive-nav-link :href="route('produccion.mantenimientos')" :active="request()->routeIs('produccion.mantenimientos*')">
-                    {{ __('Mantenimientos') }}
-                </x-responsive-nav-link>
-            @endif
-
-            @if (isset($accessibleModules['inventory']))
-                <x-responsive-nav-link href="#" :active="false">
-                    {{ __('Inventario') }}
-                </x-responsive-nav-link>
-            @endif
-
-            @if (isset($accessibleModules['sales']))
-                <x-responsive-nav-link href="#" :active="false">
-                    {{ __('Ventas') }}
-                </x-responsive-nav-link>
-            @endif
-
-            @if (isset($accessibleModules['reports']))
-                <x-responsive-nav-link href="#" :active="false">
-                    {{ __('Reportes') }}
-                </x-responsive-nav-link>
-            @endif
-
-            @if (isset($accessibleModules['finances']))
-                <x-responsive-nav-link href="#" :active="false">
-                    {{ __('Finanzas') }}
-                </x-responsive-nav-link>
-            @endif
-
-            @if (isset($accessibleModules['system']))
-                <x-responsive-nav-link href="#" :active="false">
-                    {{ __('Sistema') }}
-                </x-responsive-nav-link>
-            @endif
+            
+            <x-responsive-nav-link :href="route('aplicaciones')" :active="request()->routeIs('aplicaciones')">
+                {{ __('Aplicaciones') }}
+            </x-responsive-nav-link>
         </div>
 
         <!-- Responsive Settings Options -->

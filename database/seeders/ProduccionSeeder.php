@@ -60,7 +60,10 @@ class ProduccionSeeder extends Seeder
         ];
 
         foreach ($unidades as $unidadData) {
-            UnidadProduccion::create($unidadData);
+            UnidadProduccion::updateOrCreate(
+                ['codigo' => $unidadData['codigo']],
+                $unidadData
+            );
         }
 
         // Crear lotes
@@ -116,11 +119,14 @@ class ProduccionSeeder extends Seeder
         ];
 
         foreach ($lotes as $loteData) {
-            Lote::create($loteData);
+            Lote::updateOrCreate(
+                ['codigo_lote' => $loteData['codigo_lote']],
+                $loteData
+            );
         }
 
-        echo "✅ Datos de producción creados:\n";
-        echo "- " . count($unidades) . " unidades de producción\n";
-        echo "- " . count($lotes) . " lotes\n";
+        $this->command->info("✅ Datos de producción creados:");
+        $this->command->info("- " . count($unidades) . " unidades de producción");
+        $this->command->info("- " . count($lotes) . " lotes");
     }
 }

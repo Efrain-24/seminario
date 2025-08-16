@@ -5,7 +5,7 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
+                    <a href="{{ route('aplicaciones') }}">
                         <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
                     </a>
                 </div>
@@ -16,65 +16,9 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
                     
-                    @can('ver_unidades')
-                    <x-nav-link :href="route('produccion.unidades')" :active="request()->routeIs('produccion.unidades*')">
-                        {{ __('Unidades') }}
+                    <x-nav-link :href="route('aplicaciones')" :active="request()->routeIs('aplicaciones')">
+                        {{ __('Aplicaciones') }}
                     </x-nav-link>
-                    @endcan
-                    
-                    @can('ver_lotes')
-                    <x-nav-link :href="route('produccion.lotes')" :active="request()->routeIs('produccion.lotes*')">
-                        {{ __('Lotes') }}
-                    </x-nav-link>
-                    @endcan
-                    
-                    @can('ver_mantenimientos')
-                    <x-nav-link :href="route('produccion.mantenimientos')" :active="request()->routeIs('produccion.mantenimientos*')">
-                        {{ __('Mantenimientos') }}
-                    </x-nav-link>
-                    @endcan
-                    
-                    @can('ver_alimentacion')
-                    <x-nav-link href="#" :active="false">
-                        {{ __('Alimentación') }}
-                    </x-nav-link>
-                    @endcan
-                    
-                    @can('ver_monitoreo')
-                    <x-nav-link href="#" :active="false">
-                        {{ __('Monitoreo') }}
-                    </x-nav-link>
-                    @endcan
-                    
-                    @can('ver_sanidad')
-                    <x-nav-link href="#" :active="false">
-                        {{ __('Sanidad') }}
-                    </x-nav-link>
-                    @endcan
-                    
-                    @can('ver_crecimiento')
-                    <x-nav-link href="#" :active="false">
-                        {{ __('Crecimiento') }}
-                    </x-nav-link>
-                    @endcan
-                    
-                    @can('ver_costos')
-                    <x-nav-link href="#" :active="false">
-                        {{ __('Costos') }}
-                    </x-nav-link>
-                    @endcan
-                    
-                    @can('ver_roles')
-                    <x-nav-link :href="route('roles.index')" :active="request()->routeIs('roles.*')">
-                        {{ __('Roles') }}
-                    </x-nav-link>
-                    @endcan
-                    
-                    @can('gestionar_usuarios')
-                    <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
-                        {{ __('Usuarios') }}
-                    </x-nav-link>
-                    @endcan
                 </div>
             </div>
 
@@ -131,65 +75,9 @@
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
             
-            @can('ver_unidades')
-            <x-responsive-nav-link :href="route('produccion.unidades')" :active="request()->routeIs('produccion.unidades*')">
-                {{ __('Unidades') }}
+            <x-responsive-nav-link :href="route('aplicaciones')" :active="request()->routeIs('aplicaciones')">
+                {{ __('Aplicaciones') }}
             </x-responsive-nav-link>
-            @endcan
-            
-            @can('ver_lotes')
-            <x-responsive-nav-link :href="route('produccion.lotes')" :active="request()->routeIs('produccion.lotes*')">
-                {{ __('Lotes') }}
-            </x-responsive-nav-link>
-            @endcan
-            
-            @can('ver_mantenimientos')
-            <x-responsive-nav-link :href="route('produccion.mantenimientos')" :active="request()->routeIs('produccion.mantenimientos*')">
-                {{ __('Mantenimientos') }}
-            </x-responsive-nav-link>
-            @endcan
-            
-            @can('ver_alimentacion')
-            <x-responsive-nav-link href="#" :active="false">
-                {{ __('Alimentación') }}
-            </x-responsive-nav-link>
-            @endcan
-            
-            @can('ver_monitoreo')
-            <x-responsive-nav-link href="#" :active="false">
-                {{ __('Monitoreo') }}
-            </x-responsive-nav-link>
-            @endcan
-            
-            @can('ver_sanidad')
-            <x-responsive-nav-link href="#" :active="false">
-                {{ __('Sanidad') }}
-            </x-responsive-nav-link>
-            @endcan
-            
-            @can('ver_crecimiento')
-            <x-responsive-nav-link href="#" :active="false">
-                {{ __('Crecimiento') }}
-            </x-responsive-nav-link>
-            @endcan
-            
-            @can('ver_costos')
-            <x-responsive-nav-link href="#" :active="false">
-                {{ __('Costos') }}
-            </x-responsive-nav-link>
-            @endcan
-            
-            @can('ver_roles')
-            <x-responsive-nav-link :href="route('roles.index')" :active="request()->routeIs('roles.*')">
-                {{ __('Roles') }}
-            </x-responsive-nav-link>
-            @endcan
-            
-            @can('gestionar_usuarios')
-            <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
-                {{ __('Usuarios') }}
-            </x-responsive-nav-link>
-            @endcan
         </div>
 
         <!-- Responsive Settings Options -->

@@ -21,15 +21,16 @@ class DatabaseSeeder extends Seeder
                 'display_name' => 'Administrador',
                 'description' => 'Acceso completo al sistema',
                 'permissions' => [
-                    'gestionar_usuarios', 'gestionar_roles',
-                    'ver_unidades', 'crear_unidades', 'editar_unidades', 'eliminar_unidades',
-                    'ver_lotes', 'crear_lotes', 'editar_lotes', 'eliminar_lotes',
-                    'ver_mantenimientos', 'crear_mantenimientos', 'editar_mantenimientos', 'eliminar_mantenimientos',
-                    'ver_alimentacion', 'crear_alimentacion', 'editar_alimentacion', 'eliminar_alimentacion',
-                    'ver_sanidad', 'crear_sanidad', 'editar_sanidad', 'eliminar_sanidad',
-                    'ver_crecimiento', 'crear_crecimiento', 'editar_crecimiento', 'eliminar_crecimiento',
-                    'ver_costos', 'crear_costos', 'editar_costos', 'eliminar_costos',
-                    'ver_monitoreo', 'crear_monitoreo', 'editar_monitoreo', 'eliminar_monitoreo'
+                    'gestionar_usuarios.view', 'gestionar_usuarios.create', 'gestionar_usuarios.edit', 'gestionar_usuarios.delete',
+                    'gestionar_roles.view', 'gestionar_roles.create', 'gestionar_roles.edit', 'gestionar_roles.delete',
+                    'unidades.view', 'unidades.create', 'unidades.edit', 'unidades.delete',
+                    'lotes.view', 'lotes.create', 'lotes.edit', 'lotes.delete',
+                    'mantenimientos.view', 'mantenimientos.create', 'mantenimientos.edit', 'mantenimientos.delete',
+                    'alimentacion.view', 'alimentacion.create', 'alimentacion.edit', 'alimentacion.delete',
+                    'sanidad.view', 'sanidad.create', 'sanidad.edit', 'sanidad.delete',
+                    'crecimiento.view', 'crecimiento.create', 'crecimiento.edit', 'crecimiento.delete',
+                    'costos.view', 'costos.create', 'costos.edit', 'costos.delete',
+                    'monitoreo.view', 'monitoreo.create', 'monitoreo.edit', 'monitoreo.delete'
                 ],
                 'is_active' => true
             ],
@@ -38,15 +39,15 @@ class DatabaseSeeder extends Seeder
                 'display_name' => 'Manager',
                 'description' => 'Gestión operativa',
                 'permissions' => [
-                    'gestionar_usuarios',
-                    'ver_unidades', 'crear_unidades', 'editar_unidades', 'eliminar_unidades',
-                    'ver_lotes', 'crear_lotes', 'editar_lotes', 'eliminar_lotes',
-                    'ver_mantenimientos', 'crear_mantenimientos', 'editar_mantenimientos', 'eliminar_mantenimientos',
-                    'ver_alimentacion', 'crear_alimentacion', 'editar_alimentacion', 'eliminar_alimentacion',
-                    'ver_sanidad', 'crear_sanidad', 'editar_sanidad', 'eliminar_sanidad',
-                    'ver_crecimiento', 'crear_crecimiento', 'editar_crecimiento', 'eliminar_crecimiento',
-                    'ver_costos', 'crear_costos', 'editar_costos', 'eliminar_costos',
-                    'ver_monitoreo', 'crear_monitoreo', 'editar_monitoreo', 'eliminar_monitoreo'
+                    'gestionar_usuarios.view', 'gestionar_usuarios.create', 'gestionar_usuarios.edit',
+                    'unidades.view', 'unidades.create', 'unidades.edit', 'unidades.delete',
+                    'lotes.view', 'lotes.create', 'lotes.edit', 'lotes.delete',
+                    'mantenimientos.view', 'mantenimientos.create', 'mantenimientos.edit', 'mantenimientos.delete',
+                    'alimentacion.view', 'alimentacion.create', 'alimentacion.edit', 'alimentacion.delete',
+                    'sanidad.view', 'sanidad.create', 'sanidad.edit', 'sanidad.delete',
+                    'crecimiento.view', 'crecimiento.create', 'crecimiento.edit', 'crecimiento.delete',
+                    'costos.view', 'costos.create', 'costos.edit', 'costos.delete',
+                    'monitoreo.view', 'monitoreo.create', 'monitoreo.edit', 'monitoreo.delete'
                 ],
                 'is_active' => true
             ],
@@ -55,14 +56,14 @@ class DatabaseSeeder extends Seeder
                 'display_name' => 'Empleado',
                 'description' => 'Acceso operativo básico',
                 'permissions' => [
-                    'ver_unidades', 'crear_unidades', 'editar_unidades',
-                    'ver_lotes', 'crear_lotes', 'editar_lotes',
-                    'ver_mantenimientos', 'crear_mantenimientos',
-                    'ver_alimentacion', 'crear_alimentacion', 'editar_alimentacion',
-                    'ver_sanidad', 'crear_sanidad', 'editar_sanidad',
-                    'ver_crecimiento', 'crear_crecimiento', 'editar_crecimiento',
-                    'ver_costos', 'crear_costos',
-                    'ver_monitoreo', 'crear_monitoreo', 'editar_monitoreo'
+                    'unidades.view', 'unidades.create', 'unidades.edit',
+                    'lotes.view', 'lotes.create', 'lotes.edit',
+                    'mantenimientos.view', 'mantenimientos.create',
+                    'alimentacion.view', 'alimentacion.create', 'alimentacion.edit',
+                    'sanidad.view', 'sanidad.create', 'sanidad.edit',
+                    'crecimiento.view', 'crecimiento.create', 'crecimiento.edit',
+                    'costos.view', 'costos.create',
+                    'monitoreo.view', 'monitoreo.create', 'monitoreo.edit'
                 ],
                 'is_active' => true
             ],
@@ -71,14 +72,14 @@ class DatabaseSeeder extends Seeder
                 'display_name' => 'Genérico',
                 'description' => 'Solo lectura',
                 'permissions' => [
-                    'ver_unidades',
-                    'ver_lotes',
-                    'ver_mantenimientos',
-                    'ver_alimentacion',
-                    'ver_sanidad',
-                    'ver_crecimiento',
-                    'ver_costos',
-                    'ver_monitoreo'
+                    'unidades.view',
+                    'lotes.view',
+                    'mantenimientos.view',
+                    'alimentacion.view',
+                    'sanidad.view',
+                    'crecimiento.view',
+                    'costos.view',
+                    'monitoreo.view'
                 ],
                 'is_active' => true
             ]
@@ -157,5 +158,12 @@ class DatabaseSeeder extends Seeder
         $this->command->info('- Manager: manager@piscicultura.com / manager123');
         $this->command->info('- Empleado: empleado@piscicultura.com / empleado123');
         $this->command->info('- Genérico: generico@piscicultura.com / generico123');
+
+        // Ejecutar seeders adicionales
+        $this->call([
+            ProduccionSeeder::class,
+            TipoAlimentoSeeder::class,
+            AlimentacionSeeder::class,
+        ]);
     }
 }
