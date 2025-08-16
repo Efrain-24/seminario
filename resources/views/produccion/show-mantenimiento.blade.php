@@ -216,7 +216,7 @@
                     @if($mantenimiento->costo_mantenimiento)
                     <div class="mb-4">
                         <p class="text-gray-700 dark:text-gray-300">
-                            <strong>Costo del mantenimiento:</strong> ${{ number_format($mantenimiento->costo_mantenimiento, 2) }}
+                            <strong>Costo del mantenimiento:</strong> Q{{ number_format($mantenimiento->costo_mantenimiento, 2) }}
                         </p>
                     </div>
                     @endif
@@ -242,6 +242,7 @@
                         @if($mantenimiento->estado_mantenimiento === 'programado')
                             <form method="POST" action="{{ route('produccion.mantenimientos.iniciar', $mantenimiento) }}" class="inline">
                                 @csrf
+                                <input type="hidden" name="_method" value="PATCH">
                                 <button type="submit" 
                                         onclick="return confirm('¿Estás seguro de que quieres iniciar este mantenimiento?')"
                                         class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105 inline-flex items-center">
@@ -287,6 +288,7 @@
                 <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Completar Mantenimiento</h3>
                 <form method="POST" action="{{ route('produccion.mantenimientos.completar', $mantenimiento) }}" class="space-y-4">
                     @csrf
+                    <input type="hidden" name="_method" value="PATCH">
                     
                     <div>
                         <label for="observaciones_despues" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -308,7 +310,7 @@
 
                     <div>
                         <label for="costo_mantenimiento" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Costo del mantenimiento ($)
+                            Costo del mantenimiento (Q)
                         </label>
                         <input type="number" name="costo_mantenimiento" step="0.01" min="0" 
                                class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm focus:border-green-500 focus:ring-green-500">
@@ -344,6 +346,7 @@
                 <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Cancelar Mantenimiento</h3>
                 <form method="POST" action="{{ route('produccion.mantenimientos.cancelar', $mantenimiento) }}" class="space-y-4">
                     @csrf
+                    <input type="hidden" name="_method" value="PATCH">
                     
                     <div>
                         <label for="motivo_cancelacion" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

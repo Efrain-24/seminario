@@ -60,6 +60,7 @@ Route::middleware('auth')->prefix('produccion')->name('produccion.')->group(func
     Route::get('/unidades/{unidad}', [ProduccionController::class, 'showUnidad'])->name('unidades.show')->middleware('permission:ver_unidades');
     Route::get('/unidades/{unidad}/edit', [ProduccionController::class, 'editUnidad'])->name('unidades.edit')->middleware('permission:editar_unidades');
     Route::put('/unidades/{unidad}', [ProduccionController::class, 'updateUnidad'])->name('unidades.update')->middleware('permission:editar_unidades');
+    Route::delete('/unidades/{unidad}', [ProduccionController::class, 'destroyUnidad'])->name('unidades.destroy')->middleware('permission:eliminar_unidades');
     Route::get('/unidades/generate-code/{tipo}', [ProduccionController::class, 'generateUnidadCode'])->name('unidades.generate-code');
     
     // Otras rutas

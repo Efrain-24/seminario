@@ -592,4 +592,32 @@ class ProduccionController extends Controller
         return redirect()->route('produccion.traslados')
                        ->with('success', 'Traslado cancelado exitosamente.');
     }
+
+    public function destroyUnidad(UnidadProduccion $unidad)
+    {
+        try {
+            // Verificar que no tenga lotes activos
+            $lotesActivos = $unidad->lotes()->activos()->count();
+            if ($lotesActivos > 0) {
+                return back()->withErrors(['error' => 'No se puede eliminar la unidad porque tiene lotes activos asignados.']);
+            }
+
+            // Verificar que no tenga mantenimientos pendientes
+            $mantenimientosPendientes = $unidad->mantenimientos()
+                ->whereIn('estado_mantenimiento', ['programado', 'en_proceso'])
+                ->count();
+            if ($mantenimientosPendientes > 0) {
+                return back()->withErrors(['error' => 'No se puede eliminar la unidad porque tiene mantenimientos pendientes.']);
+            }
+
+            // Soft delete de la unidad
+            $unidad->delete();
+
+            return redirect()->route('produccion.unidades')
+                           ->with('success', 'Unidad de producción eliminada exitosamente.');
+                           
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Error al eliminar la unidad: ' . $e->getMessage()]);
+        }
+    }
 }

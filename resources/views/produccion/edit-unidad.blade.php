@@ -142,22 +142,89 @@
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-end space-x-4">
-                            <a href="{{ route('produccion.unidades.show', $unidad) }}" 
-                               class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
-                                Cancelar
-                            </a>
-                            <button type="submit" 
-                                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105 inline-flex items-center">
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                Actualizar Unidad
-                            </button>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                @can('eliminar_unidades')
+                                    <button type="button" onclick="openEliminarModal()" 
+                                            class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105 inline-flex items-center">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                        Eliminar Unidad
+                                    </button>
+                                @endcan
+                            </div>
+                            <div class="flex space-x-4">
+                                <a href="{{ route('produccion.unidades.show', $unidad) }}" 
+                                   class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
+                                    Cancelar
+                                </a>
+                                <button type="submit" 
+                                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105 inline-flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Actualizar Unidad
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Modal de Confirmación para Eliminar -->
+    <div id="eliminarModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-1/2 lg:w-1/3 shadow-lg rounded-md bg-white dark:bg-gray-800">
+            <div class="mt-3">
+                <div class="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 text-center mb-4">
+                    ¿Confirmar Eliminación?
+                </h3>
+                <p class="text-sm text-gray-600 dark:text-gray-300 text-center mb-6">
+                    ¿Estás seguro de que quieres eliminar la unidad <strong>{{ $unidad->nombre }}</strong>?<br>
+                    <span class="text-red-600 dark:text-red-400 font-medium">Esta acción no se puede deshacer.</span>
+                </p>
+                <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-4">
+                    <p class="text-xs text-yellow-800 dark:text-yellow-200">
+                        <strong>Nota:</strong> Solo se pueden eliminar unidades que no tengan lotes activos ni mantenimientos pendientes.
+                    </p>
+                </div>
+                <form method="POST" action="{{ route('produccion.unidades.destroy', $unidad) }}" class="flex justify-center space-x-4">
+                    @csrf
+                    @method('DELETE')
+                    <button type="button" onclick="closeEliminarModal()" 
+                            class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
+                        Cancelar
+                    </button>
+                    <button type="submit" 
+                            class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded">
+                        Eliminar Unidad
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openEliminarModal() {
+            document.getElementById('eliminarModal').classList.remove('hidden');
+        }
+        
+        function closeEliminarModal() {
+            document.getElementById('eliminarModal').classList.add('hidden');
+        }
+
+        // Cerrar modal al hacer clic fuera
+        document.getElementById('eliminarModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEliminarModal();
+            }
+        });
+    </script>
 </x-app-layout>
