@@ -48,16 +48,19 @@ Route::middleware('auth')->prefix('produccion')->name('produccion.')->group(func
     Route::get('/', [ProduccionController::class, 'index'])->name('index');
     
     // Rutas de Lotes
-    Route::get('/lotes', [ProduccionController::class, 'gestionLotes'])->name('lotes');
-    Route::get('/lotes/create', [ProduccionController::class, 'createLote'])->name('lotes.create');
-    Route::post('/lotes', [ProduccionController::class, 'storeLote'])->name('lotes.store');
-    Route::get('/lotes/{lote}', [ProduccionController::class, 'showLote'])->name('lotes.show');
+    Route::get('/lotes', [ProduccionController::class, 'gestionLotes'])->name('lotes')->middleware('permission:ver_lotes');
+    Route::get('/lotes/create', [ProduccionController::class, 'createLote'])->name('lotes.create')->middleware('permission:crear_lotes');
+    Route::post('/lotes', [ProduccionController::class, 'storeLote'])->name('lotes.store')->middleware('permission:crear_lotes');
+    Route::get('/lotes/{lote}', [ProduccionController::class, 'showLote'])->name('lotes.show')->middleware('permission:ver_lotes');
     
     // Rutas de Unidades
-    Route::get('/unidades', [ProduccionController::class, 'gestionUnidades'])->name('unidades');
-    Route::get('/unidades/create', [ProduccionController::class, 'createUnidad'])->name('unidades.create');
-    Route::post('/unidades', [ProduccionController::class, 'storeUnidad'])->name('unidades.store');
-    Route::get('/unidades/{unidad}', [ProduccionController::class, 'showUnidad'])->name('unidades.show');
+    Route::get('/unidades', [ProduccionController::class, 'gestionUnidades'])->name('unidades')->middleware('permission:ver_unidades');
+    Route::get('/unidades/create', [ProduccionController::class, 'createUnidad'])->name('unidades.create')->middleware('permission:crear_unidades');
+    Route::post('/unidades', [ProduccionController::class, 'storeUnidad'])->name('unidades.store')->middleware('permission:crear_unidades');
+    Route::get('/unidades/{unidad}', [ProduccionController::class, 'showUnidad'])->name('unidades.show')->middleware('permission:ver_unidades');
+    Route::get('/unidades/{unidad}/edit', [ProduccionController::class, 'editUnidad'])->name('unidades.edit')->middleware('permission:editar_unidades');
+    Route::put('/unidades/{unidad}', [ProduccionController::class, 'updateUnidad'])->name('unidades.update')->middleware('permission:editar_unidades');
+    Route::get('/unidades/generate-code/{tipo}', [ProduccionController::class, 'generateUnidadCode'])->name('unidades.generate-code');
     
     // Otras rutas
     Route::get('/traslados', [ProduccionController::class, 'gestionTraslados'])->name('traslados');
@@ -76,14 +79,17 @@ Route::middleware('auth')->prefix('produccion')->name('produccion.')->group(func
     Route::patch('/traslados/{traslado}/completar', [ProduccionController::class, 'completarTraslado'])->name('traslados.completar');
     Route::patch('/traslados/{traslado}/cancelar', [ProduccionController::class, 'cancelarTraslado'])->name('traslados.cancelar');
     
-    // Rutas de mantenimientos
-    Route::get('/mantenimientos/{unidad?}', [ProduccionController::class, 'gestionMantenimientos'])->name('mantenimientos');
-    Route::get('/mantenimientos/crear/{unidad?}', [ProduccionController::class, 'crearMantenimiento'])->name('mantenimientos.crear');
-    Route::post('/mantenimientos', [ProduccionController::class, 'storeMantenimiento'])->name('mantenimientos.store');
-    Route::get('/mantenimiento/{mantenimiento}', [ProduccionController::class, 'showMantenimiento'])->name('mantenimiento.show');
-    Route::patch('/mantenimiento/{mantenimiento}/iniciar', [ProduccionController::class, 'iniciarMantenimiento'])->name('mantenimiento.iniciar');
-    Route::patch('/mantenimiento/{mantenimiento}/completar', [ProduccionController::class, 'completarMantenimiento'])->name('mantenimiento.completar');
-    Route::patch('/mantenimiento/{mantenimiento}/cancelar', [ProduccionController::class, 'cancelarMantenimiento'])->name('mantenimiento.cancelar');
+    // Rutas de mantenimientos (las rutas más específicas van primero)
+    Route::get('/mantenimientos/crear/{unidad?}', [ProduccionController::class, 'crearMantenimiento'])->name('mantenimientos.crear')->middleware('permission:crear_mantenimientos');
+    Route::get('/mantenimientos/historial/{unidad?}', [ProduccionController::class, 'historialMantenimientos'])->name('mantenimientos.historial')->middleware('permission:ver_mantenimientos');
+    Route::post('/mantenimientos', [ProduccionController::class, 'storeMantenimiento'])->name('mantenimientos.store')->middleware('permission:crear_mantenimientos');
+    Route::get('/mantenimientos/{unidad?}', [ProduccionController::class, 'gestionMantenimientos'])->name('mantenimientos')->middleware('permission:ver_mantenimientos');
+    Route::get('/mantenimiento/{mantenimiento}', [ProduccionController::class, 'showMantenimiento'])->name('mantenimientos.show')->middleware('permission:ver_mantenimientos');
+    Route::get('/mantenimiento/{mantenimiento}/editar', [ProduccionController::class, 'editMantenimiento'])->name('mantenimientos.edit')->middleware('permission:editar_mantenimientos');
+    Route::put('/mantenimiento/{mantenimiento}', [ProduccionController::class, 'updateMantenimiento'])->name('mantenimientos.update')->middleware('permission:editar_mantenimientos');
+    Route::patch('/mantenimiento/{mantenimiento}/iniciar', [ProduccionController::class, 'iniciarMantenimiento'])->name('mantenimientos.iniciar')->middleware('permission:editar_mantenimientos');
+    Route::patch('/mantenimiento/{mantenimiento}/completar', [ProduccionController::class, 'completarMantenimiento'])->name('mantenimientos.completar')->middleware('permission:editar_mantenimientos');
+    Route::patch('/mantenimiento/{mantenimiento}/cancelar', [ProduccionController::class, 'cancelarMantenimiento'])->name('mantenimientos.cancelar')->middleware('permission:editar_mantenimientos');
 });
 
 

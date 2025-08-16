@@ -5,31 +5,6 @@
                 {{ __('Gestión de Unidades de Producción') }}
             </h2>
             <div class="flex space-x-3">
-                <a href="{{ route('produccion.index') }}" 
-                   class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105 inline-flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
-                    </svg>
-                    Volver al Módulo
-                </a>
-                
-                <a href="{{ route('produccion.lotes') }}" 
-                   class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105 inline-flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                    </svg>
-                    Gestión de Lotes
-                </a>
-                
-                <a href="{{ route('produccion.mantenimientos') }}" 
-                   class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105 inline-flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    </svg>
-                    Mantenimientos
-                </a>
-                
                 <a href="{{ route('produccion.unidades.create') }}" 
                    class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105 inline-flex items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -41,23 +16,108 @@
         </div>
     </x-slot>
 
-    <div class="py-12">
+    <!-- Notificaciones flotantes -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+
+    <!-- Filtros -->
+    <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <!-- Mensajes de éxito/error -->
-            @if(session('success'))
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                    {{ session('success') }}
-                </div>
-            @endif
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6">
+                <div class="p-6">
+                    <form method="GET" action="{{ route('produccion.unidades') }}" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <!-- Búsqueda por nombre/código -->
+                            <div>
+                                <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Buscar
+                                </label>
+                                <input type="text" name="search" id="search" 
+                                       value="{{ request('search') }}"
+                                       placeholder="Nombre o código..."
+                                       class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
 
-            @if(session('error'))
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                    {{ session('error') }}
-                </div>
-            @endif
+                            <!-- Filtro por tipo -->
+                            <div>
+                                <label for="tipo" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Tipo de Unidad
+                                </label>
+                                <select name="tipo" id="tipo" 
+                                        class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="">Todos los tipos</option>
+                                    <option value="tanque" {{ request('tipo') == 'tanque' ? 'selected' : '' }}>Tanque</option>
+                                    <option value="estanque" {{ request('tipo') == 'estanque' ? 'selected' : '' }}>Estanque</option>
+                                    <option value="jaula" {{ request('tipo') == 'jaula' ? 'selected' : '' }}>Jaula</option>
+                                    <option value="sistema_especializado" {{ request('tipo') == 'sistema_especializado' ? 'selected' : '' }}>Sistema Especializado</option>
+                                </select>
+                            </div>
 
+                            <!-- Filtro por estado -->
+                            <div>
+                                <label for="estado" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Estado
+                                </label>
+                                <select name="estado" id="estado" 
+                                        class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="">Todos los estados</option>
+                                    <option value="activo" {{ request('estado') == 'activo' ? 'selected' : '' }}>Activo</option>
+                                    <option value="mantenimiento" {{ request('estado') == 'mantenimiento' ? 'selected' : '' }}>Mantenimiento</option>
+                                    <option value="inactivo" {{ request('estado') == 'inactivo' ? 'selected' : '' }}>Inactivo</option>
+                                </select>
+                            </div>
+
+                            <!-- Filtro por fecha -->
+                            <div>
+                                <label for="fecha_desde" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Fecha desde
+                                </label>
+                                <input type="date" name="fecha_desde" id="fecha_desde" 
+                                       value="{{ request('fecha_desde') }}"
+                                       class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-4">
+                            <button type="submit" 
+                                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105 inline-flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                                Filtrar
+                            </button>
+                            
+                            <a href="{{ route('produccion.unidades') }}" 
+                               class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg transition duration-200">
+                                Limpiar filtros
+                            </a>
+                            
+                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                                {{ $unidades->total() }} unidad(es) encontrada(s)
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="py-6">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
+                    <!-- Información sobre la tabla -->
+                    <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-md">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p class="text-sm text-blue-700 dark:text-blue-300">
+                                <strong>Tip:</strong> Haz clic en cualquier fila para ver los detalles completos de la unidad de producción.
+                            </p>
+                        </div>
+                    </div>
+                    
                     <div class="overflow-x-auto">
                         <table class="min-w-full table-auto">
                             <thead>
@@ -80,25 +140,37 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         Última Actividad
                                     </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Acciones
-                                    </th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 @forelse($unidades as $unidad)
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
-                                        <td class="px-6 py-4 whitespace-nowrap cursor-pointer" 
-                                            onclick="window.location='{{ route('produccion.unidades.show', $unidad) }}'">
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150 cursor-pointer transform hover:scale-[1.01] hover:shadow-md"
+                                        onclick="window.location='{{ route('produccion.unidades.show', $unidad) }}'"
+                                        title="Clic para ver detalles de {{ $unidad->nombre }}">
+                                        <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center">
                                                 <div class="flex-shrink-0 h-10 w-10">
-                                                    <div class="h-10 w-10 rounded-full {{ $unidad->tipo === 'tanque' ? 'bg-blue-500' : 'bg-green-500' }} flex items-center justify-center text-white font-semibold">
-                                                        {{ $unidad->tipo === 'tanque' ? '🏊' : '🏞️' }}
+                                                    <div class="h-10 w-10 rounded-full flex items-center justify-center text-white font-semibold
+                                                        {{ $unidad->tipo === 'tanque' ? 'bg-blue-500' : 
+                                                           ($unidad->tipo === 'estanque' ? 'bg-green-500' : 
+                                                           ($unidad->tipo === 'jaula' ? 'bg-purple-500' : 'bg-orange-500')) }}">
+                                                        @if($unidad->tipo === 'tanque')
+                                                            T
+                                                        @elseif($unidad->tipo === 'estanque')
+                                                            E
+                                                        @elseif($unidad->tipo === 'jaula')
+                                                            J
+                                                        @else
+                                                            S
+                                                        @endif
                                                     </div>
                                                 </div>
                                                 <div class="ml-4">
                                                     <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                         {{ $unidad->nombre }}
+                                                        <svg class="inline w-4 h-4 ml-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                                        </svg>
                                                     </div>
                                                     <div class="text-xs text-gray-500 dark:text-gray-400">
                                                         {{ $unidad->codigo }}
@@ -106,14 +178,20 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 cursor-pointer" 
-                                            onclick="window.location='{{ route('produccion.unidades.show', $unidad) }}'">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $unidad->tipo === 'tanque' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' }}">
-                                                {{ ucfirst($unidad->tipo) }}
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                                {{ $unidad->tipo === 'tanque' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 
+                                                   ($unidad->tipo === 'estanque' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 
+                                                   ($unidad->tipo === 'jaula' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' : 
+                                                   'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200')) }}">
+                                                @if($unidad->tipo === 'sistema_especializado')
+                                                    Sistema Especializado
+                                                @else
+                                                    {{ ucfirst($unidad->tipo) }}
+                                                @endif
                                             </span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 cursor-pointer" 
-                                            onclick="window.location='{{ route('produccion.unidades.show', $unidad) }}'">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                                             @if($unidad->capacidad_maxima)
                                                 {{ number_format($unidad->capacidad_maxima, 0) }} L
                                             @else
@@ -125,14 +203,12 @@
                                                 </div>
                                             @endif
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 cursor-pointer" 
-                                            onclick="window.location='{{ route('produccion.unidades.show', $unidad) }}'">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
                                                 {{ $unidad->lotes_count }} lotes
                                             </span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap cursor-pointer" 
-                                            onclick="window.location='{{ route('produccion.unidades.show', $unidad) }}'">
+                                        <td class="px-6 py-4 whitespace-nowrap">
                                             @if($unidad->estado === 'activo')
                                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
                                                     Activo
@@ -147,8 +223,7 @@
                                                 </span>
                                             @endif
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 cursor-pointer" 
-                                            onclick="window.location='{{ route('produccion.unidades.show', $unidad) }}'">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                                             @if($unidad->ultimo_mantenimiento)
                                                 {{ $unidad->ultimo_mantenimiento->format('d/m/Y') }}
                                                 <div class="text-xs text-gray-400">
@@ -161,29 +236,10 @@
                                                 </div>
                                             @endif
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <div class="flex space-x-2">
-                                                <a href="{{ route('produccion.mantenimientos.crear', $unidad) }}" 
-                                                   class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-orange-700 bg-orange-100 hover:bg-orange-200 dark:bg-orange-900 dark:text-orange-200 dark:hover:bg-orange-800">
-                                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                    </svg>
-                                                    Mantenimiento
-                                                </a>
-                                                <a href="{{ route('produccion.mantenimientos', $unidad) }}" 
-                                                   class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200 dark:hover:bg-blue-800">
-                                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                                                    </svg>
-                                                    Historial
-                                                </a>
-                                            </div>
-                                        </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="px-6 py-4 text-center text-gray-500 dark:text-gray-300">
+                                        <td colspan="6" class="px-6 py-4 text-center text-gray-500 dark:text-gray-300">
                                             No hay unidades de producción registradas.
                                         </td>
                                     </tr>

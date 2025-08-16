@@ -30,6 +30,39 @@ class UnidadProduccion extends Model
         'profundidad' => 'decimal:2',
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::creating(function ($unidad) {
+            if (empty($unidad->codigo)) {
+                $unidad->codigo = static::generateCodigo($unidad->tipo);
+            }
+        });
+    }
+
+    /**
+     * Genera un código automático para la unidad basado en el tipo
+     */
+    public static function generateCodigo($tipo)
+    {
+        // Mapeo de tipos a prefijos de código
+        $prefijos = [
+            'tanque' => 'TQ',
+            'estanque' => 'ES',
+            'jaula' => 'JL',
+            'sistema_especializado' => 'SE'
+        ];
+        
+        $prefijo = $prefijos[$tipo] ?? 'UN';
+        
+        // Contar unidades existentes del mismo tipo para generar número consecutivo
+        $count = static::where('tipo', $tipo)->count() + 1;
+        
+        // Generar código con formato: TQ001, ES001, JL001, SE001, etc.
+        return $prefijo . str_pad($count, 3, '0', STR_PAD_LEFT);
+    }
+
     // Relaciones
     public function lotes()
     {

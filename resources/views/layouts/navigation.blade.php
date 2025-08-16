@@ -15,33 +15,66 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    <x-nav-link href="#" :active="false">
+                    
+                    @can('ver_unidades')
+                    <x-nav-link :href="route('produccion.unidades')" :active="request()->routeIs('produccion.unidades*')">
+                        {{ __('Unidades') }}
+                    </x-nav-link>
+                    @endcan
+                    
+                    @can('ver_lotes')
+                    <x-nav-link :href="route('produccion.lotes')" :active="request()->routeIs('produccion.lotes*')">
                         {{ __('Lotes') }}
                     </x-nav-link>
+                    @endcan
+                    
+                    @can('ver_mantenimientos')
+                    <x-nav-link :href="route('produccion.mantenimientos')" :active="request()->routeIs('produccion.mantenimientos*')">
+                        {{ __('Mantenimientos') }}
+                    </x-nav-link>
+                    @endcan
+                    
+                    @can('ver_alimentacion')
                     <x-nav-link href="#" :active="false">
                         {{ __('Alimentación') }}
                     </x-nav-link>
+                    @endcan
+                    
+                    @can('ver_monitoreo')
                     <x-nav-link href="#" :active="false">
                         {{ __('Monitoreo') }}
                     </x-nav-link>
+                    @endcan
+                    
+                    @can('ver_sanidad')
                     <x-nav-link href="#" :active="false">
                         {{ __('Sanidad') }}
                     </x-nav-link>
+                    @endcan
+                    
+                    @can('ver_crecimiento')
                     <x-nav-link href="#" :active="false">
                         {{ __('Crecimiento') }}
                     </x-nav-link>
+                    @endcan
+                    
+                    @can('ver_costos')
                     <x-nav-link href="#" :active="false">
                         {{ __('Costos') }}
                     </x-nav-link>
-                    <x-nav-link href="#" :active="false">
-                        {{ __('Inventarios') }}
+                    @endcan
+                    
+                    @can('ver_roles')
+                    <x-nav-link :href="route('roles.index')" :active="request()->routeIs('roles.*')">
+                        {{ __('Roles') }}
                     </x-nav-link>
-                    <x-nav-link href="#" :active="false">
-                        {{ __('Reportes') }}
-                    </x-nav-link>                    
+                    @endcan
+                    
+                    @can('gestionar_usuarios')
                     <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
-                        {{ __('Gestión de Usuarios') }}
+                        {{ __('Usuarios') }}
                     </x-nav-link>
+                    @endcan
                 </div>
             </div>
 
@@ -97,30 +130,66 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link href="#" :active="false">
+            
+            @can('ver_unidades')
+            <x-responsive-nav-link :href="route('produccion.unidades')" :active="request()->routeIs('produccion.unidades*')">
+                {{ __('Unidades') }}
+            </x-responsive-nav-link>
+            @endcan
+            
+            @can('ver_lotes')
+            <x-responsive-nav-link :href="route('produccion.lotes')" :active="request()->routeIs('produccion.lotes*')">
                 {{ __('Lotes') }}
             </x-responsive-nav-link>
+            @endcan
+            
+            @can('ver_mantenimientos')
+            <x-responsive-nav-link :href="route('produccion.mantenimientos')" :active="request()->routeIs('produccion.mantenimientos*')">
+                {{ __('Mantenimientos') }}
+            </x-responsive-nav-link>
+            @endcan
+            
+            @can('ver_alimentacion')
             <x-responsive-nav-link href="#" :active="false">
                 {{ __('Alimentación') }}
             </x-responsive-nav-link>
+            @endcan
+            
+            @can('ver_monitoreo')
             <x-responsive-nav-link href="#" :active="false">
                 {{ __('Monitoreo') }}
             </x-responsive-nav-link>
+            @endcan
+            
+            @can('ver_sanidad')
             <x-responsive-nav-link href="#" :active="false">
                 {{ __('Sanidad') }}
             </x-responsive-nav-link>
+            @endcan
+            
+            @can('ver_crecimiento')
             <x-responsive-nav-link href="#" :active="false">
                 {{ __('Crecimiento') }}
             </x-responsive-nav-link>
+            @endcan
+            
+            @can('ver_costos')
             <x-responsive-nav-link href="#" :active="false">
                 {{ __('Costos') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link href="#" :active="false">
-                {{ __('Inventarios') }}
+            @endcan
+            
+            @can('ver_roles')
+            <x-responsive-nav-link :href="route('roles.index')" :active="request()->routeIs('roles.*')">
+                {{ __('Roles') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link href="#" :active="false">
-                {{ __('Reportes') }}
+            @endcan
+            
+            @can('gestionar_usuarios')
+            <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
+                {{ __('Usuarios') }}
             </x-responsive-nav-link>
+            @endcan
         </div>
 
         <!-- Responsive Settings Options -->

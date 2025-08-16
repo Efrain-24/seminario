@@ -86,15 +86,16 @@
                             
                             @php
                                 $modules = [
-                                    'users' => 'Gestión de Usuarios',
-                                    'roles' => 'Gestión de Roles', 
-                                    'production' => 'Módulo de Producción',
-                                    'inventory' => 'Módulo de Inventario',
-                                    'sales' => 'Módulo de Ventas',
-                                    'reports' => 'Módulo de Reportes',
-                                    'finances' => 'Módulo de Finanzas',
-                                    'maintenance' => 'Módulo de Mantenimiento',
-                                    'system' => 'Configuración del Sistema'
+                                    'gestionar_usuarios' => 'Gestión de Usuarios',
+                                    'gestionar_roles' => 'Gestión de Roles', 
+                                    'unidades' => 'Unidades de Producción',
+                                    'lotes' => 'Gestión de Lotes',
+                                    'mantenimientos' => 'Mantenimientos',
+                                    'alimentacion' => 'Alimentación',
+                                    'sanidad' => 'Sanidad',
+                                    'crecimiento' => 'Crecimiento',
+                                    'costos' => 'Costos',
+                                    'monitoreo' => 'Monitoreo Ambiental'
                                 ];
                                 
                                 $permissionLevels = [
@@ -203,15 +204,16 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Lista de módulos
         const modules = {
-            'users': 'Gestión de Usuarios',
-            'roles': 'Gestión de Roles', 
-            'production': 'Módulo de Producción',
-            'inventory': 'Módulo de Inventario',
-            'sales': 'Módulo de Ventas',
-            'reports': 'Módulo de Reportes',
-            'finances': 'Módulo de Finanzas',
-            'maintenance': 'Módulo de Mantenimiento',
-            'system': 'Configuración del Sistema'
+            'gestionar_usuarios': 'Gestión de Usuarios',
+            'gestionar_roles': 'Gestión de Roles', 
+            'unidades': 'Unidades de Producción',
+            'lotes': 'Gestión de Lotes',
+            'mantenimientos': 'Mantenimientos',
+            'alimentacion': 'Alimentación',
+            'sanidad': 'Sanidad',
+            'crecimiento': 'Crecimiento',
+            'costos': 'Costos',
+            'monitoreo': 'Monitoreo Ambiental'
         };
         
         // Verificar cada módulo si tiene permisos preseleccionados

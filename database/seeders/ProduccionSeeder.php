@@ -10,32 +10,21 @@ class ProduccionSeeder extends Seeder
 {
     public function run(): void
     {
-        // Crear unidades de producción
+        // Crear unidades de producción con tipos generales
         $unidades = [
             [
-                'codigo' => 'TQ-001',
+                'codigo' => 'TQ001',
                 'nombre' => 'Tanque Principal 1',
                 'tipo' => 'tanque',
                 'capacidad_maxima' => 5000.00,
                 'area' => 25.00,
                 'profundidad' => 2.00,
                 'estado' => 'activo',
-                'descripcion' => 'Tanque principal para alevines',
+                'descripcion' => 'Tanque principal para alevines y juveniles',
                 'fecha_construccion' => '2023-01-15'
             ],
             [
-                'codigo' => 'TQ-002',
-                'nombre' => 'Tanque Principal 2',
-                'tipo' => 'tanque',
-                'capacidad_maxima' => 5000.00,
-                'area' => 25.00,
-                'profundidad' => 2.00,
-                'estado' => 'activo',
-                'descripcion' => 'Tanque principal para juveniles',
-                'fecha_construccion' => '2023-01-15'
-            ],
-            [
-                'codigo' => 'EST-001',
+                'codigo' => 'ES001',
                 'nombre' => 'Estanque de Engorde 1',
                 'tipo' => 'estanque',
                 'capacidad_maxima' => 15000.00,
@@ -46,15 +35,26 @@ class ProduccionSeeder extends Seeder
                 'fecha_construccion' => '2022-06-10'
             ],
             [
-                'codigo' => 'EST-002',
-                'nombre' => 'Estanque de Engorde 2',
-                'tipo' => 'estanque',
-                'capacidad_maxima' => 15000.00,
-                'area' => 100.00,
-                'profundidad' => 1.50,
+                'codigo' => 'JL001',
+                'nombre' => 'Jaula Flotante 1',
+                'tipo' => 'jaula',
+                'capacidad_maxima' => 8000.00,
+                'area' => 64.00,
+                'profundidad' => 3.00,
+                'estado' => 'activo',
+                'descripcion' => 'Jaula flotante para cultivo en lago',
+                'fecha_construccion' => '2023-08-20'
+            ],
+            [
+                'codigo' => 'SE001',
+                'nombre' => 'Sistema RAS',
+                'tipo' => 'sistema_especializado',
+                'capacidad_maxima' => 10000.00,
+                'area' => 50.00,
+                'profundidad' => 2.50,
                 'estado' => 'mantenimiento',
-                'descripcion' => 'Estanque en mantenimiento',
-                'fecha_construccion' => '2022-06-10',
+                'descripcion' => 'Sistema de recirculación acuícola',
+                'fecha_construccion' => '2024-01-10',
                 'ultimo_mantenimiento' => '2025-08-01'
             ]
         ];

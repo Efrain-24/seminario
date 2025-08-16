@@ -21,15 +21,15 @@ class DatabaseSeeder extends Seeder
                 'display_name' => 'Administrador',
                 'description' => 'Acceso completo al sistema',
                 'permissions' => [
-                    'users.view', 'users.create', 'users.edit', 'users.delete',
-                    'roles.view', 'roles.create', 'roles.edit', 'roles.delete',
-                    'production.view', 'production.create', 'production.edit', 'production.delete',
-                    'inventory.view', 'inventory.create', 'inventory.edit', 'inventory.delete',
-                    'sales.view', 'sales.create', 'sales.edit', 'sales.delete',
-                    'reports.view', 'reports.create', 'reports.edit', 'reports.delete',
-                    'finances.view', 'finances.create', 'finances.edit', 'finances.delete',
-                    'maintenance.view', 'maintenance.create', 'maintenance.edit', 'maintenance.delete',
-                    'system.view', 'system.create', 'system.edit', 'system.delete'
+                    'gestionar_usuarios', 'gestionar_roles',
+                    'ver_unidades', 'crear_unidades', 'editar_unidades', 'eliminar_unidades',
+                    'ver_lotes', 'crear_lotes', 'editar_lotes', 'eliminar_lotes',
+                    'ver_mantenimientos', 'crear_mantenimientos', 'editar_mantenimientos', 'eliminar_mantenimientos',
+                    'ver_alimentacion', 'crear_alimentacion', 'editar_alimentacion', 'eliminar_alimentacion',
+                    'ver_sanidad', 'crear_sanidad', 'editar_sanidad', 'eliminar_sanidad',
+                    'ver_crecimiento', 'crear_crecimiento', 'editar_crecimiento', 'eliminar_crecimiento',
+                    'ver_costos', 'crear_costos', 'editar_costos', 'eliminar_costos',
+                    'ver_monitoreo', 'crear_monitoreo', 'editar_monitoreo', 'eliminar_monitoreo'
                 ],
                 'is_active' => true
             ],
@@ -38,14 +38,15 @@ class DatabaseSeeder extends Seeder
                 'display_name' => 'Manager',
                 'description' => 'Gestión operativa',
                 'permissions' => [
-                    'users.view', 'users.edit',
-                    'roles.view',
-                    'production.view', 'production.create', 'production.edit', 'production.delete',
-                    'inventory.view', 'inventory.create', 'inventory.edit', 'inventory.delete',
-                    'sales.view', 'sales.create', 'sales.edit',
-                    'reports.view', 'reports.create',
-                    'finances.view',
-                    'maintenance.view', 'maintenance.create'
+                    'gestionar_usuarios',
+                    'ver_unidades', 'crear_unidades', 'editar_unidades', 'eliminar_unidades',
+                    'ver_lotes', 'crear_lotes', 'editar_lotes', 'eliminar_lotes',
+                    'ver_mantenimientos', 'crear_mantenimientos', 'editar_mantenimientos', 'eliminar_mantenimientos',
+                    'ver_alimentacion', 'crear_alimentacion', 'editar_alimentacion', 'eliminar_alimentacion',
+                    'ver_sanidad', 'crear_sanidad', 'editar_sanidad', 'eliminar_sanidad',
+                    'ver_crecimiento', 'crear_crecimiento', 'editar_crecimiento', 'eliminar_crecimiento',
+                    'ver_costos', 'crear_costos', 'editar_costos', 'eliminar_costos',
+                    'ver_monitoreo', 'crear_monitoreo', 'editar_monitoreo', 'eliminar_monitoreo'
                 ],
                 'is_active' => true
             ],
@@ -54,12 +55,14 @@ class DatabaseSeeder extends Seeder
                 'display_name' => 'Empleado',
                 'description' => 'Acceso operativo básico',
                 'permissions' => [
-                    'users.view',
-                    'production.view', 'production.create', 'production.edit',
-                    'inventory.view', 'inventory.create',
-                    'sales.view', 'sales.create',
-                    'reports.view',
-                    'maintenance.view', 'maintenance.create'
+                    'ver_unidades', 'crear_unidades', 'editar_unidades',
+                    'ver_lotes', 'crear_lotes', 'editar_lotes',
+                    'ver_mantenimientos', 'crear_mantenimientos',
+                    'ver_alimentacion', 'crear_alimentacion', 'editar_alimentacion',
+                    'ver_sanidad', 'crear_sanidad', 'editar_sanidad',
+                    'ver_crecimiento', 'crear_crecimiento', 'editar_crecimiento',
+                    'ver_costos', 'crear_costos',
+                    'ver_monitoreo', 'crear_monitoreo', 'editar_monitoreo'
                 ],
                 'is_active' => true
             ],
@@ -68,10 +71,14 @@ class DatabaseSeeder extends Seeder
                 'display_name' => 'Genérico',
                 'description' => 'Solo lectura',
                 'permissions' => [
-                    'production.view',
-                    'inventory.view',
-                    'sales.view',
-                    'reports.view'
+                    'ver_unidades',
+                    'ver_lotes',
+                    'ver_mantenimientos',
+                    'ver_alimentacion',
+                    'ver_sanidad',
+                    'ver_crecimiento',
+                    'ver_costos',
+                    'ver_monitoreo'
                 ],
                 'is_active' => true
             ]

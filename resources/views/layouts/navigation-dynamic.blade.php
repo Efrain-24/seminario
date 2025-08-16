@@ -15,7 +15,7 @@
                     </a>
                 </div>
 
-                <!-- Navigation Links -->
+                <!-- Links de Navegación -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <!-- Dashboard siempre visible -->
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
@@ -43,6 +43,20 @@
                         </x-nav-link>
                     @endif
 
+                    <!-- Gestión de Unidades -->
+                    @if (isset($accessibleModules['production']))
+                        <x-nav-link :href="route('produccion.unidades')" :active="request()->routeIs('produccion.unidades*')">
+                            {{ __('Unidades') }}
+                        </x-nav-link>
+                    @endif
+
+                    <!-- Gestión de Mantenimientos -->
+                    @if (isset($accessibleModules['production']))
+                        <x-nav-link :href="route('produccion.mantenimientos')" :active="request()->routeIs('produccion.mantenimientos*')">
+                            {{ __('Mantenimientos') }}
+                        </x-nav-link>
+                    @endif
+
                     @if (isset($accessibleModules['inventory']))
                         <x-nav-link href="#" :active="false">
                             {{ __('Inventario') }}
@@ -64,12 +78,6 @@
                     @if (isset($accessibleModules['finances']))
                         <x-nav-link href="#" :active="false">
                             {{ __('Finanzas') }}
-                        </x-nav-link>
-                    @endif
-
-                    @if (isset($accessibleModules['maintenance']))
-                        <x-nav-link :href="route('produccion.mantenimientos')" :active="request()->routeIs('produccion.mantenimientos*')">
-                            {{ __('Mantenimiento') }}
                         </x-nav-link>
                     @endif
 
@@ -162,6 +170,18 @@
                 </x-responsive-nav-link>
             @endif
 
+            @if (isset($accessibleModules['production']))
+                <x-responsive-nav-link :href="route('produccion.unidades')" :active="request()->routeIs('produccion.unidades*')">
+                    {{ __('Unidades') }}
+                </x-responsive-nav-link>
+            @endif
+
+            @if (isset($accessibleModules['production']))
+                <x-responsive-nav-link :href="route('produccion.mantenimientos')" :active="request()->routeIs('produccion.mantenimientos*')">
+                    {{ __('Mantenimientos') }}
+                </x-responsive-nav-link>
+            @endif
+
             @if (isset($accessibleModules['inventory']))
                 <x-responsive-nav-link href="#" :active="false">
                     {{ __('Inventario') }}
@@ -183,12 +203,6 @@
             @if (isset($accessibleModules['finances']))
                 <x-responsive-nav-link href="#" :active="false">
                     {{ __('Finanzas') }}
-                </x-responsive-nav-link>
-            @endif
-
-            @if (isset($accessibleModules['maintenance']))
-                <x-responsive-nav-link :href="route('produccion.mantenimientos')" :active="request()->routeIs('produccion.mantenimientos*')">
-                    {{ __('Mantenimiento') }}
                 </x-responsive-nav-link>
             @endif
 

@@ -22,21 +22,6 @@
                     class="mt-4 inline-block text-blue-400 hover:underline">Acceder al módulo →</a>
             </div>
 
-            <!-- Tarjeta Gestión de Unidades -->
-            <div class="bg-gray-800 rounded-lg shadow p-6 text-white">
-                <div class="flex items-center space-x-4">
-                    <div class="bg-blue-600 rounded-full p-2">
-                        <i class="fas fa-cube fa-lg"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-bold">Gestión de Unidades</h3>
-                        <p class="text-sm text-gray-300">Registro de tanques/estanques.</p>
-                    </div>
-                </div>
-                <a href="{{ route('produccion.unidades') }}"
-                    class="mt-4 inline-block text-blue-400 hover:underline">Acceder al módulo →</a>
-            </div>
-
             <!-- Tarjeta Traslados entre Tanques -->
             <div class="bg-gray-800 rounded-lg shadow p-6 text-white">
                 <div class="flex items-center space-x-4">
@@ -67,20 +52,7 @@
                     class="mt-4 inline-block text-blue-400 hover:underline">Acceder al módulo →</a>
             </div>
 
-            <!-- Tarjeta Seguimiento de Unidades -->
-            <div class="bg-gray-800 rounded-lg shadow p-6 text-white">
-                <div class="flex items-center space-x-4">
-                    <div class="bg-blue-600 rounded-full p-2">
-                        <i class="fas fa-tools fa-lg"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-bold">Seguimiento de Unidades</h3>
-                        <p class="text-sm text-gray-300">Mantenimientos de tanques/estanques.</p>
-                    </div>
-                </div>
-                <a href="{{ route('produccion.seguimiento.unidades') }}"
-                    class="mt-4 inline-block text-blue-400 hover:underline">Acceder al módulo →</a>
-            </div>
+
         </div>
     </div>
 </x-app-layout>

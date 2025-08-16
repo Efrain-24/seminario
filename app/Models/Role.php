@@ -18,7 +18,6 @@ class Role extends Model
     ];
 
     protected $casts = [
-        'permissions' => 'array',
         'is_active' => 'boolean'
     ];
 
@@ -43,6 +42,33 @@ class Role extends Model
      */
     public function getPermissionsListAttribute()
     {
-        return $this->permissions ?? [];
+        return $this->getPermissionsArray();
+    }
+
+    /**
+     * Obtener permisos como array - método directo
+     */
+    public function getPermissionsArray()
+    {
+        // Obtener el valor raw directamente de la base de datos
+        $permissions = $this->getRawOriginal('permissions') ?? $this->getOriginal('permissions') ?? $this->attributes['permissions'] ?? null;
+        
+        if (is_null($permissions) || $permissions === '') {
+            return [];
+        }
+        
+        if (is_string($permissions)) {
+            // Primero intentar decodificar una vez
+            $decoded = json_decode($permissions, true);
+            
+            // Si el resultado es aún un string, decodificar nuevamente (doble codificación)
+            if (is_string($decoded)) {
+                $decoded = json_decode($decoded, true);
+            }
+            
+            return is_array($decoded) ? $decoded : [];
+        }
+        
+        return is_array($permissions) ? $permissions : [];
     }
 }

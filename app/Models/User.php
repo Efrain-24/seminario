@@ -57,6 +57,14 @@ class User extends Authenticatable
     ];
 
     /**
+     * Scope para usuarios activos
+     */
+    public function scopeActive($query)
+    {
+        return $query; // Por ahora todos los usuarios están activos
+    }
+
+    /**
      * Get the role display name
      */
     public function getRoleDisplayNameAttribute(): string
@@ -120,9 +128,13 @@ class User extends Authenticatable
             return false;
         }
         
-        // Check if user has any permission for this module
+        // Check if user has any permission for this module with the new naming convention
         $modulePermissions = collect($role->permissions ?? [])->filter(function($permission) use ($module) {
-            return str_starts_with($permission, $module.'.');
+            return str_starts_with($permission, 'ver_' . $module) || 
+                   str_starts_with($permission, 'crear_' . $module) || 
+                   str_starts_with($permission, 'editar_' . $module) || 
+                   str_starts_with($permission, 'eliminar_' . $module) ||
+                   $permission === $module;
         });
         
         return $modulePermissions->isNotEmpty();
@@ -140,9 +152,24 @@ class User extends Authenticatable
         }
         
         $modulePermissions = collect($role->permissions ?? [])->filter(function($permission) use ($module) {
-            return str_starts_with($permission, $module.'.');
+            return str_starts_with($permission, 'ver_' . $module) || 
+                   str_starts_with($permission, 'crear_' . $module) || 
+                   str_starts_with($permission, 'editar_' . $module) || 
+                   str_starts_with($permission, 'eliminar_' . $module) ||
+                   $permission === $module;
         })->map(function($permission) use ($module) {
-            return str_replace($module.'.', '', $permission);
+            // Extract the action from permission name (ver_, crear_, editar_, eliminar_)
+            if (str_contains($permission, '_')) {
+                $parts = explode('_', $permission, 2);
+                if (count($parts) === 2 && $parts[1] === $module) {
+                    return $parts[0]; // Return the action (ver, crear, editar, eliminar)
+                }
+                if (str_starts_with($permission, 'ver_' . $module)) return 'ver';
+                if (str_starts_with($permission, 'crear_' . $module)) return 'crear';
+                if (str_starts_with($permission, 'editar_' . $module)) return 'editar';
+                if (str_starts_with($permission, 'eliminar_' . $module)) return 'eliminar';
+            }
+            return $permission;
         })->toArray();
         
         return $modulePermissions;
@@ -153,21 +180,18 @@ class User extends Authenticatable
      */
     public function getAccessibleModules(): array
     {
-        $allModules = [
-            'users' => 'Gestión de Usuarios',
-            'roles' => 'Gestión de Roles', 
-            'production' => 'Módulo de Producción',
-            'inventory' => 'Módulo de Inventario',
-            'sales' => 'Módulo de Ventas',
-            'reports' => 'Módulo de Reportes',
-            'finances' => 'Módulo de Finanzas',
-            'maintenance' => 'Módulo de Mantenimiento',
-            'system' => 'Configuración del Sistema'
-        ];
-        
         // Admin tiene acceso a todos los módulos automáticamente
         if ($this->isAdmin()) {
-            return $allModules;
+            return [
+                'users' => 'Gestión de Usuarios',
+                'roles' => 'Gestión de Roles',
+                'production' => 'Producción',
+                'inventory' => 'Inventario',
+                'sales' => 'Ventas',
+                'reports' => 'Reportes',
+                'finances' => 'Finanzas',
+                'system' => 'Sistema'
+            ];
         }
         
         $role = \App\Models\Role::where('name', $this->role)->where('is_active', true)->first();
@@ -177,10 +201,53 @@ class User extends Authenticatable
         }
         
         $modules = [];
-        foreach ($allModules as $moduleKey => $moduleName) {
-            if ($this->canAccessModule($moduleKey)) {
-                $modules[$moduleKey] = $moduleName;
-            }
+        
+        // Mapear permisos específicos a módulos de navegación
+        $permissions = $role->permissions ?? [];
+        
+        // Gestión de usuarios
+        if (collect($permissions)->contains(fn($p) => str_contains($p, 'usuarios') || str_contains($p, 'gestionar_usuarios'))) {
+            $modules['users'] = 'Gestión de Usuarios';
+        }
+        
+        // Gestión de roles
+        if (collect($permissions)->contains(fn($p) => str_contains($p, 'roles') || str_contains($p, 'gestionar_roles'))) {
+            $modules['roles'] = 'Gestión de Roles';
+        }
+        
+        // Producción (unidades, lotes, mantenimientos, alimentación, sanidad, crecimiento, monitoreo)
+        if (collect($permissions)->contains(fn($p) => 
+            str_contains($p, 'unidades') || str_contains($p, 'lotes') || 
+            str_contains($p, 'mantenimientos') || str_contains($p, 'alimentacion') ||
+            str_contains($p, 'sanidad') || str_contains($p, 'crecimiento') ||
+            str_contains($p, 'monitoreo')
+        )) {
+            $modules['production'] = 'Producción';
+        }
+        
+        // Inventario
+        if (collect($permissions)->contains(fn($p) => str_contains($p, 'inventario'))) {
+            $modules['inventory'] = 'Inventario';
+        }
+        
+        // Ventas
+        if (collect($permissions)->contains(fn($p) => str_contains($p, 'ventas'))) {
+            $modules['sales'] = 'Ventas';
+        }
+        
+        // Reportes
+        if (collect($permissions)->contains(fn($p) => str_contains($p, 'reportes'))) {
+            $modules['reports'] = 'Reportes';
+        }
+        
+        // Finanzas/Costos
+        if (collect($permissions)->contains(fn($p) => str_contains($p, 'costos') || str_contains($p, 'finanzas'))) {
+            $modules['finances'] = 'Finanzas';
+        }
+        
+        // Sistema
+        if (collect($permissions)->contains(fn($p) => str_contains($p, 'sistema'))) {
+            $modules['system'] = 'Sistema';
         }
         
         return $modules;

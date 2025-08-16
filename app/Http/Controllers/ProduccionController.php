@@ -8,6 +8,7 @@ use App\Models\UnidadProduccion;
 use App\Models\Seguimiento;
 use App\Models\Traslado;
 use App\Models\MantenimientoUnidad;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -59,9 +60,37 @@ class ProduccionController extends Controller
     }
 
     // === GESTIÓN DE UNIDADES ===
-    public function gestionUnidades()
+    public function gestionUnidades(Request $request)
     {
-        $unidades = UnidadProduccion::withCount('lotes')->orderBy('created_at', 'desc')->paginate(10);
+        $query = UnidadProduccion::withCount('lotes');
+
+        // Filtro de búsqueda por nombre o código
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nombre', 'LIKE', "%{$search}%")
+                  ->orWhere('codigo', 'LIKE', "%{$search}%");
+            });
+        }
+
+        // Filtro por tipo
+        if ($request->filled('tipo')) {
+            $query->where('tipo', $request->tipo);
+        }
+
+        // Filtro por estado
+        if ($request->filled('estado')) {
+            $query->where('estado', $request->estado);
+        }
+
+        // Filtro por fecha
+        if ($request->filled('fecha_desde')) {
+            $query->whereDate('created_at', '>=', $request->fecha_desde);
+        }
+
+        // Ordenar por fecha de creación (más recientes primero)
+        $unidades = $query->orderBy('created_at', 'desc')->paginate(10);
+        
         return view('produccion.unidades', compact('unidades'));
     }
 
@@ -73,9 +102,8 @@ class ProduccionController extends Controller
     public function storeUnidad(Request $request)
     {
         $validated = $request->validate([
-            'codigo' => 'required|string|unique:unidad_produccions',
             'nombre' => 'required|string',
-            'tipo' => 'required|in:tanque,estanque',
+            'tipo' => 'required|in:tanque,estanque,jaula,sistema_especializado',
             'capacidad_maxima' => 'nullable|numeric|min:0',
             'area' => 'nullable|numeric|min:0',
             'profundidad' => 'nullable|numeric|min:0',
@@ -83,9 +111,14 @@ class ProduccionController extends Controller
             'fecha_construccion' => 'nullable|date'
         ]);
 
-        UnidadProduccion::create($validated);
+        // El código SIEMPRE se genera automáticamente, no se permite manual
+        // Se elimina cualquier código que haya podido venir del formulario
+        unset($validated['codigo']);
 
-        return redirect()->route('produccion.unidades')->with('success', 'Unidad de producción creada exitosamente.');
+        $unidad = UnidadProduccion::create($validated);
+
+        return redirect()->route('produccion.unidades')
+                        ->with('success', "Unidad de producción creada exitosamente con código: {$unidad->codigo}");
     }
 
     public function showUnidad(UnidadProduccion $unidad)
@@ -105,13 +138,73 @@ class ProduccionController extends Controller
         return view('produccion.show-unidad', compact('unidad', 'estadisticas_mantenimiento'));
     }
 
+    public function editUnidad(UnidadProduccion $unidad)
+    {
+        return view('produccion.edit-unidad', compact('unidad'));
+    }
+
+    public function updateUnidad(Request $request, UnidadProduccion $unidad)
+    {
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'tipo' => 'required|in:tanque,estanque,jaula,sistema_especializado',
+            'capacidad_maxima' => 'nullable|numeric|min:0',
+            'area' => 'nullable|numeric|min:0',
+            'profundidad' => 'nullable|numeric|min:0',
+            'fecha_construccion' => 'nullable|date',
+            'descripcion' => 'nullable|string'
+        ]);
+
+        $unidad->update($request->all());
+
+        return redirect()->route('produccion.unidades.show', $unidad)
+                        ->with('success', 'Unidad de producción actualizada exitosamente.');
+    }
+
+    public function generateUnidadCode($tipo)
+    {
+        if (!in_array($tipo, ['tanque', 'estanque', 'jaula', 'sistema_especializado'])) {
+            return response()->json(['error' => 'Tipo de unidad inválido'], 400);
+        }
+
+        $codigo = UnidadProduccion::generateCodigo($tipo);
+        
+        return response()->json(['codigo' => $codigo]);
+    }
+
     // === GESTIÓN DE MANTENIMIENTOS ===
-    public function gestionMantenimientos(UnidadProduccion $unidad = null)
+    public function gestionMantenimientos(Request $request, UnidadProduccion $unidad = null)
     {
         $query = MantenimientoUnidad::with(['unidadProduccion', 'usuario']);
         
         if ($unidad) {
             $query->where('unidad_produccion_id', $unidad->id);
+        }
+
+        // Filtros
+        if ($request->filled('estado')) {
+            $query->where('estado_mantenimiento', $request->estado);
+        }
+
+        if ($request->filled('tipo')) {
+            $query->where('tipo_mantenimiento', $request->tipo);
+        }
+
+        if ($request->filled('prioridad')) {
+            $query->where('prioridad', $request->prioridad);
+        }
+
+        if ($request->filled('unidad_id')) {
+            $query->where('unidad_produccion_id', $request->unidad_id);
+        }
+
+        // Filtro por fecha
+        if ($request->filled('fecha_desde')) {
+            $query->whereDate('fecha_mantenimiento', '>=', $request->fecha_desde);
+        }
+
+        if ($request->filled('fecha_hasta')) {
+            $query->whereDate('fecha_mantenimiento', '<=', $request->fecha_hasta);
         }
         
         $mantenimientos = $query->orderBy('fecha_mantenimiento', 'desc')->paginate(15);
@@ -132,7 +225,8 @@ class ProduccionController extends Controller
     public function crearMantenimiento(UnidadProduccion $unidad = null)
     {
         $unidades = UnidadProduccion::where('estado', '!=', 'inactivo')->get();
-        return view('produccion.crear-mantenimiento', compact('unidades', 'unidad'));
+        $usuarios = User::orderBy('name')->get();
+        return view('produccion.crear-mantenimiento', compact('unidades', 'unidad', 'usuarios'));
     }
 
     public function storeMantenimiento(Request $request)
@@ -143,12 +237,12 @@ class ProduccionController extends Controller
             'descripcion_trabajo' => 'required|string|max:1000',
             'fecha_mantenimiento' => 'required|date|after_or_equal:today',
             'prioridad' => 'required|in:baja,media,alta,critica',
+            'user_id' => 'required|exists:users,id',
             'observaciones_antes' => 'nullable|string|max:1000',
             'requiere_vaciado' => 'boolean',
             'requiere_traslado_peces' => 'boolean'
         ]);
 
-        $validated['user_id'] = Auth::id();
         $validated['estado_mantenimiento'] = 'programado';
 
         // Convertir checkboxes
@@ -165,6 +259,45 @@ class ProduccionController extends Controller
     {
         $mantenimiento->load(['unidadProduccion', 'usuario']);
         return view('produccion.show-mantenimiento', compact('mantenimiento'));
+    }
+
+    public function editMantenimiento(MantenimientoUnidad $mantenimiento)
+    {
+        // Solo se pueden editar mantenimientos programados
+        if ($mantenimiento->estado_mantenimiento !== 'programado') {
+            return redirect()->back()->with('error', 'Solo se pueden editar mantenimientos programados.');
+        }
+
+        $unidades = UnidadProduccion::activas()->get();
+        $usuarios = User::active()->get();
+        
+        return view('produccion.edit-mantenimiento', compact('mantenimiento', 'unidades', 'usuarios'));
+    }
+
+    public function updateMantenimiento(Request $request, MantenimientoUnidad $mantenimiento)
+    {
+        // Solo se pueden editar mantenimientos programados
+        if ($mantenimiento->estado_mantenimiento !== 'programado') {
+            return redirect()->back()->with('error', 'Solo se pueden editar mantenimientos programados.');
+        }
+
+        $validated = $request->validate([
+            'unidad_produccion_id' => 'required|exists:unidad_produccions,id',
+            'tipo_mantenimiento' => 'required|in:preventivo,correctivo,limpieza,reparacion,inspeccion,desinfeccion',
+            'prioridad' => 'required|in:baja,media,alta,critica',
+            'fecha_mantenimiento' => 'required|date|after_or_equal:today',
+            'descripcion_trabajo' => 'required|string|max:1000',
+            'observaciones_antes' => 'nullable|string|max:1000',
+            'usuario_id' => 'required|exists:users,id'
+        ]);
+
+        $validated['requiere_vaciado'] = $request->has('requiere_vaciado');
+        $validated['requiere_traslado_peces'] = $request->has('requiere_traslado_peces');
+
+        $mantenimiento->update($validated);
+
+        return redirect()->route('produccion.mantenimientos.show', $mantenimiento)
+                        ->with('success', 'Mantenimiento actualizado exitosamente.');
     }
 
     public function iniciarMantenimiento(MantenimientoUnidad $mantenimiento)
@@ -207,6 +340,70 @@ class ProduccionController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error al cancelar mantenimiento: ' . $e->getMessage());
         }
+    }
+
+    public function historialMantenimientos(Request $request, UnidadProduccion $unidad = null)
+    {
+        $query = MantenimientoUnidad::with(['unidadProduccion', 'usuario'])
+                                  ->whereIn('estado_mantenimiento', ['completado', 'cancelado']);
+        
+        if ($unidad) {
+            $query->where('unidad_produccion_id', $unidad->id);
+        }
+
+        // Filtros
+        if ($request->filled('tipo')) {
+            $query->where('tipo_mantenimiento', $request->tipo);
+        }
+
+        if ($request->filled('anio')) {
+            $query->whereYear('fecha_mantenimiento', $request->anio);
+        }
+
+        if ($request->filled('mes')) {
+            $query->whereMonth('fecha_mantenimiento', $request->mes);
+        }
+
+        if ($request->filled('unidad_id')) {
+            $query->where('unidad_produccion_id', $request->unidad_id);
+        }
+
+        $mantenimientos = $query->orderBy('fecha_fin', 'desc')
+                               ->orderBy('fecha_mantenimiento', 'desc')
+                               ->paginate(10);
+        
+        // Estadísticas para el historial
+        $estadisticas = [
+            'completados' => MantenimientoUnidad::where('estado_mantenimiento', 'completado')->count(),
+            'costo_total' => MantenimientoUnidad::where('estado_mantenimiento', 'completado')
+                                               ->sum('costo_mantenimiento'),
+            'este_anio' => MantenimientoUnidad::whereYear('fecha_mantenimiento', now()->year)
+                                             ->whereIn('estado_mantenimiento', ['completado', 'cancelado'])
+                                             ->count(),
+            'tiempo_promedio' => $this->calcularTiempoPromedioMantenimiento()
+        ];
+
+        $unidades = UnidadProduccion::all();
+        
+        return view('produccion.historial-mantenimiento', compact('mantenimientos', 'estadisticas', 'unidades', 'unidad'));
+    }
+
+    private function calcularTiempoPromedioMantenimiento()
+    {
+        $mantenimientosCompletos = MantenimientoUnidad::where('estado_mantenimiento', 'completado')
+                                                     ->whereNotNull('fecha_inicio')
+                                                     ->whereNotNull('fecha_fin')
+                                                     ->get();
+
+        if ($mantenimientosCompletos->isEmpty()) {
+            return 0;
+        }
+
+        $totalHoras = $mantenimientosCompletos->sum(function($mantenimiento) {
+            return $mantenimiento->fecha_inicio->diffInHours($mantenimiento->fecha_fin);
+        });
+
+        return round($totalHoras / $mantenimientosCompletos->count(), 1);
     }
 
     // === OTROS MÓDULOS ===

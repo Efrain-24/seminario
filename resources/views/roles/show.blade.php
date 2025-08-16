@@ -131,58 +131,31 @@
                                 Permisos Asignados
                             </h4>
                             
-                            @if($role->permissions && count($role->permissions) > 0)
-                                @php
-                                    $modules = [
-                                        'users' => 'Gestión de Usuarios',
-                                        'roles' => 'Gestión de Roles', 
-                                        'production' => 'Módulo de Producción',
-                                        'inventory' => 'Módulo de Inventario',
-                                        'sales' => 'Módulo de Ventas',
-                                        'reports' => 'Módulo de Reportes',
-                                        'finances' => 'Módulo de Finanzas',
-                                        'maintenance' => 'Módulo de Mantenimiento',
-                                        'system' => 'Configuración del Sistema'
-                                    ];
-                                    
-                                    $permissionLevels = [
-                                        'view' => 'Ver',
-                                        'create' => 'Crear', 
-                                        'edit' => 'Editar',
-                                        'delete' => 'Eliminar'
-                                    ];
-                                    
-                                    // Agrupar permisos por módulo
-                                    $groupedPermissions = [];
-                                    foreach($role->permissions as $permission) {
-                                        $parts = explode('.', $permission);
-                                        if(count($parts) == 2) {
-                                            $module = $parts[0];
-                                            $level = $parts[1];
-                                            if(!isset($groupedPermissions[$module])) {
-                                                $groupedPermissions[$module] = [];
-                                            }
-                                            $groupedPermissions[$module][] = $level;
-                                        }
-                                    }
-                                @endphp
+                            @if($permissionsData['userPermissions'] && count($permissionsData['userPermissions']) > 0)
                                 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    @foreach($groupedPermissions as $moduleKey => $permissions)
-                                        @if(isset($modules[$moduleKey]))
+                                    @foreach($permissionsData['groupedPermissions'] as $moduleKey => $permissions)
+                                        @if(isset($permissionsData['modules'][$moduleKey]))
                                             <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
                                                 <h5 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center">
                                                     <div class="h-3 w-3 rounded-full bg-purple-500 mr-2"></div>
-                                                    {{ $modules[$moduleKey] }}
+                                                    {{ $permissionsData['modules'][$moduleKey] }}
                                                 </h5>
                                                 <div class="grid grid-cols-2 gap-2">
                                                     @foreach($permissions as $level)
-                                                        @if(isset($permissionLevels[$level]))
+                                                        @if($level === 'gestionar')
+                                                            <div class="flex items-center p-2 bg-gray-50 dark:bg-gray-700 rounded text-xs col-span-2">
+                                                                <svg class="w-3 h-3 text-green-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                                                </svg>
+                                                                <span class="text-gray-700 dark:text-gray-300">Acceso Completo</span>
+                                                            </div>
+                                                        @elseif(isset($permissionsData['permissionLevels'][$level]))
                                                             <div class="flex items-center p-2 bg-gray-50 dark:bg-gray-700 rounded text-xs">
                                                                 <svg class="w-3 h-3 text-green-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                                                 </svg>
-                                                                <span class="text-gray-700 dark:text-gray-300">{{ $permissionLevels[$level] }}</span>
+                                                                <span class="text-gray-700 dark:text-gray-300">{{ $permissionsData['permissionLevels'][$level] }}</span>
                                                             </div>
                                                         @endif
                                                     @endforeach
