@@ -5,6 +5,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ProduccionController;
 use App\Http\Controllers\TipoAlimentoController;
+use App\Http\Controllers\CosechaParcialController;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -21,21 +23,21 @@ Route::get('/', function () {
 // Ruta de prueba de permisos
 Route::get('/test-permisos', function () {
     $user = App\Models\User::where('email', 'admin@piscicultura.com')->first();
-    
+
     if (!$user) {
         return 'Usuario no encontrado';
     }
-    
+
     $permisos = [
         'alimentacion.view' => $user->hasPermission('alimentacion.view'),
         'alimentacion.create' => $user->hasPermission('alimentacion.create'),
         'alimentacion.edit' => $user->hasPermission('alimentacion.edit'),
         'alimentacion.delete' => $user->hasPermission('alimentacion.delete'),
     ];
-    
+
     // Simular autenticación para prueba
     \Illuminate\Support\Facades\Auth::login($user);
-    
+
     return view('test-permisos', compact('user', 'permisos'));
 })->name('test.permisos');
 
@@ -82,13 +84,13 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware('auth')->prefix('produccion')->name('produccion.')->group(function () {
     Route::get('/', [ProduccionController::class, 'index'])->name('index');
-    
+
     // Rutas de Lotes
     Route::get('/lotes', [ProduccionController::class, 'gestionLotes'])->name('lotes')->middleware('permission:ver_lotes');
     Route::get('/lotes/create', [ProduccionController::class, 'createLote'])->name('lotes.create')->middleware('permission:crear_lotes');
     Route::post('/lotes', [ProduccionController::class, 'storeLote'])->name('lotes.store')->middleware('permission:crear_lotes');
     Route::get('/lotes/{lote}', [ProduccionController::class, 'showLote'])->name('lotes.show')->middleware('permission:ver_lotes');
-    
+
     // Rutas de Unidades
     Route::get('/unidades', [ProduccionController::class, 'gestionUnidades'])->name('unidades')->middleware('permission:ver_unidades');
     Route::get('/unidades/create', [ProduccionController::class, 'createUnidad'])->name('unidades.create')->middleware('permission:crear_unidades');
@@ -98,24 +100,24 @@ Route::middleware('auth')->prefix('produccion')->name('produccion.')->group(func
     Route::put('/unidades/{unidad}', [ProduccionController::class, 'updateUnidad'])->name('unidades.update')->middleware('permission:editar_unidades');
     Route::delete('/unidades/{unidad}', [ProduccionController::class, 'destroyUnidad'])->name('unidades.destroy')->middleware('permission:eliminar_unidades');
     Route::get('/unidades/generate-code/{tipo}', [ProduccionController::class, 'generateUnidadCode'])->name('unidades.generate-code');
-    
+
     // Otras rutas
     Route::get('/traslados', [ProduccionController::class, 'gestionTraslados'])->name('traslados');
     Route::get('/seguimiento-lotes', [ProduccionController::class, 'seguimientoLotes'])->name('seguimiento.lotes');
     Route::get('/seguimiento-unidades', [ProduccionController::class, 'seguimientoUnidades'])->name('seguimiento.unidades');
-    
+
     // Rutas de seguimientos específicos
     Route::get('/lotes/{lote}/seguimiento/crear', [ProduccionController::class, 'crearSeguimiento'])->name('lotes.seguimiento.crear');
     Route::post('/lotes/{lote}/seguimiento', [ProduccionController::class, 'storeSeguimiento'])->name('lotes.seguimiento.store');
     Route::get('/lotes/{lote}/seguimientos', [ProduccionController::class, 'verSeguimientos'])->name('lotes.seguimientos.ver');
-    
+
     // Rutas de traslados
     Route::get('/traslados/crear/{lote?}', [ProduccionController::class, 'crearTraslado'])->name('traslados.crear');
     Route::post('/traslados', [ProduccionController::class, 'storeTraslado'])->name('traslados.store');
     Route::get('/traslados/{traslado}', [ProduccionController::class, 'showTraslado'])->name('traslados.show');
     Route::patch('/traslados/{traslado}/completar', [ProduccionController::class, 'completarTraslado'])->name('traslados.completar');
     Route::patch('/traslados/{traslado}/cancelar', [ProduccionController::class, 'cancelarTraslado'])->name('traslados.cancelar');
-    
+
     // Rutas de mantenimientos (las rutas más específicas van primero)
     Route::get('/mantenimientos/crear/{unidad?}', [ProduccionController::class, 'crearMantenimiento'])->name('mantenimientos.crear')->middleware('permission:crear_mantenimientos');
     Route::get('/mantenimientos/historial/{unidad?}', [ProduccionController::class, 'historialMantenimientos'])->name('mantenimientos.historial')->middleware('permission:ver_mantenimientos');
@@ -138,7 +140,7 @@ Route::middleware('auth')->prefix('alimentacion')->name('alimentacion.')->group(
     Route::get('/{alimentacion}/edit', [App\Http\Controllers\AlimentacionController::class, 'edit'])->name('edit')->middleware('permission:alimentacion.edit');
     Route::put('/{alimentacion}', [App\Http\Controllers\AlimentacionController::class, 'update'])->name('update')->middleware('permission:alimentacion.edit');
     Route::delete('/{alimentacion}', [App\Http\Controllers\AlimentacionController::class, 'destroy'])->name('destroy')->middleware('permission:alimentacion.delete');
-    
+
     // Rutas para tipos de alimento
     Route::get('/tipos-alimento', [TipoAlimentoController::class, 'index'])->name('tipos-alimento.index');
     Route::get('/tipos-alimento/create', [TipoAlimentoController::class, 'create'])->name('tipos-alimento.create')->middleware('permission:alimentacion.create');
@@ -149,6 +151,8 @@ Route::middleware('auth')->prefix('alimentacion')->name('alimentacion.')->group(
     Route::delete('/tipos-alimento/{tipoAlimento}', [TipoAlimentoController::class, 'destroy'])->name('tipos-alimento.destroy')->middleware('permission:alimentacion.delete');
     Route::patch('/tipos-alimento/{tipoAlimento}/toggle', [TipoAlimentoController::class, 'toggle'])->name('tipos-alimento.toggle')->middleware('permission:alimentacion.edit');
 });
+
+
 
 
 require __DIR__ . '/auth.php';

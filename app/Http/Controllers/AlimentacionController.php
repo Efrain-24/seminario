@@ -38,8 +38,8 @@ class AlimentacionController extends Controller
 
         // Ordenar por fecha más reciente
         $alimentaciones = $query->orderBy('fecha_alimentacion', 'desc')
-                               ->orderBy('hora_alimentacion', 'desc')
-                               ->paginate(15);
+            ->orderBy('hora_alimentacion', 'desc')
+            ->paginate(15);
 
         // Estadísticas del período actual
         $fechaInicio = $request->filled('fecha_inicio') ? $request->fecha_inicio : Carbon::now()->startOfMonth()->toDateString();
@@ -50,8 +50,8 @@ class AlimentacionController extends Controller
             'total_cantidad_kg' => Alimentacion::whereBetween('fecha_alimentacion', [$fechaInicio, $fechaFin])->sum('cantidad_kg'),
             'costo_total' => Alimentacion::whereBetween('fecha_alimentacion', [$fechaInicio, $fechaFin])->sum('costo_total'),
             'promedio_diario' => Alimentacion::whereBetween('fecha_alimentacion', [$fechaInicio, $fechaFin])
-                                ->selectRaw('AVG(cantidad_kg) as promedio')
-                                ->value('promedio') ?? 0,
+                ->selectRaw('AVG(cantidad_kg) as promedio')
+                ->value('promedio') ?? 0,
         ];
 
         // Datos para los filtros
@@ -107,7 +107,7 @@ class AlimentacionController extends Controller
         $alimentacion = Alimentacion::create($validated);
 
         return redirect()->route('alimentacion.index')
-                        ->with('success', 'Registro de alimentación creado exitosamente.');
+            ->with('success', 'Registro de alimentación creado exitosamente.');
     }
 
     public function show(Alimentacion $alimentacion)
@@ -152,7 +152,7 @@ class AlimentacionController extends Controller
         $alimentacion->update($validated);
 
         return redirect()->route('alimentacion.show', $alimentacion)
-                        ->with('success', 'Registro de alimentación actualizado exitosamente.');
+            ->with('success', 'Registro de alimentación actualizado exitosamente.');
     }
 
     public function destroy(Alimentacion $alimentacion)
@@ -160,6 +160,6 @@ class AlimentacionController extends Controller
         $alimentacion->delete();
 
         return redirect()->route('alimentacion.index')
-                        ->with('success', 'Registro de alimentación eliminado exitosamente.');
+            ->with('success', 'Registro de alimentación eliminado exitosamente.');
     }
 }
