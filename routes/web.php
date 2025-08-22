@@ -6,6 +6,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ProduccionController;
 use App\Http\Controllers\TipoAlimentoController;
 use App\Http\Controllers\CosechaParcialController;
+use App\Http\Controllers\ControlProduccionController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -130,6 +131,10 @@ Route::middleware('auth')->prefix('produccion')->name('produccion.')->group(func
     Route::patch('/mantenimiento/{mantenimiento}/completar', [ProduccionController::class, 'completarMantenimiento'])->name('mantenimientos.completar')->middleware('permission:editar_mantenimientos');
     Route::patch('/mantenimiento/{mantenimiento}/cancelar', [ProduccionController::class, 'cancelarMantenimiento'])->name('mantenimientos.cancelar')->middleware('permission:editar_mantenimientos');
 
+    Route::get('/control',                     [ControlProduccionController::class, 'index'])->name('control.index');
+    Route::get('/control/lote/{lote}',         [ControlProduccionController::class, 'show'])->name('control.show');
+    Route::post('/control/lote/{lote}/fecha',  [ControlProduccionController::class, 'predecirHastaFecha'])->name('control.pred.fecha');
+    Route::post('/control/lote/{lote}/peso',   [ControlProduccionController::class, 'predecirParaPeso'])->name('control.pred.peso');
 
     // ✅ Registro de Cosechas Parciales
     Route::resource('cosechas', CosechaParcialController::class)

@@ -28,6 +28,10 @@
                     <x-nav-link :href="route('produccion.cosechas.index')" :active="request()->routeIs('produccion.cosechas.*')">
                         {{ __('Cosechas') }}
                     </x-nav-link>
+
+                    <x-nav-link :href="route('produccion.control.index')" :active="request()->routeIs('produccion.control.*')">
+                        {{ __('Control de Producción') }}
+                    </x-nav-link>
                 </div>
             </div>
 
