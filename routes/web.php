@@ -129,6 +129,12 @@ Route::middleware('auth')->prefix('produccion')->name('produccion.')->group(func
     Route::patch('/mantenimiento/{mantenimiento}/iniciar', [ProduccionController::class, 'iniciarMantenimiento'])->name('mantenimientos.iniciar')->middleware('permission:editar_mantenimientos');
     Route::patch('/mantenimiento/{mantenimiento}/completar', [ProduccionController::class, 'completarMantenimiento'])->name('mantenimientos.completar')->middleware('permission:editar_mantenimientos');
     Route::patch('/mantenimiento/{mantenimiento}/cancelar', [ProduccionController::class, 'cancelarMantenimiento'])->name('mantenimientos.cancelar')->middleware('permission:editar_mantenimientos');
+
+
+    // ✅ Registro de Cosechas Parciales
+    Route::resource('cosechas', CosechaParcialController::class)
+        ->parameters(['cosechas' => 'cosecha'])   // para usar {cosecha} en vez de {cosechas}
+        ->names('cosechas');
 });
 
 // Rutas de Alimentación
@@ -151,8 +157,5 @@ Route::middleware('auth')->prefix('alimentacion')->name('alimentacion.')->group(
     Route::delete('/tipos-alimento/{tipoAlimento}', [TipoAlimentoController::class, 'destroy'])->name('tipos-alimento.destroy')->middleware('permission:alimentacion.delete');
     Route::patch('/tipos-alimento/{tipoAlimento}/toggle', [TipoAlimentoController::class, 'toggle'])->name('tipos-alimento.toggle')->middleware('permission:alimentacion.edit');
 });
-
-
-
 
 require __DIR__ . '/auth.php';

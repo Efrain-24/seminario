@@ -20,9 +20,13 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    
+
                     <x-nav-link :href="route('aplicaciones')" :active="request()->routeIs('aplicaciones')">
                         {{ __('Aplicaciones') }}
+                    </x-nav-link>
+
+                    <x-nav-link :href="route('produccion.cosechas.index')" :active="request()->routeIs('produccion.cosechas.*')">
+                        {{ __('Cosechas') }}
                     </x-nav-link>
                 </div>
             </div>
@@ -87,7 +91,7 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
-            
+
             <x-responsive-nav-link :href="route('aplicaciones')" :active="request()->routeIs('aplicaciones')">
                 {{ __('Aplicaciones') }}
             </x-responsive-nav-link>
