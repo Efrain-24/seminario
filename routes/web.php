@@ -8,6 +8,7 @@ use App\Http\Controllers\TipoAlimentoController;
 use App\Http\Controllers\CosechaParcialController;
 use App\Http\Controllers\ControlProduccionController;
 use App\Http\Controllers\MortalidadController;
+use App\Http\Controllers\AlertaAnomaliaController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -152,6 +153,9 @@ Route::middleware('auth')->prefix('produccion')->name('produccion.')->group(func
         ->names('mortalidades')
         ->whereNumber('mortalidad')      // evita que "graficos" sea tomado como id
         ->except(['show']);              // opcional: si no tienes página show
+
+    Route::get('alertas', [AlertaAnomaliaController::class, 'index'])
+        ->name('alertas.index');
 });
 
 // Rutas de Alimentación
