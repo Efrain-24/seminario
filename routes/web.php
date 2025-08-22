@@ -13,6 +13,7 @@ use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\InventarioItemController;
 use App\Http\Controllers\BodegaController;
 use App\Http\Controllers\InventarioMovimientoController;
+use App\Http\Controllers\InventarioAlertaController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -176,6 +177,9 @@ Route::middleware('auth')->prefix('produccion')->name('produccion.')->group(func
         ->name('inventario.movimientos.create');
     Route::post('inventario/movimientos', [InventarioMovimientoController::class, 'store'])
         ->name('inventario.movimientos.store');
+
+    Route::get('inventario/alertas', [InventarioAlertaController::class, 'index'])
+        ->name('inventario.alertas.index');
 });
 
 // Rutas de Alimentación

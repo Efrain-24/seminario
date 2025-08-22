@@ -40,9 +40,9 @@ class InventarioMovimientoController extends Controller
         abort_unless(in_array($tipo, ['entrada', 'salida', 'ajuste']), 404);
 
         $rules = [
-            'item_id'   => ['required', 'exists:inventario_items,id'],
-            'bodega_id' => ['required', 'exists:bodegas,id'],
-            'fecha'     => ['required', 'date'],
+            'item_id'     => ['required', 'exists:inventario_items,id'],
+            'bodega_id'   => ['required', 'exists:bodegas,id'],
+            'fecha'       => ['required', 'date'],
             'descripcion' => ['nullable', 'string', 'max:200'],
         ];
 
@@ -51,26 +51,42 @@ class InventarioMovimientoController extends Controller
         } else {
             $rules['cantidad'] = ['required', 'numeric', 'min:0.0001'];
             $rules['unidad']   = ['required', 'in:kg,lb,unidad,litro'];
+            // Campos de lote/vencimiento SOLO para entrada
+            if ($tipo === 'entrada') {
+                $rules['lote']              = ['nullable', 'string', 'max:100'];
+                $rules['fecha_vencimiento'] = ['nullable', 'date'];
+            }
         }
 
-        $data = $request->validate($rules);
-
+        $data   = $request->validate($rules);
         $item   = InventarioItem::findOrFail($request->item_id);
         $bodega = Bodega::findOrFail($request->bodega_id);
 
-        // Ejecutar con el servicio (que ya registra el movimiento con user_id)
+        // Ejecutar con el servicio (user_id lo registra el servicio)
         if ($tipo === 'entrada') {
-            $svc->entrada($item, $bodega, (float)$request->cantidad, $request->unidad, $request->descripcion);
+            // OJO al orden: ... descripcion, null (ref), lote, fecha_vencimiento
+            $svc->entrada(
+                $item,
+                $bodega,
+                (float) $request->cantidad,
+                $request->unidad,
+                $request->descripcion,
+                null,
+                $request->input('lote'),
+                $request->input('fecha_vencimiento')
+            );
         } elseif ($tipo === 'salida') {
-            $svc->salida($item, $bodega, (float)$request->cantidad, $request->unidad, $request->descripcion);
-        } else { // ajuste: nuevo stock en unidad_base
-            $svc->ajuste($item, $bodega, (float)$request->nuevo_stock, $request->descripcion);
+            $svc->salida($item, $bodega, (float) $request->cantidad, $request->unidad, $request->descripcion);
+        } else { // ajuste
+            $svc->ajuste($item, $bodega, (float) $request->nuevo_stock, $request->descripcion);
         }
 
-        // Sobrescribir fecha si el usuario indicó otra (ajusta el movimiento recién creado)
+        // Sobrescribir fecha del movimiento recién creado (tomas el último por item/bodega)
         if ($request->filled('fecha')) {
-            $last = InventarioMovimiento::where('item_id', $item->id)->where('bodega_id', $bodega->id)
-                ->orderByDesc('id')->first();
+            $last = InventarioMovimiento::where('item_id', $item->id)
+                ->where('bodega_id', $bodega->id)
+                ->orderByDesc('id')
+                ->first();
             if ($last) {
                 $last->update(['fecha' => $request->fecha]);
             }
@@ -78,5 +94,13 @@ class InventarioMovimientoController extends Controller
 
         return redirect()->route('produccion.inventario.movimientos.index')
             ->with('success', 'Movimiento registrado.');
+    }
+    public function destroy(InventarioMovimiento $movimiento)
+    {
+        abort_if($movimiento->referencia_type, 403, 'No se puede eliminar un movimiento con referencia asociada.');
+
+        $movimiento->delete();
+        return redirect()->route('produccion.inventario.movimientos.index')
+            ->with('success', 'Movimiento eliminado.');
     }
 }
