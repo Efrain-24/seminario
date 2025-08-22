@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+use Carbon\CarbonPeriod;
+use Illuminate\Support\Collection;
 use App\Models\Mortalidad;
 use App\Models\Lote;
 
@@ -94,6 +97,83 @@ class MortalidadController extends Controller
 
         return redirect()->route('produccion.mortalidades.index')
             ->with('success', 'Mortalidad actualizada.');
+    }
+
+    public function charts(Request $request)
+    {
+        $lotes = Lote::orderBy('codigo_lote')
+            ->get(['id', 'codigo_lote', 'cantidad_actual', 'cantidad_inicial']);
+
+        if ($lotes->isEmpty()) {
+            return back()->with('success', 'Primero crea al menos un lote.');
+        }
+
+        $loteId = (int) $request->input('lote_id', $lotes->first()->id);
+        $desde  = $request->input('desde', now()->subDays(30)->toDateString());
+        $hasta  = $request->input('hasta', now()->toDateString());
+        $group  = $request->input('group', 'day'); // day|week|month
+
+        // Población base para calcular la tasa (editable en la UI)
+        $loteSel   = $lotes->firstWhere('id', $loteId);
+        $stockBase = (int) ($request->input('stock_base') ?? ($loteSel->cantidad_actual ?? 0));
+
+        // 1) Traer muertes por día dentro del rango
+        $base = Mortalidad::where('lote_id', $loteId)
+            ->whereBetween('fecha', [$desde, $hasta])
+            ->selectRaw('DATE(fecha) as d, SUM(cantidad) as muertes')
+            ->groupBy('d')
+            ->orderBy('d')
+            ->get()
+            ->keyBy('d'); // 'YYYY-MM-DD' => { d, muertes }
+
+        // 2) Rellenar días faltantes en el rango con 0
+        $period = CarbonPeriod::create($desde, $hasta);
+        $porDia = collect();
+        foreach ($period as $day) {
+            $key = $day->toDateString();
+            $porDia[$key] = (int) ($base[$key]->muertes ?? 0);
+        }
+
+        // 3) Agrupar según $group
+        $labels = [];
+        $muertes = [];
+
+        if ($group === 'day') {
+            $labels  = array_keys($porDia->toArray());
+            $muertes = array_values($porDia->toArray());
+        } else {
+            $bucketed = [];
+            foreach ($porDia as $fecha => $cant) {
+                $c = Carbon::parse($fecha);
+                if ($group === 'week') {
+                    // Semana ISO: Año-Semana (ej. 2025-W34)
+                    $label = $c->isoFormat('GGGG-[W]WW');
+                } else { // month
+                    $label = $c->format('Y-m'); // 2025-08
+                }
+                $bucketed[$label] = ($bucketed[$label] ?? 0) + $cant;
+            }
+            $labels  = array_keys($bucketed);
+            $muertes = array_values($bucketed);
+        }
+
+        // 4) Tasa de mortalidad (%) por bucket: muertes / stock_base * 100
+        $tasas = [];
+        foreach ($muertes as $n) {
+            $tasas[] = ($stockBase > 0) ? round(($n / $stockBase) * 100, 4) : 0;
+        }
+
+        return view('mortalidades.charts', [
+            'lotes'      => $lotes,
+            'loteId'     => $loteId,
+            'desde'      => $desde,
+            'hasta'      => $hasta,
+            'group'      => $group,
+            'stockBase'  => $stockBase,
+            'labels'     => $labels,
+            'muertes'    => $muertes,
+            'tasas'      => $tasas,
+        ]);
     }
 
     public function destroy(Mortalidad $mortalidad)

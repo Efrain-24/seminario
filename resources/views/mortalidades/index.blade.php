@@ -10,8 +10,8 @@
                 {{ session('success') }}</div>
         @endif
 
-
         <div class="flex flex-col sm:flex-row gap-3 sm:items-end sm:justify-between mb-4">
+            {{-- Filtros --}}
             <form method="GET" class="flex flex-wrap gap-3 items-end">
                 <div>
                     <label class="block text-xs mb-1 text-gray-600 dark:text-gray-300">Lote</label>
@@ -37,10 +37,21 @@
                 <button class="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white">Filtrar</button>
             </form>
 
+            {{-- Acciones --}}
+            <div class="flex gap-2">
+                @php($qs = request()->only('lote_id', 'desde', 'hasta'))
+                <a href="{{ route('produccion.mortalidades.charts', $qs) }}"
+                    class="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white">
+                    Ver gráficos
+                </a>
 
-            <a href="{{ route('produccion.mortalidades.create') }}"
-                class="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white">Nuevo registro</a>
+                <a href="{{ route('produccion.mortalidades.create') }}"
+                    class="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white">
+                    Nuevo registro
+                </a>
+            </div>
         </div>
+
 
 
         <div class="bg-white dark:bg-gray-800 shadow rounded overflow-hidden">

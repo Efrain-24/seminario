@@ -142,9 +142,16 @@ Route::middleware('auth')->prefix('produccion')->name('produccion.')->group(func
         ->parameters(['cosechas' => 'cosecha'])   // para usar {cosecha} en vez de {cosechas}
         ->names('cosechas');
 
+    // 1) Primero los gráficos
+    Route::get('mortalidades/graficos', [MortalidadController::class, 'charts'])
+        ->name('mortalidades.charts');
+
+    // 2) Luego el resource
     Route::resource('mortalidades', MortalidadController::class)
         ->parameters(['mortalidades' => 'mortalidad'])
-        ->names('mortalidades');
+        ->names('mortalidades')
+        ->whereNumber('mortalidad')      // evita que "graficos" sea tomado como id
+        ->except(['show']);              // opcional: si no tienes página show
 });
 
 // Rutas de Alimentación
