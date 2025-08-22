@@ -9,6 +9,10 @@ use App\Http\Controllers\CosechaParcialController;
 use App\Http\Controllers\ControlProduccionController;
 use App\Http\Controllers\MortalidadController;
 use App\Http\Controllers\AlertaAnomaliaController;
+use App\Http\Controllers\InventarioController;
+use App\Http\Controllers\InventarioItemController;
+use App\Http\Controllers\BodegaController;
+use App\Http\Controllers\InventarioMovimientoController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -156,6 +160,22 @@ Route::middleware('auth')->prefix('produccion')->name('produccion.')->group(func
 
     Route::get('alertas', [AlertaAnomaliaController::class, 'index'])
         ->name('alertas.index');
+
+    Route::get('inventario', [InventarioController::class, 'index'])->name('inventario.index');
+
+
+    // CRUD Ítems y Bodegas
+    Route::resource('inventario/items', InventarioItemController::class)->names('inventario.items');
+    Route::resource('inventario/bodegas', BodegaController::class)->names('inventario.bodegas');
+
+    // Movimientos (kardex + crear movimiento)
+    Route::get('inventario/movimientos', [InventarioMovimientoController::class, 'index'])
+        ->name('inventario.movimientos.index');
+    Route::get('inventario/movimientos/create/{tipo}', [InventarioMovimientoController::class, 'create'])
+        ->whereIn('tipo', ['entrada', 'salida', 'ajuste'])
+        ->name('inventario.movimientos.create');
+    Route::post('inventario/movimientos', [InventarioMovimientoController::class, 'store'])
+        ->name('inventario.movimientos.store');
 });
 
 // Rutas de Alimentación

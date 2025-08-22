@@ -39,6 +39,10 @@
                     <x-nav-link :href="route('produccion.alertas.index')" :active="request()->routeIs('produccion.alertas.index')">
                         {{ __('Alertas') }}
                     </x-nav-link>
+
+                    <x-nav-link :href="route('produccion.inventario.index')" :active="request()->routeIs('inventario.*')">
+                        {{ __('Inventario') }}
+                    </x-nav-link>
                 </div>
             </div>
 
