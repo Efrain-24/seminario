@@ -32,6 +32,9 @@
                     <x-nav-link :href="route('produccion.control.index')" :active="request()->routeIs('produccion.control.*')">
                         {{ __('Control de Producción') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('produccion.mortalidades.index')" :active="request()->routeIs('produccion.mortalidades.*')">
+                        {{ __('Mortalidades') }}
+                    </x-nav-link>
                 </div>
             </div>
 

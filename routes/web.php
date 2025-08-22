@@ -7,6 +7,7 @@ use App\Http\Controllers\ProduccionController;
 use App\Http\Controllers\TipoAlimentoController;
 use App\Http\Controllers\CosechaParcialController;
 use App\Http\Controllers\ControlProduccionController;
+use App\Http\Controllers\MortalidadController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -140,6 +141,10 @@ Route::middleware('auth')->prefix('produccion')->name('produccion.')->group(func
     Route::resource('cosechas', CosechaParcialController::class)
         ->parameters(['cosechas' => 'cosecha'])   // para usar {cosecha} en vez de {cosechas}
         ->names('cosechas');
+
+    Route::resource('mortalidades', MortalidadController::class)
+        ->parameters(['mortalidades' => 'mortalidad'])
+        ->names('mortalidades');
 });
 
 // Rutas de Alimentación
