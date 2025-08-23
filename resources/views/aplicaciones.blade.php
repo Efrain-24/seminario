@@ -71,6 +71,56 @@
                                 'color' => 'from-purple-500 to-indigo-600',
                                 'available' => true,
                             ],
+                            'inventario' => [
+                                'name' => 'Inventario',
+                                'description' => 'Control de existencias, bodegas y movimientos de inventario',
+                                'icon' =>
+                                    '<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73L12 2 4 6.27A2 2 0 003 8v8a2 2 0 001 1.73L12 22l8-4.27A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>',
+                                'route' => 'produccion.inventario.index',
+                                'permission_prefix' => 'inventario',
+                                'color' => 'from-amber-500 to-orange-600',
+                                'available' => true,
+                            ],
+                            'cosechas' => [
+                                'name' => 'Cosechas Parciales',
+                                'description' => 'Registro y seguimiento de cosechas parciales y comercialización',
+                                'icon' =>
+                                    '<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M21 13.5a6.5 6.5 0 11-13 0"/><circle cx="12" cy="10" r="3"/><path d="M12 1v9"/></svg>',
+                                'route' => 'produccion.cosechas.index',
+                                'permission_prefix' => 'cosechas',
+                                'color' => 'from-emerald-500 to-teal-600',
+                                'available' => true,
+                            ],
+                            'mortalidad' => [
+                                'name' => 'Control de Mortalidad',
+                                'description' => 'Registro y análisis de mortalidad con reportes estadísticos',
+                                'icon' =>
+                                    '<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2h-4m-8 0V9a2 2 0 012-2h4a2 2 0 012 2v2m-8 0h8m-5-3v6m-3-3h6"/></svg>',
+                                'route' => 'produccion.mortalidades.index',
+                                'permission_prefix' => 'mortalidad',
+                                'color' => 'from-red-500 to-pink-600',
+                                'available' => true,
+                            ],
+                            'control_produccion' => [
+                                'name' => 'Control de Producción',
+                                'description' => 'Análisis de biomasa y predicciones de crecimiento',
+                                'icon' =>
+                                    '<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>',
+                                'route' => 'produccion.control.index',
+                                'permission_prefix' => 'control_produccion',
+                                'color' => 'from-violet-500 to-purple-600',
+                                'available' => true,
+                            ],
+                            'alertas' => [
+                                'name' => 'Alertas y Anomalías',
+                                'description' => 'Sistema de alertas automáticas y detección de anomalías',
+                                'icon' =>
+                                    '<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+                                'route' => 'produccion.alertas.index',
+                                'permission_prefix' => 'alertas',
+                                'color' => 'from-yellow-500 to-amber-600',
+                                'available' => true,
+                            ],
                             'usuarios' => [
                                 'name' => 'Gestión de Usuarios',
                                 'description' => 'Administra usuarios y sus datos en el sistema',
@@ -106,6 +156,9 @@
                                 if (Gate::allows('alimentacion.view')) {
                                     $userModules[$key] = $module;
                                 }
+                            } elseif (in_array($module['permission_prefix'], ['inventario', 'cosechas', 'mortalidad', 'control_produccion', 'alertas'])) {
+                                // Para los nuevos módulos, siempre mostrar (por ahora)
+                                $userModules[$key] = $module;
                             } else {
                                 if (Gate::allows('ver_' . $module['permission_prefix'])) {
                                     $userModules[$key] = $module;
@@ -115,7 +168,7 @@
                     @endphp
 
                     @if (!empty($userModules))
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             @foreach ($userModules as $moduleKey => $module)
                                 @php
                                     $hasPermission = false;
@@ -123,20 +176,26 @@
                                         $hasPermission = Gate::allows('gestionar_usuarios');
                                     } elseif ($module['permission_prefix'] === 'alimentacion') {
                                         $hasPermission = Gate::allows('alimentacion.view');
+                                    } elseif (in_array($module['permission_prefix'], ['inventario', 'cosechas', 'mortalidad', 'control_produccion', 'alertas'])) {
+                                        // Para los nuevos módulos, siempre permitir acceso (por ahora)
+                                        $hasPermission = true;
                                     } else {
                                         $hasPermission = Gate::allows('ver_' . $module['permission_prefix']);
                                     }
                                 @endphp
                                 @if ($module['available'] && $hasPermission)
-                                    <div class="bg-gradient-to-br {{ $module['color'] }} rounded-xl p-6 text-white hover:scale-105 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                                    <div class="group bg-gradient-to-br {{ $module['color'] }} rounded-2xl p-6 text-white hover:scale-105 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-2xl transform hover:-translate-y-2 relative overflow-hidden"
                                         onclick="window.location.href='{{ route($module['route']) }}'">
-                                        <div class="flex items-start justify-between mb-4">
+                                        <!-- Efecto de brillo -->
+                                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transform skew-x-12 -translate-x-full group-hover:translate-x-full transition-all duration-1000"></div>
+                                        
+                                        <div class="flex items-start justify-between mb-4 relative z-10">
                                             <div
-                                                class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                                                class="w-14 h-14 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center backdrop-blur-sm group-hover:bg-opacity-30 transition-all duration-300 group-hover:scale-110">
                                                 {!! $module['icon'] !!}
                                             </div>
-                                            <div class="opacity-50">
-                                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"
+                                            <div class="opacity-60 group-hover:opacity-100 transition-opacity duration-300">
+                                                <svg class="w-6 h-6 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 24 24" fill="none"
                                                     stroke="currentColor" stroke-width="2">
                                                     <path d="M5 12h14" />
                                                     <path d="M12 5l7 7-7 7" />
@@ -144,32 +203,50 @@
                                             </div>
                                         </div>
 
-                                        <div>
-                                            <h4 class="text-lg font-bold mb-2">{{ $module['name'] }}</h4>
-                                            <p class="text-sm opacity-90">{{ $module['description'] }}</p>
+                                        <div class="relative z-10">
+                                            <h4 class="text-lg font-bold mb-2 group-hover:text-opacity-100">{{ $module['name'] }}</h4>
+                                            <p class="text-sm opacity-90 group-hover:opacity-100 leading-relaxed">{{ $module['description'] }}</p>
                                         </div>
+                                        
+                                        <!-- Indicador de nuevo módulo -->
+                                        @if(in_array($moduleKey, ['inventario', 'cosechas', 'mortalidad', 'control_produccion', 'alertas']))
+                                            <div class="absolute top-3 right-3 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-full z-20">
+                                                NUEVO
+                                            </div>
+                                        @endif
                                     </div>
                                 @else
-                                    <div class="bg-gray-100 dark:bg-gray-700 rounded-xl p-6 relative overflow-hidden">
+                                    <div class="bg-gray-100 dark:bg-gray-700 rounded-2xl p-6 relative overflow-hidden border-2 border-dashed border-gray-300 dark:border-gray-600">
                                         <div class="flex items-start justify-between mb-4">
                                             <div
-                                                class="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-xl flex items-center justify-center">
-                                                {!! $module['icon'] !!}
+                                                class="w-14 h-14 bg-gray-300 dark:bg-gray-600 rounded-2xl flex items-center justify-center">
+                                                <div class="text-gray-500 dark:text-gray-400">
+                                                    {!! $module['icon'] !!}
+                                                </div>
+                                            </div>
+                                            <div class="text-gray-400">
+                                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2">
+                                                    <circle cx="12" cy="12" r="10" />
+                                                    <line x1="15" y1="9" x2="9" y2="15" />
+                                                    <line x1="9" y1="9" x2="15" y2="15" />
+                                                </svg>
                                             </div>
                                         </div>
 
                                         <div>
                                             <h4 class="text-lg font-bold mb-2 text-gray-600 dark:text-gray-300">
                                                 {{ $module['name'] }}</h4>
-                                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
                                                 {{ $module['description'] }}</p>
-                                            <div class="mt-3 inline-flex items-center text-sm text-gray-400">
-                                                <svg class="mr-1 w-4 h-4" viewBox="0 0 24 24" fill="none"
+                                            <div class="inline-flex items-center text-sm text-red-500 bg-red-100 dark:bg-red-900 px-3 py-1 rounded-full">
+                                                <svg class="mr-2 w-4 h-4" viewBox="0 0 24 24" fill="none"
                                                     stroke="currentColor" stroke-width="2">
                                                     <circle cx="12" cy="12" r="10" />
-                                                    <polyline points="12,6 12,12 16,14" />
+                                                    <line x1="15" y1="9" x2="9" y2="15" />
+                                                    <line x1="9" y1="9" x2="15" y2="15" />
                                                 </svg>
-                                                Próximamente
+                                                Sin permisos
                                             </div>
                                         </div>
                                     </div>

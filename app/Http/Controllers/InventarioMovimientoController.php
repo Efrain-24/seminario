@@ -26,12 +26,16 @@ class InventarioMovimientoController extends Controller
         return view('inventario.movimientos.index', compact('items', 'bodegas', 'movs'));
     }
 
-    public function create(string $tipo)
+    public function create(string $tipo, Request $request)
     {
         abort_unless(in_array($tipo, ['entrada', 'salida', 'ajuste']), 404);
-        $items   = InventarioItem::orderBy('nombre')->get();
+        $items   = InventarioItem::with('existencias')->orderBy('nombre')->get();
         $bodegas = Bodega::orderBy('nombre')->get();
-        return view('inventario.movimientos.create', compact('tipo', 'items', 'bodegas'));
+        
+        // Obtener item_id de la sesión (para nuevos items) o del parámetro GET
+        $selectedItemId = $request->session()->pull('item_id') ?? $request->get('item_id');
+        
+        return view('inventario.movimientos.create', compact('tipo', 'items', 'bodegas', 'selectedItemId'));
     }
 
     public function store(Request $request, InventarioService $svc)

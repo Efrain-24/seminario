@@ -106,48 +106,66 @@
                             ->get()
                             ->map(function($lote) {
                                 $semanasTranscurridas = $lote->fecha_inicio->diffInWeeks(now());
-                                $seguimientos = $lote->seguimientos()->orderBy('fecha_seguimiento', 'desc')->take(3)->get();
+                                $seguimientos = $lote->seguimientos()->orderBy('fecha_seguimiento', 'desc')->take(5)->get();
                                 
-                                // Cálculos basados en datos reales de trucha
-                                $pesoEsperadoSemana = 0;
+                                // Usar datos REALES de seguimientos si existen
+                                $pesoEsperadoActual = $lote->peso_promedio_inicial ?? 1.0;
+                                $prediccionProximaSemana = $pesoEsperadoActual;
                                 $tendencia = 'estable';
-                                $prediccionProximaSemana = 0;
+                                $supervivenciaEstimada = 95;
+                                $cantidadActual = $lote->cantidad_inicial;
                                 
-                                if ($lote->especie == 'trucha') {
-                                    // Curva típica de crecimiento para trucha arcoíris
-                                    $pesoEsperadoSemana = min(250, 2 + ($semanasTranscurridas * 4.5) + (($semanasTranscurridas ** 1.2) * 0.8));
-                                    $prediccionProximaSemana = min(260, 2 + (($semanasTranscurridas + 1) * 4.5) + ((($semanasTranscurridas + 1) ** 1.2) * 0.8));
-                                } else {
-                                    // Curva genérica para otras especies
-                                    $pesoEsperadoSemana = min(200, 1.5 + ($semanasTranscurridas * 3.8) + (($semanasTranscurridas ** 1.15) * 0.7));
-                                    $prediccionProximaSemana = min(210, 1.5 + (($semanasTranscurridas + 1) * 3.8) + ((($semanasTranscurridas + 1) ** 1.15) * 0.7));
-                                }
-                                
-                                // Determinar tendencia basada en seguimientos recientes
-                                if ($seguimientos->count() >= 2) {
-                                    $ultimoPeso = $seguimientos->first()->peso_promedio ?? $pesoEsperadoSemana;
-                                    $penultimoPeso = $seguimientos->skip(1)->first()->peso_promedio ?? $pesoEsperadoSemana * 0.9;
+                                if ($seguimientos->count() >= 1) {
+                                    // DATOS REALES: Usar el seguimiento más reciente
+                                    $ultimoSeguimiento = $seguimientos->first();
+                                    $pesoEsperadoActual = $ultimoSeguimiento->peso_promedio ?? $pesoEsperadoActual;
+                                    $cantidadActual = $ultimoSeguimiento->cantidad_actual ?? $lote->cantidad_actual;
                                     
-                                    if ($ultimoPeso > $penultimoPeso * 1.05) {
-                                        $tendencia = 'creciente';
-                                    } elseif ($ultimoPeso < $penultimoPeso * 0.95) {
-                                        $tendencia = 'decreciente';
+                                    // Calcular supervivencia real
+                                    $supervivenciaEstimada = ($cantidadActual / $lote->cantidad_inicial) * 100;
+                                    
+                                    // Determinar tendencia basada en seguimientos recientes REALES
+                                    if ($seguimientos->count() >= 2) {
+                                        $penultimoSeguimiento = $seguimientos->skip(1)->first();
+                                        $ultimoPeso = $ultimoSeguimiento->peso_promedio;
+                                        $penultimoPeso = $penultimoSeguimiento->peso_promedio;
+                                        
+                                        if ($ultimoPeso > $penultimoPeso * 1.05) {
+                                            $tendencia = 'creciente';
+                                        } elseif ($ultimoPeso < $penultimoPeso * 0.95) {
+                                            $tendencia = 'decreciente';
+                                        }
+                                        
+                                        // Predicción basada en tendencia real de crecimiento
+                                        $tasaCrecimiento = ($ultimoPeso - $penultimoPeso) / $penultimoPeso;
+                                        $prediccionProximaSemana = $ultimoPeso * (1 + $tasaCrecimiento);
+                                    } else {
+                                        // Con un solo seguimiento, estimar crecimiento promedio
+                                        $diasTranscurridos = $lote->fecha_inicio->diffInDays(now());
+                                        if ($diasTranscurridos > 0) {
+                                            $tasaCrecimientoSemanal = (($pesoEsperadoActual - $lote->peso_promedio_inicial) / $lote->peso_promedio_inicial) / ($diasTranscurridos / 7);
+                                            $prediccionProximaSemana = $pesoEsperadoActual * (1 + $tasaCrecimientoSemanal);
+                                        }
                                     }
-                                    
-                                    // Ajustar predicción basada en tendencia real
-                                    $factorTendencia = ($ultimoPeso / $pesoEsperadoSemana);
-                                    $prediccionProximaSemana *= $factorTendencia;
+                                } else {
+                                    // FALLBACK: Si no hay seguimientos, usar estimación básica
+                                    $diasTranscurridos = $lote->fecha_inicio->diffInDays(now());
+                                    $pesoEsperadoActual = $lote->peso_promedio_inicial + ($diasTranscurridos * 0.5); // Crecimiento conservador
+                                    $prediccionProximaSemana = $pesoEsperadoActual + 3.5; // Estimación semanal
+                                    $supervivenciaEstimada = max(85, 95 - ($semanasTranscurridas * 0.5));
                                 }
                                 
                                 return [
                                     'lote' => $lote,
                                     'semanas_transcurridas' => $semanasTranscurridas,
-                                    'peso_esperado_actual' => round($pesoEsperadoSemana, 1),
+                                    'dias_vida' => $lote->fecha_inicio->diffInDays(now()),
+                                    'peso_esperado_actual' => round($pesoEsperadoActual, 1),
                                     'prediccion_proxima_semana' => round($prediccionProximaSemana, 1),
                                     'tendencia' => $tendencia,
                                     'seguimientos_recientes' => $seguimientos,
-                                    'supervivencia_estimada' => max(75, 95 - ($semanasTranscurridas * 0.8)),
-                                    'biomasa_estimada' => round(($lote->cantidad_inicial * ($pesoEsperadoSemana / 1000) * (max(75, 95 - ($semanasTranscurridas * 0.8)) / 100)), 2)
+                                    'supervivencia_estimada' => round($supervivenciaEstimada, 1),
+                                    'biomasa_estimada' => round(($cantidadActual * ($pesoEsperadoActual / 1000)), 2),
+                                    'tiene_datos_reales' => $seguimientos->count() > 0
                                 ];
                             });
                     @endphp
@@ -165,8 +183,27 @@
                                                 {{ $datos['lote']->unidadProduccion->nombre }}
                                             </p>
                                             <p class="text-xs text-gray-500 dark:text-gray-500">
-                                                {{ ucfirst($datos['lote']->especie) }} • Semana {{ $datos['semanas_transcurridas'] }}
+                                                {{ ucfirst($datos['lote']->especie) }} • {{ formatDiasVida($datos['dias_vida']) }}
                                             </p>
+                                            
+                                            <!-- Indicador de fuente de datos -->
+                                            <div class="mt-2">
+                                                @if($datos['tiene_datos_reales'])
+                                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                        </svg>
+                                                        Datos Reales
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                                        </svg>
+                                                        Estimado
+                                                    </span>
+                                                @endif
+                                            </div>
                                         </div>
                                         <div class="text-right">
                                             @if($datos['tendencia'] == 'creciente')
@@ -237,9 +274,43 @@
                                     </div>
                                     
                                     @if($datos['seguimientos_recientes']->count() > 0)
-                                        <div class="text-xs text-gray-500 dark:text-gray-500">
-                                            <p>Último seguimiento: {{ $datos['seguimientos_recientes']->first()->fecha_seguimiento->format('d/m/Y') }}</p>
-                                            <p>Peso real: {{ $datos['seguimientos_recientes']->first()->peso_promedio ?? 'N/A' }}g</p>
+                                        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                                                🔬 Seguimientos recientes ({{ $datos['seguimientos_recientes']->count() }}):
+                                            </p>
+                                            <div class="space-y-1">
+                                                @foreach($datos['seguimientos_recientes']->take(3) as $seguimiento)
+                                                <div class="flex justify-between items-center text-xs">
+                                                    <span class="text-gray-600 dark:text-gray-400">
+                                                        {{ $seguimiento->fecha_seguimiento->format('d/m/Y') }}
+                                                    </span>
+                                                    <div class="flex gap-2">
+                                                        <span class="font-medium text-gray-900 dark:text-gray-100">
+                                                            {{ $seguimiento->peso_promedio ?? 'N/A' }}g
+                                                        </span>
+                                                        @if($seguimiento->cantidad_actual)
+                                                        <span class="text-gray-500 dark:text-gray-400">
+                                                            ({{ number_format($seguimiento->cantidad_actual) }})
+                                                        </span>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                                @endforeach
+                                                
+                                                @if($datos['seguimientos_recientes']->count() > 3)
+                                                <div class="text-center">
+                                                    <span class="text-xs text-gray-400 dark:text-gray-500">
+                                                        ... y {{ $datos['seguimientos_recientes']->count() - 3 }} más
+                                                    </span>
+                                                </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                                            <p class="text-xs text-gray-400 dark:text-gray-500 italic">
+                                                ⚠️ Sin seguimientos registrados - Datos estimados únicamente
+                                            </p>
                                         </div>
                                     @endif
                                 </div>

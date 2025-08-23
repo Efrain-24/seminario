@@ -23,6 +23,30 @@ class InventarioItemController extends Controller
         return view('inventario.items.create');
     }
 
+    public function show(InventarioItem $item)
+    {
+        $item->load(['existencias.bodega', 'movimientos.bodega', 'movimientos.user']);
+        $bodegas = Bodega::orderBy('nombre')->get();
+        
+        // Últimos movimientos del item
+        $movimientos = $item->movimientos()->with(['bodega', 'user'])
+            ->orderByDesc('fecha')
+            ->orderByDesc('id')
+            ->limit(10)
+            ->get();
+            
+        // Stock por bodega
+        $stockPorBodega = $bodegas->map(function ($bodega) use ($item) {
+            $existencia = $item->existencias->firstWhere('bodega_id', $bodega->id);
+            return (object) [
+                'bodega' => $bodega,
+                'stock' => $existencia ? $existencia->stock_actual : 0
+            ];
+        });
+
+        return view('inventario.items.show', compact('item', 'bodegas', 'movimientos', 'stockPorBodega'));
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -33,8 +57,19 @@ class InventarioItemController extends Controller
             'stock_minimo' => ['nullable', 'numeric', 'min:0'],
             'descripcion'  => ['nullable', 'string'],
         ]);
-        InventarioItem::create($data);
-        return redirect()->route('produccion.inventario.items.index')->with('success', 'Ítem creado.');
+        
+        // Generar SKU automáticamente si no se proporciona
+        if (empty($data['sku'])) {
+            $data['sku'] = $this->generateUniqueSKU($data['tipo'], $data['nombre']);
+        }
+        
+        $item = InventarioItem::create($data);
+        
+        // Redirigir directamente al formulario de entrada para registrar stock inicial
+        return redirect()
+            ->route('produccion.inventario.movimientos.create', 'entrada')
+            ->with('success', 'Ítem creado exitosamente. Ahora registra el stock inicial.')
+            ->with('item_id', $item->id);
     }
 
     public function edit(InventarioItem $item)
@@ -60,5 +95,52 @@ class InventarioItemController extends Controller
     {
         $item->delete();
         return back()->with('success', 'Ítem eliminado.');
+    }
+
+    /**
+     * Generar un SKU único
+     */
+    private function generateUniqueSKU($tipo, $nombre)
+    {
+        // Prefijo según el tipo
+        $prefijos = [
+            'alimento' => 'ALM',
+            'insumo' => 'INS',
+            'medicamento' => 'MED',
+            'equipo' => 'EQP'
+        ];
+        
+        $prefijo = $prefijos[$tipo] ?? 'ITM';
+        
+        // Procesar nombre para crear sufijo
+        $palabras = explode(' ', trim($nombre));
+        $sufijo = '';
+        
+        if (count($palabras) === 1) {
+            // Una sola palabra, tomar primeras 4 letras
+            $sufijo = strtoupper(substr($palabras[0], 0, 4));
+        } elseif (count($palabras) === 2) {
+            // Dos palabras, tomar primeras 2 letras de cada una
+            $sufijo = strtoupper(substr($palabras[0], 0, 2) . substr($palabras[1], 0, 2));
+        } else {
+            // Más de dos palabras, tomar primera letra de las primeras 4 palabras
+            $sufijo = strtoupper(implode('', array_map(function($palabra) {
+                return substr($palabra, 0, 1);
+            }, array_slice($palabras, 0, 4))));
+        }
+        
+        // Rellenar sufijo si es muy corto
+        $sufijo = str_pad($sufijo, 3, 'X');
+        
+        // Generar SKU y verificar unicidad
+        $attempts = 0;
+        do {
+            $numero = str_pad(rand(1, 999), 3, '0', STR_PAD_LEFT);
+            $sku = "{$prefijo}-{$sufijo}-{$numero}";
+            $exists = InventarioItem::where('sku', $sku)->exists();
+            $attempts++;
+        } while ($exists && $attempts < 100);
+        
+        return $sku;
     }
 }

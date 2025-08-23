@@ -25,10 +25,17 @@ class InventarioMovimiento extends Model
     {
         return $this->belongsTo(InventarioItem::class);
     }
+    
     public function bodega()
     {
         return $this->belongsTo(Bodega::class);
     }
+    
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+    
     public function referencia(): MorphTo
     {
         return $this->morphTo();

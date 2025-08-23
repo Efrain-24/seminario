@@ -164,6 +164,9 @@ class DatabaseSeeder extends Seeder
             ProduccionSeeder::class,
             TipoAlimentoSeeder::class,
             AlimentacionSeeder::class,
+            CosechaParcialSeeder::class,
+            MortalidadSeeder::class,
+            InventarioSeeder::class,
         ]);
     }
 }

@@ -2,11 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Seguimiento;
 use App\Models\Lote;
-use App\Models\User;
+use App\Models\Seguimiento;
 use Carbon\Carbon;
 
 class SeguimientoSeeder extends Seeder
@@ -16,105 +14,132 @@ class SeguimientoSeeder extends Seeder
      */
     public function run(): void
     {
-        $lotes = Lote::all();
-        $usuarios = User::all();
-
-        if ($lotes->count() === 0 || $usuarios->count() === 0) {
-            $this->command->warn('No hay lotes o usuarios disponibles para crear seguimientos.');
+        // Obtener lotes activos
+        $lotes = Lote::where('estado', 'activo')->get();
+        
+        if ($lotes->isEmpty()) {
+            $this->command->warn('No hay lotes activos para crear seguimientos.');
             return;
         }
 
+        $seguimientosCreados = 0;
+
         foreach ($lotes as $lote) {
-            // Crear seguimientos históricos para cada lote (últimos 30 días)
-            $fechaInicio = $lote->fecha_inicio->copy();
-            $hoy = Carbon::today();
+            // Calcular cuántas semanas han pasado desde el inicio
+            $semanasTranscurridas = $lote->fecha_inicio->diffInWeeks(now());
             
-            // Crear seguimientos cada 3-7 días
-            $fechaActual = $fechaInicio->copy();
-            $cantidadActual = $lote->cantidad_inicial;
-            $pesoInicial = $lote->peso_promedio_inicial ?? 5.0;
-            $tallaInicial = $lote->talla_promedio_inicial ?? 3.0;
-            
-            $contador = 0;
-            while ($fechaActual->lte($hoy) && $contador < 10) {
-                $tipoSeguimiento = match($contador % 4) {
-                    0, 1 => 'rutinario',
-                    2 => 'muestreo',
-                    3 => 'mortalidad',
-                    default => 'rutinario'
-                };
+            // Crear seguimientos semanales desde el inicio hasta ahora
+            for ($semana = 1; $semana <= $semanasTranscurridas; $semana++) {
+                $fechaSeguimiento = $lote->fecha_inicio->copy()->addWeeks($semana);
                 
-                // Simular mortalidad gradual (1-3%)
-                $mortalidad = rand(0, max(1, intval($cantidadActual * 0.03)));
-                $cantidadActual -= $mortalidad;
+                // Solo crear seguimientos hasta la fecha actual
+                if ($fechaSeguimiento->isFuture()) {
+                    break;
+                }
+
+                // Calcular peso realista basado en la especie y semana
+                $pesoPromedio = $this->calcularPesoRealista($lote, $semana);
+                $tallaPromedio = $this->calcularTallaRealista($lote, $semana);
                 
-                // Simular crecimiento
-                $diasTranscurridos = $fechaActual->diffInDays($fechaInicio);
-                $factorCrecimiento = 1 + ($diasTranscurridos * 0.02); // 2% de crecimiento por día
-                $pesoActual = $pesoInicial * $factorCrecimiento;
-                $tallaActual = $tallaInicial * (1 + ($diasTranscurridos * 0.01)); // 1% de crecimiento en talla
-                
+                // Agregar variabilidad natural (+/- 10%)
+                $variacion = rand(-10, 10) / 100;
+                $pesoPromedio = $pesoPromedio * (1 + $variacion);
+                $tallaPromedio = $tallaPromedio * (1 + $variacion);
+
                 Seguimiento::create([
                     'lote_id' => $lote->id,
-                    'user_id' => $usuarios->random()->id,
-                    'fecha_seguimiento' => $fechaActual->format('Y-m-d'),
-                    'tipo_seguimiento' => $tipoSeguimiento,
-                    'cantidad_actual' => $cantidadActual,
-                    'mortalidad' => $mortalidad,
-                    'peso_promedio' => round($pesoActual, 2),
-                    'talla_promedio' => round($tallaActual, 2),
-                    'temperatura_agua' => rand(220, 280) / 10, // 22-28°C
-                    'ph_agua' => rand(65, 85) / 10, // 6.5-8.5
-                    'oxigeno_disuelto' => rand(50, 80) / 10, // 5.0-8.0 mg/L
-                    'observaciones' => $this->generarObservacion($tipoSeguimiento),
-                    'created_at' => $fechaActual,
-                    'updated_at' => $fechaActual
+                    'fecha_seguimiento' => $fechaSeguimiento,
+                    'cantidad_actual' => $this->calcularCantidadActual($lote, $semana),
+                    'peso_promedio' => round($pesoPromedio, 2),
+                    'talla_promedio' => round($tallaPromedio, 2),
+                    'temperatura_agua' => rand(18, 26) + (rand(0, 9) / 10), // 18.0 - 26.9°C
+                    'ph_agua' => rand(65, 85) / 10, // 6.5 - 8.5
+                    'oxigeno_disuelto' => rand(50, 80) / 10, // 5.0 - 8.0 mg/L
+                    'tipo_seguimiento' => 'rutinario',
+                    'observaciones' => $this->generarObservaciones($semana, $lote->especie),
+                    'user_id' => rand(1, 2), // Usuarios que creamos en el seeder
                 ]);
                 
-                // Actualizar cantidad actual del lote
-                $lote->update(['cantidad_actual' => $cantidadActual]);
-                
-                // Siguiente fecha (3-7 días después)
-                $fechaActual->addDays(rand(3, 7));
-                $contador++;
+                $seguimientosCreados++;
             }
         }
-        
-        $this->command->info('Seguimientos de prueba creados exitosamente.');
+
+        $this->command->info("✅ Seguimientos creados exitosamente: {$seguimientosCreados} registros");
     }
 
-    private function generarObservacion($tipo)
+    /**
+     * Calcular peso realista basado en curvas de crecimiento reales
+     */
+    private function calcularPesoRealista($lote, $semana)
+    {
+        $pesoInicial = $lote->peso_promedio_inicial;
+        
+        if (strtolower($lote->especie) === 'trucha arcoíris' || strtolower($lote->especie) === 'trucha') {
+            // Curva de crecimiento para trucha arcoíris
+            // Crecimiento exponencial que se estabiliza
+            return $pesoInicial + ($semana * 4.2) + (($semana ** 1.15) * 0.8);
+        } else {
+            // Tilapia u otras especies
+            // Crecimiento más rápido inicialmente
+            return $pesoInicial + ($semana * 3.5) + (($semana ** 1.1) * 0.7);
+        }
+    }
+
+    /**
+     * Calcular talla realista
+     */
+    private function calcularTallaRealista($lote, $semana)
+    {
+        $tallaInicial = $lote->talla_promedio_inicial;
+        
+        if (strtolower($lote->especie) === 'trucha arcoíris' || strtolower($lote->especie) === 'trucha') {
+            // Trucha crece más en longitud
+            return $tallaInicial + ($semana * 0.8) + (($semana ** 0.9) * 0.15);
+        } else {
+            // Tilapia
+            return $tallaInicial + ($semana * 0.6) + (($semana ** 0.85) * 0.12);
+        }
+    }
+
+    /**
+     * Calcular cantidad actual considerando mortalidad natural
+     */
+    private function calcularCantidadActual($lote, $semana)
+    {
+        // Mortalidad natural del 0.5-1% por semana
+        $tasaMortalidad = rand(5, 10) / 1000; // 0.5% - 1.0%
+        $cantidadActual = $lote->cantidad_inicial;
+        
+        // Aplicar mortalidad acumulativa
+        for ($i = 1; $i <= $semana; $i++) {
+            $cantidadActual = $cantidadActual * (1 - $tasaMortalidad);
+        }
+        
+        return (int) round($cantidadActual);
+    }
+
+    /**
+     * Generar observaciones realistas
+     */
+    private function generarObservaciones($semana, $especie)
     {
         $observaciones = [
-            'rutinario' => [
-                'Peces activos y con buen apetito.',
-                'Comportamiento normal observado.',
-                'Agua clara, sin signos de contaminación.',
-                'Alimentación regular completada.',
-                'No se observan anomalías.'
-            ],
-            'muestreo' => [
-                'Muestreo biométrico realizado en 30 ejemplares.',
-                'Crecimiento uniforme observado en la población.',
-                'Índices de crecimiento dentro de parámetros esperados.',
-                'Variabilidad de tallas dentro del rango normal.',
-                'Muestreo completado sin estrés aparente en los peces.'
-            ],
-            'mortalidad' => [
-                'Mortalidad natural observada.',
-                'Peces retirados y registrados.',
-                'Posible causa: estrés por manejo.',
-                'Revisar parámetros de calidad del agua.',
-                'Mortalidad dentro de rangos esperados.'
-            ],
-            'traslado' => [
-                'Preparativos para traslado iniciados.',
-                'Peces en ayunas para procedimiento.',
-                'Equipos de traslado preparados.',
-                'Revisión de unidad de destino completada.'
-            ]
+            "Seguimiento semanal rutinario - desarrollo normal",
+            "Peces activos, buen apetito y comportamiento natural",
+            "Crecimiento constante, parámetros dentro de rango óptimo",
+            "Actividad alimentaria normal, respuesta rápida al alimento",
+            "Desarrollo homogéneo del lote, sin anomalías detectadas",
+            "Comportamiento de nado normal, buena dispersión en el agua",
+            "Condición corporal óptima, coloración saludable",
+            "Seguimiento quincenal - evolución favorable del crecimiento"
         ];
 
-        return $observaciones[$tipo][array_rand($observaciones[$tipo])];
+        if ($semana <= 2) {
+            return "Adaptación inicial al sistema, seguimiento intensivo de parámetros";
+        } elseif ($semana <= 8) {
+            return $observaciones[array_rand($observaciones)];
+        } else {
+            return "Fase de engorde - " . $observaciones[array_rand($observaciones)];
+        }
     }
 }

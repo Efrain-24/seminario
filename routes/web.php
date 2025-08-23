@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProduccionController;
 use App\Http\Controllers\TipoAlimentoController;
 use App\Http\Controllers\CosechaParcialController;
@@ -17,16 +18,21 @@ use App\Http\Controllers\InventarioAlertaController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 
 // Ruta de prueba temporal para tipos de alimento
-Route::get('/test-tipos-alimento', function (Request $request) {
-    $controller = new TipoAlimentoController();
-    return $controller->index($request);
+Route::get('/test/tipos-alimento', function () {
+    $tipos = \App\Models\TipoAlimento::all();
+    return response()->json($tipos);
 })->middleware('auth')->name('test.tipos.alimento');
 
-Route::get('/', function () {
-    return redirect()->route('aplicaciones');
-});
+// Incluir archivo de pruebas de fechas
+include_once __DIR__ . '/test-fechas.php';
+
+// Incluir archivo de pruebas de seguimientos
+include_once __DIR__ . '/test-seguimientos.php';
+
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Ruta de prueba de permisos
 Route::get('/test-permisos', function () {

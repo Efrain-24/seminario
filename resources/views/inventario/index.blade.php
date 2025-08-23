@@ -17,29 +17,21 @@
             <div class="text-sm text-gray-600 dark:text-gray-300"></div>
 
             <div class="flex flex-wrap gap-2">
-                <a href="{{ route('produccion.inventario.items.index') }}"
-                    class="px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700">
-                    Gestionar ítems
+                <a href="{{ route('produccion.inventario.items.create') }}"
+                    class="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white shadow-sm">
+                    Agregar Producto
                 </a>
                 <a href="{{ route('produccion.inventario.bodegas.index') }}"
                     class="px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700">
-                    Bodegas
+                    🏢 Bodegas
                 </a>
                 <a href="{{ route('produccion.inventario.movimientos.index') }}"
                     class="px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700">
                     Movimientos
                 </a>
-                <a href="{{ route('produccion.inventario.movimientos.create', 'entrada') }}"
-                    class="px-3 py-2 rounded bg-emerald-600 hover:bg-emerald-700 text-white">
-                    + Entrada
-                </a>
-                <a href="{{ route('produccion.inventario.movimientos.create', 'salida') }}"
-                    class="px-3 py-2 rounded bg-rose-600 hover:bg-rose-700 text-white">
-                    − Salida
-                </a>
-                <a href="{{ route('produccion.inventario.movimientos.create', 'ajuste') }}"
-                    class="px-3 py-2 rounded bg-indigo-600 hover:bg-indigo-700 text-white">
-                    ⟲ Ajuste
+                <a href="{{ route('produccion.inventario.alertas.index') }}"
+                    class="px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    🚨 Alertas
                 </a>
             </div>
         </div>
@@ -78,14 +70,47 @@
                 </thead>
                 <tbody>
                     @forelse($items as $it)
-                        <tr class="border-t border-gray-200 dark:border-gray-700">
-                            <td class="px-4 py-2">{{ $it->nombre }}</td>
-                            <td class="px-4 py-2 capitalize">{{ $it->tipo }}</td>
-                            <td class="px-4 py-2">{{ $it->unidad_base }}</td>
-                            <td class="px-4 py-2 text-right font-semibold">{{ number_format($it->stockTotal(), 3) }}
+                        <tr class="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors" 
+                            onclick="window.location.href='{{ route('produccion.inventario.items.show', $it->id) }}'">
+                            <td class="px-4 py-3">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-8 w-8">
+                                        <div class="h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold text-white
+                                            @if($it->tipo === 'alimento') bg-green-500
+                                            @else bg-blue-500
+                                            @endif">
+                                            @if($it->tipo === 'alimento') AL @else PR @endif
+                                        </div>
+                                    </div>
+                                    <div class="ml-3">
+                                        <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $it->nombre }}</div>
+                                        @if($it->sku)
+                                            <div class="text-xs text-gray-500 dark:text-gray-400">SKU: {{ $it->sku }}</div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    @if($it->tipo === 'alimento') bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100
+                                    @else bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100
+                                    @endif">
+                                    {{ ucfirst($it->tipo) }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-sm text-gray-900 dark:text-gray-100">{{ $it->unidad_base }}</span>
+                            </td>
+                            <td class="px-4 py-3 text-right">
+                                <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                    {{ number_format($it->stockTotal(), 3) }}
+                                </div>
+                                @if($it->stockTotal() < $it->stock_minimo && $it->stock_minimo > 0)
+                                    <div class="text-xs text-red-600 dark:text-red-400">¡Bajo mínimo!</div>
+                                @endif
                             </td>
                             @foreach ($bodegas as $b)
-                                <td class="px-4 py-2 text-right">
+                                <td class="px-4 py-3 text-right text-sm text-gray-900 dark:text-gray-100">
                                     {{ number_format(optional($it->existencias->firstWhere('bodega_id', $b->id))->stock_actual ?? 0, 3) }}
                                 </td>
                             @endforeach
@@ -93,13 +118,18 @@
                     @empty
                         <tr>
                             <td colspan="{{ 4 + $bodegas->count() }}"
-                                class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
-                                Sin ítems.
-                                <a href="{{ route('produccion.inventario.items.create') }}" class="underline">Crear
-                                    ítem</a>
-                                o
-                                <a href="{{ route('produccion.inventario.movimientos.create', 'entrada') }}"
-                                    class="underline">registrar entrada</a>.
+                                class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                                <div class="flex flex-col items-center">
+                                    <svg class="w-12 h-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 48 48">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                    </svg>
+                                    <p class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Sin productos en inventario</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Comienza agregando productos para gestionar tu inventario</p>
+                                    <a href="{{ route('produccion.inventario.items.create') }}" 
+                                        class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm text-sm font-medium">
+                                        Agregar primer producto
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     @endforelse

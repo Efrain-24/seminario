@@ -146,7 +146,7 @@
                                 <div>
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Días de Vida</p>
                                     <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                        {{ now()->diffInDays($lote->fecha_inicio) }} días
+                                        {{ formatDiasVida($lote->fecha_inicio->diffInDays(now())) }}
                                     </p>
                                 </div>
                             </div>
