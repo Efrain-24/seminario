@@ -16,7 +16,7 @@ class ControlProduccionController extends Controller
         $lotes = Lote::orderBy('codigo_lote')->get();
         $rows = $lotes->map(fn($l) => [
             'lote'            => $l,
-            'peso_promedio_g' => $this->svc->estimarPesoPromedioActual($l),
+            'peso_promedio_kg' => $this->svc->estimarPesoPromedioActual($l),
             'biomasa_kg'      => $this->svc->estimarBiomasaKg($l),
         ]);
         return view('produccion.control.index', compact('rows'));
@@ -44,8 +44,8 @@ class ControlProduccionController extends Controller
 
     public function predecirParaPeso(Request $req, Lote $lote)
     {
-        $req->validate(['peso_objetivo_g' => ['required', 'numeric', 'min:1']]);
-        $res = $this->svc->predecirDiaParaPesoObjetivo($lote, (float)$req->peso_objetivo_g);
+        $req->validate(['peso_objetivo_kg' => ['required', 'numeric', 'min:0.001']]);
+        $res = $this->svc->predecirDiaParaPesoObjetivo($lote, (float)$req->peso_objetivo_kg);
         return back()->with('prediccion_peso', $res);
     }
 }

@@ -33,10 +33,10 @@ class AlertaAnomaliasService
         return 'created_at';
     }
 
-    /** Descubre una columna de peso promedio (g/pez) en Seguimiento */
+    /** Descubre una columna de peso promedio (kg/pez) en Seguimiento */
     protected function leerPesoSeguimiento(array $a): ?float
     {
-        $peso = $a['peso_promedio_g'] ?? $a['peso_promedio'] ?? $a['peso_muestra_g']
+        $peso = $a['peso_promedio_kg'] ?? $a['peso_promedio'] ?? $a['peso_muestra_kg']
             ?? $a['peso_muestra'] ?? $a['peso'] ?? null;
         return $peso !== null ? (float)$peso : null;
     }
@@ -101,13 +101,13 @@ class AlertaAnomaliasService
         $pobl_ini   = max(1, $pobl_fin + (int)$muertes);     // antes de morir
         $pobl_prom  = max(1, (int) floor(($pobl_ini + $pobl_fin) / 2));
 
-        $gananciaEsperada_g = ($kg / $this->FCR) * 1000.0 / $pobl_prom;
-        $gananciaObservada_g = $peso1 - $peso0;
+        $gananciaEsperada_kg = ($kg / $this->FCR) / $pobl_prom;
+        $gananciaObservada_kg = $peso1 - $peso0;
 
-        if ($gananciaEsperada_g <= 0) return null;
+        if ($gananciaEsperada_kg <= 0) return null;
 
-        $deficit = $gananciaEsperada_g - $gananciaObservada_g;
-        $defPct  = $deficit / $gananciaEsperada_g; // 0..1
+        $deficit = $gananciaEsperada_kg - $gananciaObservada_kg;
+        $defPct  = $deficit / $gananciaEsperada_kg; // 0..1
 
         if ($defPct >= $this->tolerancia) {
             return [
@@ -118,11 +118,11 @@ class AlertaAnomaliasService
                 'dias'                => $dias,
                 'pobl_prom'           => $pobl_prom,
                 'alimento_kg'         => round($kg, 2),
-                'peso_inicial_g'      => round($peso0, 2),
-                'peso_final_g'        => round($peso1, 2),
-                'ganancia_esperada_g' => round($gananciaEsperada_g, 2),
-                'ganancia_observada_g' => round($gananciaObservada_g, 2),
-                'deficit_g'           => round($deficit, 2),
+                'peso_inicial_kg'      => round($peso0, 3),
+                'peso_final_kg'        => round($peso1, 3),
+                'ganancia_esperada_kg' => round($gananciaEsperada_kg, 3),
+                'ganancia_observada_kg' => round($gananciaObservada_kg, 3),
+                'deficit_kg'           => round($deficit, 3),
                 'deficit_pct'         => round($defPct * 100, 2),
                 'fcr'                 => $this->FCR,
                 'tolerancia_pct'      => $this->tolerancia * 100,

@@ -72,7 +72,7 @@
                     @php($p = session('prediccion_fecha'))
                     <div class="mt-4 text-gray-800 dark:text-gray-100">
                         <div><b>Días:</b> {{ $p['dias'] }}</div>
-                        <div><b>Peso promedio estimado:</b> {{ number_format($p['peso_promedio_g'], 2) }} g</div>
+                        <div><b>Peso promedio estimado:</b> {{ number_format($p['peso_promedio_kg'], 3) }} kg</div>
                         <div><b>Biomasa estimada:</b> {{ number_format($p['biomasa_kg'], 2) }} kg</div>
                     </div>
                 @endif
@@ -86,8 +86,8 @@
                     class="flex flex-col sm:flex-row gap-3 items-end">
                     @csrf
                     <div class="flex-1 w-full">
-                        <label class="block text-sm mb-1 text-gray-700 dark:text-gray-200">Peso objetivo (g/pez)</label>
-                        <input type="number" name="peso_objetivo_g" min="1" step="0.01"
+                        <label class="block text-sm mb-1 text-gray-700 dark:text-gray-200">Peso objetivo (kg/pez)</label>
+                        <input type="number" name="peso_objetivo_kg" min="0.001" step="0.001"
                             class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800
                                       text-gray-900 dark:text-gray-100 p-2"
                             required>

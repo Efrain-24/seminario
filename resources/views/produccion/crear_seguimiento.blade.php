@@ -119,12 +119,12 @@
                                 <!-- Peso Promedio -->
                                 <div>
                                     <label for="peso_promedio" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        Peso Promedio (g)
+                                        Peso Promedio (kg)
                                     </label>
-                                    <input type="number" step="0.01" name="peso_promedio" id="peso_promedio" 
+                                    <input type="number" step="0.001" name="peso_promedio" id="peso_promedio" 
                                            value="{{ old('peso_promedio') }}"
                                            class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
-                                           placeholder="0.00" min="0">
+                                           placeholder="0.000" min="0">
                                     @error('peso_promedio')
                                         <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                     @enderror

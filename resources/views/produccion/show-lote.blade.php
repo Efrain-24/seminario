@@ -200,7 +200,7 @@
                             @if($lote->peso_promedio_inicial)
                                 <div class="flex justify-between items-center">
                                     <span class="text-gray-600 dark:text-gray-400">Peso Promedio Inicial:</span>
-                                    <span class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ number_format($lote->peso_promedio_inicial, 2) }} g</span>
+                                    <span class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ number_format($lote->peso_promedio_inicial, 3) }} kg</span>
                                 </div>
                             @endif
                             

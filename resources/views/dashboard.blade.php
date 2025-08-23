@@ -286,7 +286,7 @@
                                                     </span>
                                                     <div class="flex gap-2">
                                                         <span class="font-medium text-gray-900 dark:text-gray-100">
-                                                            {{ $seguimiento->peso_promedio ?? 'N/A' }}g
+                                                            {{ $seguimiento->peso_promedio ?? 'N/A' }}kg
                                                         </span>
                                                         @if($seguimiento->cantidad_actual)
                                                         <span class="text-gray-500 dark:text-gray-400">

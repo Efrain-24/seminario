@@ -54,18 +54,18 @@ class BiomasaService
             $aLote = $lote->getAttributes();
             $pesoLote = ($aLote['peso_promedio_inicial'] ?? null) ?? ($aLote['peso_promedio'] ?? null);
             if ($pesoLote !== null) {
-                return ['peso_g' => (float)$pesoLote, 'fecha' => Carbon::parse($lote->fecha_inicio ?? now())];
+                return ['peso_kg' => (float)$pesoLote, 'fecha' => Carbon::parse($lote->fecha_inicio ?? now())];
             }
             return null;
         }
 
         $a = $bio->getAttributes();
 
-        // Posibles nombres para el peso promedio (en gramos por pez)
+        // Posibles nombres para el peso promedio (en kilogramos por pez)
         $peso =
-            ($a['peso_promedio_g'] ?? null) ??
+            ($a['peso_promedio_kg'] ?? null) ??
             ($a['peso_promedio']   ?? null) ??
-            ($a['peso_muestra_g']  ?? null) ??
+            ($a['peso_muestra_kg']  ?? null) ??
             ($a['peso_muestra']    ?? null) ??
             ($a['peso']            ?? null);
 
@@ -73,7 +73,7 @@ class BiomasaService
 
         $fechaValor = $bio->{$colFecha} ?? now();
 
-        return ['peso_g' => (float)$peso, 'fecha' => Carbon::parse($fechaValor)];
+        return ['peso_kg' => (float)$peso, 'fecha' => Carbon::parse($fechaValor)];
     }
 
     /** Suma alimento en KG desde una fecha, detectando unidad/columna */
@@ -103,13 +103,13 @@ class BiomasaService
         return $kg;
     }
 
-    /** Estima peso promedio actual (g/pez) usando alimento/FCR o SGR */
+    /** Estima peso promedio actual (kg/pez) usando alimento/FCR o SGR */
     public function estimarPesoPromedioActual(Lote $lote): ?float
     {
         $base = $this->ultimaBiometria($lote);
         if (!$base) return null;
 
-        $w0   = $base['peso_g'];
+        $w0   = $base['peso_kg'];
         $t0   = $base['fecha'];
         $dias = max(0, $t0->diffInDays(today()));
 
@@ -117,8 +117,8 @@ class BiomasaService
         if ($feedKg > 0) {
             $pobl_prom = max(1, (int)$lote->cantidad_actual);
             $ganancia_total_kg  = $feedKg / $this->FCR;
-            $ganancia_por_pez_g = ($ganancia_total_kg * 1000) / $pobl_prom;
-            return max(0.0, $w0 + $ganancia_por_pez_g);
+            $ganancia_por_pez_kg = $ganancia_total_kg / $pobl_prom;
+            return max(0.0, $w0 + $ganancia_por_pez_kg);
         }
 
         // Sin alimentación registrada, usa SGR
@@ -133,7 +133,7 @@ class BiomasaService
     {
         $w = $this->estimarPesoPromedioActual($lote);
         if ($w === null) return null;
-        return round(($w * max(0, (int)$lote->cantidad_actual)) / 1000, 2);
+        return round($w * max(0, (int)$lote->cantidad_actual), 2);
     }
 
     /** Predicción hasta fecha objetivo */
@@ -144,29 +144,29 @@ class BiomasaService
 
         $dias  = max(0, today()->diffInDays($fechaObjetivo));
         $w_obj = $w_hoy * exp(($this->SGR_percent_day / 100.0) * $dias);
-        $bio   = round(($w_obj * max(0, (int)$lote->cantidad_actual)) / 1000, 2);
+        $bio   = round($w_obj * max(0, (int)$lote->cantidad_actual), 2);
 
-        return ['dias' => $dias, 'peso_promedio_g' => round($w_obj, 2), 'biomasa_kg' => $bio];
+        return ['dias' => $dias, 'peso_promedio_kg' => round($w_obj, 3), 'biomasa_kg' => $bio];
     }
 
-    /** Fecha para alcanzar un peso objetivo (g/pez) */
-    public function predecirDiaParaPesoObjetivo(Lote $lote, float $pesoObjetivo_g): ?array
+    /** Fecha para alcanzar un peso objetivo (kg/pez) */
+    public function predecirDiaParaPesoObjetivo(Lote $lote, float $pesoObjetivo_kg): ?array
     {
         $w_hoy = $this->estimarPesoPromedioActual($lote);
         if ($w_hoy === null || $w_hoy <= 0) return null;
-        if ($pesoObjetivo_g <= $w_hoy) {
+        if ($pesoObjetivo_kg <= $w_hoy) {
             return [
                 'dias' => 0,
                 'fecha' => today(),
-                'peso_promedio_g' => $w_hoy,
+                'peso_promedio_kg' => $w_hoy,
                 'biomasa_kg' => $this->estimarBiomasaKg($lote)
             ];
         }
-        $t     = log($pesoObjetivo_g / $w_hoy) / ($this->SGR_percent_day / 100.0);
+        $t     = log($pesoObjetivo_kg / $w_hoy) / ($this->SGR_percent_day / 100.0);
         $dias  = (int) ceil($t);
         $fecha = today()->addDays($dias);
-        $bio   = round(($pesoObjetivo_g * max(0, (int)$lote->cantidad_actual)) / 1000, 2);
+        $bio   = round($pesoObjetivo_kg * max(0, (int)$lote->cantidad_actual), 2);
 
-        return ['dias' => $dias, 'fecha' => $fecha, 'peso_promedio_g' => $pesoObjetivo_g, 'biomasa_kg' => $bio];
+        return ['dias' => $dias, 'fecha' => $fecha, 'peso_promedio_kg' => $pesoObjetivo_kg, 'biomasa_kg' => $bio];
     }
 }

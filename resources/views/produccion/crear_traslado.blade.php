@@ -167,7 +167,7 @@
                                 <!-- Peso Promedio durante Traslado -->
                                 <div>
                                     <label for="peso_promedio_traslado" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        Peso Promedio (g)
+                                        Peso Promedio (kg)
                                     </label>
                                     <input type="number" step="0.01" name="peso_promedio_traslado" id="peso_promedio_traslado" 
                                            value="{{ old('peso_promedio_traslado') }}"
