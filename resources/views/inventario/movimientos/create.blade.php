@@ -366,7 +366,7 @@
                 document.getElementById('item-tipo').textContent = option.dataset.tipo.toUpperCase();
                 document.getElementById('item-unidad').textContent = option.dataset.unidad;
                 document.getElementById('item-stock-min').textContent = option.dataset.stockMin || '0';
-                document.getElementById('item-stock-total').textContent = (parseFloat(option.dataset.stockTotal) || 0).toFixed(3) + ' ' + option.dataset.unidad;
+                document.getElementById('item-stock-total').textContent = (parseFloat(option.dataset.stockTotal) || 0).toFixed(2) + ' ' + option.dataset.unidad;
                 infoDiv.classList.remove('hidden');
                 
                 // Actualizar unidad por defecto

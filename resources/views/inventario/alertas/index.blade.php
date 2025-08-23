@@ -65,8 +65,8 @@
                             <td class="px-4 py-2">{{ $it->nombre }}</td>
                             <td class="px-4 py-2 capitalize">{{ $it->tipo }}</td>
                             <td class="px-4 py-2">{{ $it->unidad_base }}</td>
-                            <td class="px-4 py-2 text-right">{{ number_format($it->stockTotal(), 3) }}</td>
-                            <td class="px-4 py-2 text-right">{{ number_format($it->stock_minimo, 3) }}</td>
+                            <td class="px-4 py-2 text-right">{{ number_format($it->stockTotal(), 2) }}</td>
+                            <td class="px-4 py-2 text-right">{{ number_format($it->stock_minimo, 2) }}</td>
                             <td class="px-4 py-2 text-right">
                                 <a href="{{ route('produccion.inventario.movimientos.create', 'entrada') }}"
                                     class="text-blue-600 dark:text-blue-400 hover:underline">Registrar entrada</a>
@@ -108,7 +108,7 @@
                             <td class="px-4 py-2 text-center">{{ $l->bodega->nombre }}</td>
                             <td class="px-4 py-2 text-center">
                                 {{ \Carbon\Carbon::parse($l->fecha_vencimiento)->format('Y-m-d') }}</td>
-                            <td class="px-4 py-2 text-right">{{ number_format($l->stock_lote, 3) }}</td>
+                            <td class="px-4 py-2 text-right">{{ number_format($l->stock_lote, 2) }}</td>
                             <td class="px-4 py-2 text-right">
                                 <a href="{{ route('produccion.inventario.movimientos.create', 'ajuste') }}"
                                     class="text-blue-600 dark:text-blue-400 hover:underline">Ajustar</a>
@@ -150,7 +150,7 @@
                             <td class="px-4 py-2 text-center">{{ $l->bodega->nombre }}</td>
                             <td class="px-4 py-2 text-center">
                                 {{ \Carbon\Carbon::parse($l->fecha_vencimiento)->format('Y-m-d') }}</td>
-                            <td class="px-4 py-2 text-right">{{ number_format($l->stock_lote, 3) }}</td>
+                            <td class="px-4 py-2 text-right">{{ number_format($l->stock_lote, 2) }}</td>
                             <td class="px-4 py-2 text-right">
                                 <a href="{{ route('produccion.inventario.movimientos.create', 'salida') }}"
                                     class="text-blue-600 dark:text-blue-400 hover:underline">Usar primero</a>

@@ -48,7 +48,7 @@
                             <td class="px-4 py-2 text-center">{{ $it->sku ?? '—' }}</td>
                             <td class="px-4 py-2 text-center capitalize">{{ $it->tipo }}</td>
                             <td class="px-4 py-2 text-center">{{ $it->unidad_base }}</td>
-                            <td class="px-4 py-2 text-right">{{ number_format($it->stock_minimo, 3) }}</td>
+                            <td class="px-4 py-2 text-right">{{ number_format($it->stock_minimo, 2) }}</td>
                             <td class="px-4 py-2 text-right space-x-2">
                                 <a href="{{ route('produccion.inventario.items.edit', $it) }}"
                                     class="text-blue-600 dark:text-blue-400 hover:underline">Editar</a>

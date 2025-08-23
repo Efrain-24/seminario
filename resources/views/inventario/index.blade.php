@@ -44,7 +44,7 @@
                 <ul class="list-disc ms-6 text-sm text-yellow-800 dark:text-yellow-200">
                     @foreach ($low as $it)
                         <li>
-                            {{ $it->nombre }} — total: {{ number_format($it->stockTotal(), 3) }}
+                            {{ $it->nombre }} — total: {{ number_format($it->stockTotal(), 2) }}
                             {{ $it->unidad_base }}
                             (mín: {{ $it->stock_minimo }})
                         </li>
@@ -103,7 +103,7 @@
                             </td>
                             <td class="px-4 py-3 text-right">
                                 <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                    {{ number_format($it->stockTotal(), 3) }}
+                                    {{ number_format($it->stockTotal(), 2) }}
                                 </div>
                                 @if($it->stockTotal() < $it->stock_minimo && $it->stock_minimo > 0)
                                     <div class="text-xs text-red-600 dark:text-red-400">¡Bajo mínimo!</div>
@@ -111,7 +111,7 @@
                             </td>
                             @foreach ($bodegas as $b)
                                 <td class="px-4 py-3 text-right text-sm text-gray-900 dark:text-gray-100">
-                                    {{ number_format(optional($it->existencias->firstWhere('bodega_id', $b->id))->stock_actual ?? 0, 3) }}
+                                    {{ number_format(optional($it->existencias->firstWhere('bodega_id', $b->id))->stock_actual ?? 0, 2) }}
                                 </td>
                             @endforeach
                         </tr>

@@ -140,7 +140,7 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right">
                                             <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                {{ number_format($sb->stock, 3) }} {{ $item->unidad_base }}
+                                                {{ number_format($sb->stock, 2) }} {{ $item->unidad_base }}
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-center">
@@ -161,7 +161,7 @@
                                         Total General
                                     </td>
                                     <td class="px-6 py-3 text-right text-sm text-gray-900 dark:text-gray-100">
-                                        {{ number_format($item->stockTotal(), 3) }} {{ $item->unidad_base }}
+                                        {{ number_format($item->stockTotal(), 2) }} {{ $item->unidad_base }}
                                     </td>
                                     <td class="px-6 py-3 text-center">
                                         @if($item->stockTotal() < $item->stock_minimo && $item->stock_minimo > 0)
@@ -300,7 +300,7 @@
                         <div>
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Stock mínimo</dt>
                             <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                                {{ number_format($item->stock_minimo, 3) }} {{ $item->unidad_base }}
+                                {{ number_format($item->stock_minimo, 2) }} {{ $item->unidad_base }}
                             </dd>
                         </div>
                         
@@ -312,7 +312,7 @@
                                     @elseif($item->stockTotal() > 0) text-green-600 dark:text-green-400
                                     @else text-gray-500 dark:text-gray-400
                                     @endif">
-                                    {{ number_format($item->stockTotal(), 3) }} {{ $item->unidad_base }}
+                                    {{ number_format($item->stockTotal(), 2) }} {{ $item->unidad_base }}
                                 </span>
                             </dd>
                         </div>
