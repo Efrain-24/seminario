@@ -21,9 +21,7 @@
             
             <div class="flex items-center space-x-2">
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                    @if($item->tipo === 'alimento') bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100
-                    @else bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100
-                    @endif">
+                    {{ $item->tipo === 'alimento' ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' : 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100' }}">
                     {{ ucfirst($item->tipo) }}
                 </span>
             </div>
