@@ -24,25 +24,6 @@
                     <x-nav-link :href="route('aplicaciones')" :active="request()->routeIs('aplicaciones')">
                         {{ __('Aplicaciones') }}
                     </x-nav-link>
-
-                    <x-nav-link :href="route('produccion.cosechas.index')" :active="request()->routeIs('produccion.cosechas.*')">
-                        {{ __('Cosechas') }}
-                    </x-nav-link>
-
-                    <x-nav-link :href="route('produccion.control.index')" :active="request()->routeIs('produccion.control.*')">
-                        {{ __('Control de Producción') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('produccion.mortalidades.index')" :active="request()->routeIs('produccion.mortalidades.*')">
-                        {{ __('Mortalidades') }}
-                    </x-nav-link>
-
-                    <x-nav-link :href="route('produccion.alertas.index')" :active="request()->routeIs('produccion.alertas.index')">
-                        {{ __('Alertas') }}
-                    </x-nav-link>
-
-                    <x-nav-link :href="route('produccion.inventario.index')" :active="request()->routeIs('inventario.*')">
-                        {{ __('Inventario') }}
-                    </x-nav-link>
                 </div>
             </div>
 
