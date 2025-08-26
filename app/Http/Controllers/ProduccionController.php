@@ -173,7 +173,7 @@ class ProduccionController extends Controller
     }
 
     // === GESTIÓN DE MANTENIMIENTOS ===
-    public function gestionMantenimientos(Request $request, UnidadProduccion $unidad = null)
+    public function gestionMantenimientos(Request $request, ?UnidadProduccion $unidad = null)
     {
         $query = MantenimientoUnidad::with(['unidadProduccion', 'usuario']);
         
@@ -222,7 +222,7 @@ class ProduccionController extends Controller
         return view('produccion.mantenimientos', compact('mantenimientos', 'estadisticas', 'unidades', 'unidad'));
     }
 
-    public function crearMantenimiento(UnidadProduccion $unidad = null)
+    public function crearMantenimiento(?UnidadProduccion $unidad = null)
     {
         $unidades = UnidadProduccion::where('estado', '!=', 'inactivo')->get();
         $usuarios = User::orderBy('name')->get();
@@ -342,7 +342,7 @@ class ProduccionController extends Controller
         }
     }
 
-    public function historialMantenimientos(Request $request, UnidadProduccion $unidad = null)
+    public function historialMantenimientos(Request $request, ?UnidadProduccion $unidad = null)
     {
         $query = MantenimientoUnidad::with(['unidadProduccion', 'usuario'])
                                   ->whereIn('estado_mantenimiento', ['completado', 'cancelado']);
@@ -503,7 +503,7 @@ class ProduccionController extends Controller
 
     // ============ MÉTODOS DE TRASLADOS ============
 
-    public function crearTraslado($loteId = null)
+    public function crearTraslado(?int $loteId = null)
     {
         $lote = $loteId ? Lote::with('unidadProduccion')->findOrFail($loteId) : null;
         $lotes = Lote::activos()->with('unidadProduccion')->get();
