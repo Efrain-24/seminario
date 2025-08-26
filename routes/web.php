@@ -20,43 +20,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
-// Ruta de prueba temporal para tipos de alimento
-Route::get('/test/tipos-alimento', function () {
-    $tipos = \App\Models\TipoAlimento::all();
-    return response()->json($tipos);
-})->middleware('auth')->name('test.tipos.alimento');
-
-// Incluir archivo de pruebas de fechas
-include_once __DIR__ . '/test-fechas.php';
-
-// Incluir archivo de pruebas de seguimientos
-include_once __DIR__ . '/test-seguimientos.php';
-
 Route::get('/', [HomeController::class, 'index'])->name('home');
-
-// Ruta de prueba de permisos
-Route::get('/test-permisos', function () {
-    $user = App\Models\User::where('email', 'admin@piscicultura.com')->first();
-
-    if (!$user) {
-        return 'Usuario no encontrado';
-    }
-
-    $permisos = [
-        'alimentacion.view' => $user->hasPermission('alimentacion.view'),
-        'alimentacion.create' => $user->hasPermission('alimentacion.create'),
-        'alimentacion.edit' => $user->hasPermission('alimentacion.edit'),
-        'alimentacion.delete' => $user->hasPermission('alimentacion.delete'),
-    ];
-
-    // Simular autenticación para prueba
-    \Illuminate\Support\Facades\Auth::login($user);
-
-    return view('test-permisos', compact('user', 'permisos'));
-})->name('test.permisos');
-
-// Ruta de prueba de alimentación sin middleware
-Route::get('/test-alimentacion-simple', [App\Http\Controllers\AlimentacionController::class, 'index'])->name('test.alimentacion.simple');
 
 Route::get('/dashboard', function () {
     return view('dashboard');

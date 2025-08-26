@@ -34,8 +34,7 @@
                             'unidades' => [
                                 'name' => 'Unidades de Producción',
                                 'description' => 'Gestión de estanques y áreas de cultivo acuícola',
-                                'icon' =>
-                                    '<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12c0-2 1-4 3-5 2-1 4 0 5 2 1-2 3-3 5-2 2 1 3 3 3 5 0 2-1 4-3 5-2 1-4 0-5-2-1 2-3 3-5 2-2-1-3-3-3-5z"/><path d="M6 8c1-1 2-1 3 0 1-1 2-1 3 0 1-1 2-1 3 0 1-1 2-1 3 0"/><path d="M6 16c1 1 2 1 3 0 1 1 2 1 3 0 1 1 2 1 3 0 1 1 2 1 3 0"/></svg>',
+                                'icon' => '<i data-lucide="waves"></i>',
                                 'route' => 'produccion.unidades',
                                 'permission_prefix' => 'unidades',
                                 'color' => 'from-blue-500 to-cyan-600',
@@ -44,8 +43,7 @@
                             'lotes' => [
                                 'name' => 'Gestión de Lotes',
                                 'description' => 'Administración de lotes de peces y ciclos productivos',
-                                'icon' =>
-                                    '<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73L12 2 4 6.27A2 2 0 003 8v8a2 2 0 001 1.73L12 22l8-4.27A2 2 0 0021 16z"/><polyline points="3.29,7 12,12 20.71,7"/><line x1="12" y1="22" x2="12" y2="12"/></svg>',
+                                'icon' => '<i data-lucide="package"></i>',
                                 'route' => 'produccion.lotes',
                                 'permission_prefix' => 'lotes',
                                 'color' => 'from-orange-500 to-red-600',
@@ -54,8 +52,7 @@
                             'alimentacion' => [
                                 'name' => 'Alimentación',
                                 'description' => 'Registra y controla la alimentación de los peces',
-                                'icon' =>
-                                    '<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="2"/><circle cx="16" cy="8" r="2"/><circle cx="8" cy="16" r="2"/><circle cx="16" cy="16" r="2"/><circle cx="12" cy="12" r="3"/><circle cx="4" cy="12" r="1"/><circle cx="20" cy="12" r="1"/><circle cx="12" cy="4" r="1"/><circle cx="12" cy="20" r="1"/></svg>',
+                                'icon' => '<i data-lucide="apple"></i>',
                                 'route' => 'alimentacion.index',
                                 'permission_prefix' => 'alimentacion',
                                 'color' => 'from-green-500 to-emerald-600',
@@ -64,8 +61,7 @@
                             'mantenimientos' => [
                                 'name' => 'Mantenimientos',
                                 'description' => 'Gestión y control de mantenimientos de infraestructura acuícola',
-                                'icon' =>
-                                    '<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>',
+                                'icon' => '<i data-lucide="wrench"></i>',
                                 'route' => 'produccion.mantenimientos',
                                 'permission_prefix' => 'mantenimientos',
                                 'color' => 'from-purple-500 to-indigo-600',
@@ -74,8 +70,7 @@
                             'inventario' => [
                                 'name' => 'Inventario',
                                 'description' => 'Control de existencias, bodegas y movimientos de inventario',
-                                'icon' =>
-                                    '<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73L12 2 4 6.27A2 2 0 003 8v8a2 2 0 001 1.73L12 22l8-4.27A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>',
+                                'icon' => '<i data-lucide="boxes"></i>',
                                 'route' => 'produccion.inventario.index',
                                 'permission_prefix' => 'inventario',
                                 'color' => 'from-amber-500 to-orange-600',
@@ -84,8 +79,7 @@
                             'cosechas' => [
                                 'name' => 'Cosechas Parciales',
                                 'description' => 'Registro y seguimiento de cosechas parciales y comercialización',
-                                'icon' =>
-                                    '<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M21 13.5a6.5 6.5 0 11-13 0"/><circle cx="12" cy="10" r="3"/><path d="M12 1v9"/></svg>',
+                                'icon' => '<i data-lucide="fish"></i>',
                                 'route' => 'produccion.cosechas.index',
                                 'permission_prefix' => 'cosechas',
                                 'color' => 'from-emerald-500 to-teal-600',
@@ -94,8 +88,7 @@
                             'mortalidad' => [
                                 'name' => 'Control de Mortalidad',
                                 'description' => 'Registro y análisis de mortalidad con reportes estadísticos',
-                                'icon' =>
-                                    '<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2h-4m-8 0V9a2 2 0 012-2h4a2 2 0 012 2v2m-8 0h8m-5-3v6m-3-3h6"/></svg>',
+                                'icon' => '<i data-lucide="activity"></i>',
                                 'route' => 'produccion.mortalidades.index',
                                 'permission_prefix' => 'mortalidad',
                                 'color' => 'from-red-500 to-pink-600',
@@ -104,8 +97,7 @@
                             'control_produccion' => [
                                 'name' => 'Control de Producción',
                                 'description' => 'Análisis de biomasa y predicciones de crecimiento',
-                                'icon' =>
-                                    '<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>',
+                                'icon' => '<i data-lucide="trending-up"></i>',
                                 'route' => 'produccion.control.index',
                                 'permission_prefix' => 'control_produccion',
                                 'color' => 'from-violet-500 to-purple-600',
@@ -114,8 +106,7 @@
                             'alertas' => [
                                 'name' => 'Alertas y Anomalías',
                                 'description' => 'Sistema de alertas automáticas y detección de anomalías',
-                                'icon' =>
-                                    '<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+                                'icon' => '<i data-lucide="alert-triangle"></i>',
                                 'route' => 'produccion.alertas.index',
                                 'permission_prefix' => 'alertas',
                                 'color' => 'from-yellow-500 to-amber-600',
@@ -124,8 +115,7 @@
                             'usuarios' => [
                                 'name' => 'Gestión de Usuarios',
                                 'description' => 'Administra usuarios y sus datos en el sistema',
-                                'icon' =>
-                                    '<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+                                'icon' => '<i data-lucide="users"></i>',
                                 'route' => 'users.index',
                                 'permission_prefix' => 'usuarios',
                                 'color' => 'from-rose-500 to-pink-600',
@@ -134,8 +124,7 @@
                             'roles' => [
                                 'name' => 'Roles y Permisos',
                                 'description' => 'Configura roles y permisos de acceso al sistema',
-                                'icon' =>
-                                    '<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>',
+                                'icon' => '<i data-lucide="shield-check"></i>',
                                 'route' => 'roles.index',
                                 'permission_prefix' => 'roles',
                                 'color' => 'from-teal-500 to-green-600',
@@ -207,13 +196,6 @@
                                             <h4 class="text-lg font-bold mb-2 group-hover:text-opacity-100">{{ $module['name'] }}</h4>
                                             <p class="text-sm opacity-90 group-hover:opacity-100 leading-relaxed">{{ $module['description'] }}</p>
                                         </div>
-                                        
-                                        <!-- Indicador de nuevo módulo -->
-                                        @if(in_array($moduleKey, ['inventario', 'cosechas', 'mortalidad', 'control_produccion', 'alertas']))
-                                            <div class="absolute top-3 right-3 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-full z-20">
-                                                NUEVO
-                                            </div>
-                                        @endif
                                     </div>
                                 @else
                                     <div class="bg-gray-100 dark:bg-gray-700 rounded-2xl p-6 relative overflow-hidden border-2 border-dashed border-gray-300 dark:border-gray-600">

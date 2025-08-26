@@ -16,6 +16,9 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        
+        <!-- Lucide Icons CDN -->
+        <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     </head>
     <body class="font-sans antialiased">
         <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
@@ -35,5 +38,14 @@
                 {{ $slot }}
             </main>
         </div>
+        
+        <!-- Inicializar Lucide Icons -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+            });
+        </script>
     </body>
 </html>
