@@ -14,6 +14,13 @@ class SeguimientoSeeder extends Seeder
      */
     public function run(): void
     {
+        // Verificar si ya existen datos
+        $registrosExistentes = Seguimiento::count();
+        if ($registrosExistentes > 0) {
+            $this->command->info("✅ Ya existen {$registrosExistentes} registros de seguimiento en la base de datos.");
+            return;
+        }
+
         // Obtener lotes activos
         $lotes = Lote::where('estado', 'activo')->get();
         
@@ -46,25 +53,34 @@ class SeguimientoSeeder extends Seeder
                 $pesoPromedio = $pesoPromedio * (1 + $variacion);
                 $tallaPromedio = $tallaPromedio * (1 + $variacion);
 
-                Seguimiento::create([
+                // Verificar si ya existe un seguimiento para esta fecha y lote
+                $seguimientoExistente = Seguimiento::where([
                     'lote_id' => $lote->id,
-                    'fecha_seguimiento' => $fechaSeguimiento,
-                    'cantidad_actual' => $this->calcularCantidadActual($lote, $semana),
-                    'peso_promedio' => round($pesoPromedio, 2),
-                    'talla_promedio' => round($tallaPromedio, 2),
-                    'temperatura_agua' => rand(18, 26) + (rand(0, 9) / 10), // 18.0 - 26.9°C
-                    'ph_agua' => rand(65, 85) / 10, // 6.5 - 8.5
-                    'oxigeno_disuelto' => rand(50, 80) / 10, // 5.0 - 8.0 mg/L
-                    'tipo_seguimiento' => 'rutinario',
-                    'observaciones' => $this->generarObservaciones($semana, $lote->especie),
-                    'user_id' => rand(1, 2), // Usuarios que creamos en el seeder
-                ]);
-                
-                $seguimientosCreados++;
+                    'fecha_seguimiento' => $fechaSeguimiento->format('Y-m-d')
+                ])->first();
+
+                if (!$seguimientoExistente) {
+                    Seguimiento::create([
+                        'lote_id' => $lote->id,
+                        'fecha_seguimiento' => $fechaSeguimiento,
+                        'cantidad_actual' => $this->calcularCantidadActual($lote, $semana),
+                        'peso_promedio' => round($pesoPromedio, 2),
+                        'talla_promedio' => round($tallaPromedio, 2),
+                        'temperatura_agua' => rand(18, 26) + (rand(0, 9) / 10), // 18.0 - 26.9°C
+                        'ph_agua' => rand(65, 85) / 10, // 6.5 - 8.5
+                        'oxigeno_disuelto' => rand(50, 80) / 10, // 5.0 - 8.0 mg/L
+                        'tipo_seguimiento' => 'rutinario',
+                        'observaciones' => $this->generarObservaciones($semana, $lote->especie),
+                        'user_id' => rand(1, 2), // Usuarios que creamos en el seeder
+                    ]);
+                    
+                    $seguimientosCreados++;
+                }
             }
         }
 
-        $this->command->info("✅ Seguimientos creados exitosamente: {$seguimientosCreados} registros");
+        $totalSeguimientos = Seguimiento::count();
+        $this->command->info("✅ Seguimientos procesados: {$seguimientosCreados} nuevos registros, {$totalSeguimientos} total en la base de datos.");
     }
 
     /**

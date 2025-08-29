@@ -11,6 +11,13 @@ class MortalidadSeeder extends Seeder
 {
     public function run(): void
     {
+        // Verificar si ya existen datos
+        $registrosExistentes = Mortalidad::count();
+        if ($registrosExistentes > 0) {
+            $this->command->info("✅ Ya existen {$registrosExistentes} registros de mortalidad en la base de datos.");
+            return;
+        }
+
         // Obtener lotes existentes
         $lotes = Lote::all();
 
@@ -43,76 +50,34 @@ class MortalidadSeeder extends Seeder
                 
                 $mortalidades[] = [
                     'lote_id' => $lote->id,
-                    'fecha_registro' => $fechaBase->format('Y-m-d'),
+                    'fecha' => $fechaBase->format('Y-m-d'),
                     'cantidad' => rand(5, 50),
-                    'causa_principal' => $causas[array_rand($causas)],
-                    'sintomas_observados' => $this->generarSintomas(),
-                    'acciones_tomadas' => $this->generarAcciones(),
-                    'peso_promedio_afectado' => rand(50, 200) / 100, // 0.5 - 2.0 kg
+                    'causa' => $causas[array_rand($causas)],
                     'observaciones' => 'Registro de mortalidad - seguimiento continuo de la salud del lote',
-                    'reportado_por' => 'Sistema de Monitoreo',
+                    'user_id' => 1, // Asumiendo que existe usuario con ID 1
                     'created_at' => now(),
                     'updated_at' => now()
                 ];
             }
         }
 
-        // Insertar en lotes para mejorar rendimiento
-        $chunks = array_chunk($mortalidades, 10);
-        foreach ($chunks as $chunk) {
-            Mortalidad::insert($chunk);
+        // Crear registros individuales en lugar de insertar en lotes para evitar duplicados
+        $registrosCreados = 0;
+        foreach ($mortalidades as $mortalidad) {
+            // Verificar si ya existe un registro similar
+            $existente = Mortalidad::where([
+                'lote_id' => $mortalidad['lote_id'],
+                'fecha' => $mortalidad['fecha'],
+                'causa' => $mortalidad['causa']
+            ])->first();
+
+            if (!$existente) {
+                Mortalidad::create($mortalidad);
+                $registrosCreados++;
+            }
         }
 
-        $this->command->info('✅ Seeders de mortalidad creados: ' . count($mortalidades) . ' registros');
-    }
-
-    private function generarSintomas(): string
-    {
-        $sintomas = [
-            'Letargo y nado irregular',
-            'Pérdida de apetito',
-            'Cambios en la coloración',
-            'Lesiones en la piel',
-            'Respiración acelerada',
-            'Comportamiento errático',
-            'Pérdida de equilibrio',
-            'Ojos opacos o hinchados',
-            'Aletas dañadas',
-            'Secreciones anormales'
-        ];
-
-        $numSintomas = rand(1, 3);
-        $sintomasSeleccionados = array_rand($sintomas, $numSintomas);
-        
-        if (is_array($sintomasSeleccionados)) {
-            return implode(', ', array_map(fn($i) => $sintomas[$i], $sintomasSeleccionados));
-        }
-        
-        return $sintomas[$sintomasSeleccionados];
-    }
-
-    private function generarAcciones(): string
-    {
-        $acciones = [
-            'Mejora de la calidad del agua',
-            'Ajuste en la alimentación',
-            'Tratamiento con medicamentos específicos',
-            'Aislamiento de individuos afectados',
-            'Desinfección del área',
-            'Consulta veterinaria',
-            'Monitoreo intensivo',
-            'Cambio de dieta',
-            'Mejora de la oxigenación',
-            'Reducción de la densidad poblacional'
-        ];
-
-        $numAcciones = rand(1, 2);
-        $accionesSeleccionadas = array_rand($acciones, $numAcciones);
-        
-        if (is_array($accionesSeleccionadas)) {
-            return implode(', ', array_map(fn($i) => $acciones[$i], $accionesSeleccionadas));
-        }
-        
-        return $acciones[$accionesSeleccionadas];
+        $totalRegistros = Mortalidad::count();
+        $this->command->info("✅ Mortalidad procesada: {$registrosCreados} nuevos registros creados, {$totalRegistros} total en la base de datos.");
     }
 }

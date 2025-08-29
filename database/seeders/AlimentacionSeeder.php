@@ -13,13 +13,20 @@ class AlimentacionSeeder extends Seeder
 {
     public function run(): void
     {
+        // Verificar si ya existen datos
+        $registrosExistentes = Alimentacion::count();
+        if ($registrosExistentes > 0) {
+            $this->command->info("✅ Ya existen {$registrosExistentes} registros de alimentación en la base de datos.");
+            return;
+        }
+
         // Obtener datos necesarios
         $lotes = Lote::where('estado', 'activo')->get();
         $tiposAlimento = TipoAlimento::where('activo', true)->get();
         $usuarios = User::whereIn('role', ['admin', 'manager', 'empleado'])->get();
 
         if ($lotes->isEmpty() || $tiposAlimento->isEmpty() || $usuarios->isEmpty()) {
-            $this->command->info('No hay lotes, tipos de alimento o usuarios disponibles. Ejecuta primero ProduccionSeeder y TipoAlimentoSeeder.');
+            $this->command->warn('No hay lotes, tipos de alimento o usuarios disponibles. Ejecuta primero ProduccionSeeder y TipoAlimentoSeeder.');
             return;
         }
 
@@ -42,25 +49,35 @@ class AlimentacionSeeder extends Seeder
                 $cantidadKg = rand(22, 220) / 10; // Entre 2.2 y 22.0 libras
                 $costoTotal = $tipoAlimento->costo_por_kg ? $cantidadKg * $tipoAlimento->costo_por_kg : null;
                 
-                Alimentacion::create([
+                // Verificar si ya existe un registro similar antes de crear
+                $registroExistente = Alimentacion::where([
                     'lote_id' => $lote->id,
-                    'tipo_alimento_id' => $tipoAlimento->id,
-                    'usuario_id' => $usuario->id,
                     'fecha_alimentacion' => $fecha->toDateString(),
-                    'hora_alimentacion' => $hora,
-                    'cantidad_kg' => $cantidadKg,
-                    'metodo_alimentacion' => $metodosAlimentacion[array_rand($metodosAlimentacion)],
-                    'estado_peces' => $estadosPeces[array_rand($estadosPeces)],
-                    'porcentaje_consumo' => rand(70, 100), // Entre 70% y 100%
-                    'costo_total' => $costoTotal,
-                    'observaciones' => $this->getObservacionAleatoria(),
-                    'created_at' => $fecha->addMinutes(rand(0, 60)),
-                    'updated_at' => $fecha->addMinutes(rand(0, 60)),
-                ]);
+                    'hora_alimentacion' => $hora
+                ])->first();
+
+                if (!$registroExistente) {
+                    Alimentacion::create([
+                        'lote_id' => $lote->id,
+                        'tipo_alimento_id' => $tipoAlimento->id,
+                        'usuario_id' => $usuario->id,
+                        'fecha_alimentacion' => $fecha->toDateString(),
+                        'hora_alimentacion' => $hora,
+                        'cantidad_kg' => $cantidadKg,
+                        'metodo_alimentacion' => $metodosAlimentacion[array_rand($metodosAlimentacion)],
+                        'estado_peces' => $estadosPeces[array_rand($estadosPeces)],
+                        'porcentaje_consumo' => rand(70, 100), // Entre 70% y 100%
+                        'costo_total' => $costoTotal,
+                        'observaciones' => $this->getObservacionAleatoria(),
+                        'created_at' => $fecha->addMinutes(rand(0, 60)),
+                        'updated_at' => $fecha->addMinutes(rand(0, 60)),
+                    ]);
+                }
             }
         }
 
-        $this->command->info('Registros de alimentación creados exitosamente.');
+        $registrosCreados = Alimentacion::count();
+        $this->command->info("✅ Registros de alimentación procesados: {$registrosCreados} total en la base de datos.");
     }
 
     private function getObservacionAleatoria(): ?string

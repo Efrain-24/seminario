@@ -10,6 +10,13 @@ class CosechaParcialSeeder extends Seeder
 {
     public function run(): void
     {
+        // Verificar si ya existen datos
+        $registrosExistentes = CosechaParcial::count();
+        if ($registrosExistentes > 0) {
+            $this->command->info("✅ Ya existen {$registrosExistentes} registros de cosecha parcial en la base de datos.");
+            return;
+        }
+
         // Obtener lotes existentes
         $lotes = Lote::all();
 
@@ -62,9 +69,19 @@ class CosechaParcialSeeder extends Seeder
         ];
 
         foreach ($cosechasParciales as $cosecha) {
-            CosechaParcial::create($cosecha);
+            // Verificar si ya existe una cosecha similar
+            $existente = CosechaParcial::where([
+                'lote_id' => $cosecha['lote_id'],
+                'fecha' => $cosecha['fecha'],
+                'responsable' => $cosecha['responsable']
+            ])->first();
+
+            if (!$existente) {
+                CosechaParcial::create($cosecha);
+            }
         }
 
-        $this->command->info('✅ Seeders de cosechas parciales creados: ' . count($cosechasParciales) . ' registros');
+        $registrosCreados = CosechaParcial::count();
+        $this->command->info("✅ Cosechas parciales procesadas: {$registrosCreados} total en la base de datos.");
     }
 }
