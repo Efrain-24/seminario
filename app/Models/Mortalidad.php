@@ -17,6 +17,7 @@ class Mortalidad extends Model
 
     protected $fillable = [
         'lote_id',
+        'unidad_produccion_id',
         'fecha',
         'cantidad',
         'causa',
@@ -34,6 +35,12 @@ class Mortalidad extends Model
     {
         return $this->belongsTo(Lote::class);
     }
+
+    public function unidadProduccion()
+    {
+        return $this->belongsTo(UnidadProduccion::class, 'unidad_produccion_id');
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

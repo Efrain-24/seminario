@@ -10,33 +10,54 @@ use Carbon\CarbonPeriod;
 use Illuminate\Support\Collection;
 use App\Models\Mortalidad;
 use App\Models\Lote;
+use App\Models\UnidadProduccion;
 
 class MortalidadController extends Controller
 {
+    public function logPorUnidad($unidadId)
+    {
+        $unidad = \App\Models\UnidadProduccion::findOrFail($unidadId);
+        $mortalidades = \App\Models\Mortalidad::with('lote')
+            ->where('unidad_produccion_id', $unidadId)
+            ->orderByDesc('fecha')
+            ->paginate(20);
+        return view('unidad_produccions.mortalidad_log', compact('unidad', 'mortalidades'));
+    }
     public function index()
     {
-        $q = Mortalidad::with('lote')->latest('fecha');
+        $q = Mortalidad::with(['lote', 'unidadProduccion'])->latest('fecha');
 
+        if ($unidadId = request('unidad_produccion_id')) $q->where('unidad_produccion_id', $unidadId);
         if ($loteId = request('lote_id')) $q->where('lote_id', $loteId);
         if ($desde  = request('desde'))   $q->whereDate('fecha', '>=', $desde);
         if ($hasta  = request('hasta'))   $q->whereDate('fecha', '<=', $hasta);
 
         $mortalidades = $q->paginate(12)->withQueryString();
         $lotes = Lote::orderBy('codigo_lote')->get(['id', 'codigo_lote']);
+        $unidades = \App\Models\UnidadProduccion::orderBy('nombre')->get(['id', 'nombre', 'codigo', 'tipo']);
 
-        return view('mortalidades.index', compact('mortalidades', 'lotes'));
+        return view('mortalidades.index', compact('mortalidades', 'lotes', 'unidades'));
     }
 
     public function create()
     {
-        $lotes = Lote::orderBy('codigo_lote')->get(['id', 'codigo_lote as nombre', 'cantidad_actual']);
-        return view('mortalidades.create', compact('lotes'));
+        $lotes = Lote::where('estado', 'activo')->orderBy('codigo_lote')->get(['id', 'codigo_lote as nombre', 'cantidad_actual', 'unidad_produccion_id']);
+        $unidades = UnidadProduccion::orderBy('nombre')->get(['id', 'nombre', 'codigo', 'tipo']);
+        return view('mortalidades.create', compact('lotes', 'unidades'));
     }
 
     public function store(Request $request)
     {
-        $data = $request->validate([
+        $input = $request->all();
+        // Determinar la causa final
+        if (($input['causa_select'] ?? '') === 'Otro') {
+            $input['causa'] = $input['causa'] ?? null;
+        } else {
+            $input['causa'] = $input['causa_select'] ?? null;
+        }
+        $data = $request->merge(['causa' => $input['causa']])->validate([
             'lote_id'       => ['required', 'exists:lotes,id'],
+            'unidad_produccion_id' => ['required', 'exists:unidad_produccions,id'],
             'fecha'         => ['required', 'date'],
             'cantidad'      => ['required', 'integer', 'min:1'],
             'causa'         => ['nullable', 'string', 'max:160'],
@@ -50,7 +71,7 @@ class MortalidadController extends Controller
                 abort(422, 'La cantidad reportada excede el stock actual del lote.');
             }
 
-            Mortalidad::create($data + ['user_id' => Auth::id()]); // ← aquí el cambio
+            Mortalidad::create($data + ['user_id' => Auth::id()]);
             $lote->decrement('cantidad_actual', (int)$data['cantidad']);
         });
 
@@ -61,16 +82,23 @@ class MortalidadController extends Controller
     public function edit(Mortalidad $mortalidad)
     {
         $mortalidad->load('lote');
-        $lotes = Lote::select('id', 'codigo_lote as nombre', 'cantidad_actual')
-            ->where('id', $mortalidad->lote_id)->get();
-
-        return view('mortalidades.edit', compact('mortalidad', 'lotes'));
+        $lotes = Lote::select('id', 'codigo_lote as nombre', 'cantidad_actual', 'unidad_produccion_id')->get();
+        $unidades = UnidadProduccion::orderBy('nombre')->get(['id', 'nombre', 'codigo', 'tipo']);
+        return view('mortalidades.edit', compact('mortalidad', 'lotes', 'unidades'));
     }
 
     // ✅ MÉTODO QUE FALTABA
     public function update(Request $request, Mortalidad $mortalidad)
     {
-        $data = $request->validate([
+        $input = $request->all();
+        if (($input['causa_select'] ?? '') === 'Otro') {
+            $input['causa'] = $input['causa'] ?? null;
+        } else {
+            $input['causa'] = $input['causa_select'] ?? null;
+        }
+        $data = $request->merge(['causa' => $input['causa']])->validate([
+            'lote_id'       => ['required', 'exists:lotes,id'],
+            'unidad_produccion_id' => ['required', 'exists:unidad_produccions,id'],
             'fecha'         => ['required', 'date'],
             'cantidad'      => ['required', 'integer', 'min:1'],
             'causa'         => ['nullable', 'string', 'max:160'],
@@ -83,7 +111,7 @@ class MortalidadController extends Controller
 
             $anterior = (int)$mortalidad->cantidad;
             $nueva    = (int)$data['cantidad'];
-            $delta    = $nueva - $anterior; // +: restar más stock, -: devolver stock
+            $delta    = $nueva - $anterior;
 
             if ($delta > 0 && $delta > $lote->cantidad_actual) {
                 abort(422, 'El ajuste excede el stock disponible del lote.');
@@ -101,21 +129,30 @@ class MortalidadController extends Controller
 
     public function charts(Request $request)
     {
-        $lotes = Lote::orderBy('codigo_lote')
-            ->get(['id', 'codigo_lote', 'cantidad_actual', 'cantidad_inicial']);
+
+        $unidadId = $request->input('unidad_produccion_id');
+        $lotesQuery = Lote::orderBy('codigo_lote');
+        if ($unidadId) {
+            $lotesQuery->where('unidad_produccion_id', $unidadId);
+        }
+        $lotes = $lotesQuery->get(['id', 'codigo_lote', 'cantidad_actual', 'cantidad_inicial', 'unidad_produccion_id']);
+
+        // Para el filtro de unidades
+        $unidades = \App\Models\UnidadProduccion::orderBy('nombre')->get(['id', 'nombre', 'codigo', 'tipo']);
+
 
         if ($lotes->isEmpty()) {
             return back()->with('success', 'Primero crea al menos un lote.');
         }
 
-        $loteId = (int) $request->input('lote_id', $lotes->first()->id);
+    $loteId = (int) $request->input('lote_id', $lotes->first()->id);
         $desde  = $request->input('desde', now()->subDays(30)->toDateString());
         $hasta  = $request->input('hasta', now()->toDateString());
         $group  = $request->input('group', 'day'); // day|week|month
 
-        // Población base para calcular la tasa (editable en la UI)
-        $loteSel   = $lotes->firstWhere('id', $loteId);
-        $stockBase = (int) ($request->input('stock_base') ?? ($loteSel->cantidad_actual ?? 0));
+    // Población base para calcular la tasa: SIEMPRE la cantidad_inicial del lote seleccionado
+    $loteSel   = $lotes->firstWhere('id', $loteId);
+    $stockBase = (int) ($loteSel->cantidad_inicial ?? 0);
 
         // 1) Traer muertes por día dentro del rango
         $base = Mortalidad::where('lote_id', $loteId)
@@ -173,6 +210,8 @@ class MortalidadController extends Controller
             'labels'     => $labels,
             'muertes'    => $muertes,
             'tasas'      => $tasas,
+            'unidades'   => $unidades,
+            'unidadId'   => $unidadId,
         ]);
     }
 

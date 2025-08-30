@@ -12,12 +12,14 @@ class CosechaParcialController extends Controller
 {
     public function index()
     {
-        $cosechas = CosechaParcial::with('lote')
-            ->latest('fecha')
-            ->paginate(12);
+    $q = CosechaParcial::with('lote')->latest('fecha');
+    if ($loteId = request('lote_id')) $q->where('lote_id', $loteId);
+    if ($desde  = request('desde'))   $q->whereDate('fecha', '>=', $desde);
+    if ($hasta  = request('hasta'))   $q->whereDate('fecha', '<=', $hasta);
 
-        // Si tus vistas están en resources/views/cosechas/...
-        return view('cosechas.index', compact('cosechas'));
+    $cosechas = $q->paginate(12)->withQueryString();
+    $lotes = \App\Models\Lote::orderBy('codigo_lote')->get(['id', 'codigo_lote']);
+    return view('cosechas.index', compact('cosechas', 'lotes'));
     }
 
     public function create()

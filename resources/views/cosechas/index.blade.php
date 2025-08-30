@@ -13,11 +13,41 @@
             </div>
         @endif
 
-        <div class="flex justify-between mb-4">
-            <a href="{{ route('produccion.cosechas.create') }}"
-                class="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white">
-                Nueva Cosecha
-            </a>
+        <div class="flex flex-col sm:flex-row gap-3 sm:items-end sm:justify-between mb-4">
+            {{-- Filtros --}}
+            <form method="GET" class="flex flex-wrap gap-3 items-end">
+                <div>
+                    <label class="block text-xs mb-1 text-gray-600 dark:text-gray-300">Lote</label>
+                    <select name="lote_id"
+                        class="rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-2">
+                        <option value="">Todos</option>
+                        @foreach ($lotes as $l)
+                            <option value="{{ $l->id }}" @selected(request('lote_id') == $l->id)>{{ $l->codigo_lote }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs mb-1 text-gray-600 dark:text-gray-300">Desde</label>
+                    <input type="date" name="desde" value="{{ request('desde') }}"
+                        class="rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-2">
+                </div>
+                <div>
+                    <label class="block text-xs mb-1 text-gray-600 dark:text-gray-300">Hasta</label>
+                    <input type="date" name="hasta" value="{{ request('hasta') }}"
+                        class="rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-2">
+                </div>
+                <button class="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white">Filtrar</button>
+            </form>
+
+            {{-- Acciones --}}
+            <div class="flex gap-2">
+                @php($qs = request()->only('lote_id', 'desde', 'hasta'))
+                <a href="{{ route('produccion.cosechas.create') }}"
+                    class="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white">
+                    Nueva Cosecha
+                </a>
+            </div>
         </div>
 
         <div class="bg-white dark:bg-gray-800 shadow rounded overflow-hidden">
