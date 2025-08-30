@@ -40,16 +40,32 @@ class UserController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'password' => [
+                'required',
+                'confirmed',
+                'min:8',
+                'regex:/[a-z]/',      // minúscula
+                'regex:/[A-Z]/',      // mayúscula
+                'regex:/[0-9]/',      // número
+                'regex:/[@$!%*#?&._-]/' // carácter especial
+            ],
             'role' => ['required', 'in:' . implode(',', $validRoles)],
+        ], [
+            'password.regex' => 'La contraseña debe contener al menos una mayúscula, una minúscula, un número y un carácter especial.'
         ]);
 
-        User::create([
+
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
         ]);
+
+        // Enviar correo de verificación
+        if (method_exists($user, 'sendEmailVerificationNotification')) {
+            $user->sendEmailVerificationNotification();
+        }
 
         return redirect()->route('users.index')
                         ->with('success', 'Usuario creado exitosamente.');
@@ -76,24 +92,37 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user): RedirectResponse
     {
+        // Obtener roles válidos de la base de datos
+        $validRoles = \App\Models\Role::where('is_active', true)->pluck('name')->toArray();
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,'.$user->id],
-            'role' => ['required', 'in:admin,supervisor,usuario'],
+            'role' => ['required', 'in:' . implode(',', $validRoles)],
+            'estado' => ['required', 'in:activo,inactivo'],
         ]);
 
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
             'role' => $request->role,
+            'estado' => $request->estado,
         ]);
 
         // Solo actualizar contraseña si se proporciona
         if ($request->filled('password')) {
             $request->validate([
-                'password' => ['required', 'confirmed', Rules\Password::defaults()],
+                'password' => [
+                    'required',
+                    'confirmed',
+                    'min:8',
+                    'regex:/[a-z]/',      // minúscula
+                    'regex:/[A-Z]/',      // mayúscula
+                    'regex:/[0-9]/',      // número
+                    'regex:/[@$!%*#?&._-]/' // carácter especial
+                ]
+            ], [
+                'password.regex' => 'La contraseña debe contener al menos una mayúscula, una minúscula, un número y un carácter especial.'
             ]);
-            
             $user->update([
                 'password' => Hash::make($request->password),
             ]);
@@ -111,12 +140,13 @@ class UserController extends Controller
         // Evitar que el usuario se elimine a sí mismo
         if ($user->id === Auth::user()->id) {
             return redirect()->route('users.index')
-                            ->with('error', 'No puedes eliminar tu propia cuenta desde aquí.');
+                            ->with('error', 'No puedes inactivar tu propia cuenta desde aquí.');
         }
 
-        $user->delete();
+        $user->estado = 'inactivo';
+        $user->save();
 
         return redirect()->route('users.index')
-                        ->with('success', 'Usuario eliminado exitosamente.');
+                        ->with('success', 'Usuario inactivado exitosamente.');
     }
 }

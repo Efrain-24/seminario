@@ -64,8 +64,23 @@
                         <div class="mb-4">
                             <x-input-label for="password" :value="__('Nueva Contraseña')" />
                             <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" autocomplete="new-password" />
+                            <div id="password-help" class="text-xs text-gray-500 mt-1">
+                                <ul>
+                                    <li>Mínimo 8 caracteres</li>
+                                    <li>Al menos una minúscula</li>
+                                    <li>Al menos una mayúscula</li>
+                                    <li>Al menos un número</li>
+                                    <li>Al menos un carácter especial (@$!%*#?&._-)</li>
+                                </ul>
+                            </div>
                             <x-input-error :messages="$errors->get('password')" class="mt-2" />
                         </div>
+</x-app-layout>
+@push('scripts')
+    <script src="{{ asset('js/password-validator.js') }}"></script>
+@endpush
+@stack('scripts')
+
 
                         <!-- Confirmar Nueva Contraseña -->
                         <div class="mb-6">
@@ -74,6 +89,15 @@
                             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
                         </div>
 
+                            <!-- Estado -->
+                            <div class="mb-4">
+                                <x-input-label for="estado" :value="__('Estado')" />
+                                <select id="estado" name="estado" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" required>
+                                    <option value="activo" {{ old('estado', $user->estado) === 'activo' ? 'selected' : '' }}>Activo</option>
+                                    <option value="inactivo" {{ old('estado', $user->estado) === 'inactivo' ? 'selected' : '' }}>Inactivo</option>
+                                </select>
+                                <x-input-error :messages="$errors->get('estado')" class="mt-2" />
+                            </div>
                         <div class="flex items-center justify-end mt-4">
                             <a href="{{ route('users.index') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 mr-2">
                                 Cancelar

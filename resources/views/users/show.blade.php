@@ -14,18 +14,7 @@
                     </a>
                 @endif
                 
-                @if(auth()->user()->hasPermission('users.delete'))
-                    <form action="{{ route('users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este usuario? Esta acción no se puede deshacer.')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                            </svg>
-                            Eliminar
-                        </button>
-                    </form>
-                @endif
+
                 
                 <a href="{{ route('users.index') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,6 +68,14 @@
                     <!-- Información Detallada -->
                     <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                            <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Estado</h4>
+                            @if($user->estado === 'activo')
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Activo</span>
+                            @else
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300">Inactivo</span>
+                            @endif
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
                             <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Rol del Usuario</h4>
                             @if($user->role === 'admin')
                                 <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
@@ -125,23 +122,6 @@
                             <a href="{{ route('users.edit', $user) }}" style="background-color: #2563eb !important; color: white !important; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: bold;">
                                 Editar Usuario
                             </a>
-                            
-                            @if($user->id !== auth()->user()->id)
-                                <!-- Botón Eliminar - Versión Simple -->
-                                <form action="{{ route('users.destroy', $user) }}" method="POST" style="display: inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" style="background-color: #dc2626 !important; color: white !important; padding: 12px 24px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer;"
-                                            onclick="return confirm('¿Estás seguro de que quieres eliminar este usuario? Esta acción no se puede deshacer.')">
-                                        Eliminar Usuario
-                                    </button>
-                                </form>
-                            @else
-                                <!-- Mensaje de restricción -->
-                                <div style="background-color: #f3f4f6 !important; color: #374151 !important; padding: 12px 24px; border-radius: 8px; display: inline-block;">
-                                    No puedes eliminar tu propia cuenta
-                                </div>
-                            @endif
                             
                             <!-- Botón Volver - Versión Simple -->
                             <a href="{{ route('users.index') }}" style="background-color: #4b5563 !important; color: white !important; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: bold;">

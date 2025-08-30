@@ -48,19 +48,31 @@
                             <x-input-error :messages="$errors->get('role')" class="mt-2" />
                         </div>
 
+
                         <!-- Contraseña -->
                         <div class="mb-4">
                             <x-input-label for="password" :value="__('Contraseña')" />
                             <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
+                            <div id="password-help" class="text-xs text-gray-500 mt-1">
+                                <ul>
+                                    <li>Mínimo 8 caracteres</li>
+                                    <li>Al menos una minúscula</li>
+                                    <li>Al menos una mayúscula</li>
+                                    <li>Al menos un número</li>
+                                    <li>Al menos un carácter especial (@$!%*#?&._-)</li>
+                                </ul>
+                            </div>
                             <x-input-error :messages="$errors->get('password')" class="mt-2" />
                         </div>
 
                         <!-- Confirmar Contraseña -->
-                        <div class="mb-6">
+                        <div class="mb-4">
                             <x-input-label for="password_confirmation" :value="__('Confirmar Contraseña')" />
                             <x-text-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required autocomplete="new-password" />
-                            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
+                            <div id="password-confirm-help" class="text-xs mt-1"></div>
                         </div>
+
+
 
                         <div class="flex items-center justify-end mt-4">
                             <a href="{{ route('users.index') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 mr-2">
@@ -75,4 +87,12 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+        <script src="{{ asset('js/password-validator.js') }}"></script>
+    @endpush
+
 </x-app-layout>
+@stack('scripts')
+
+
