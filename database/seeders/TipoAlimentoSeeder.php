@@ -149,7 +149,6 @@ class TipoAlimentoSeeder extends Seeder
             );
         }
 
-        $totalTipos = TipoAlimento::count();
-        $this->command->info("✅ Tipos de alimento procesados: {$totalTipos} total en la base de datos.");
+        $this->command->info('Tipos de alimento creados: ' . count($tiposAlimento));
     }
 }

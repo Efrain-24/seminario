@@ -4,7 +4,10 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Event;
 use App\Models\User;
+use App\Events\{AlertaProduccionDetectada, StockBajoDetectado, ProblemaResuelto};
+use App\Listeners\{CrearNotificacionProduccion, CrearNotificacionStock, EliminarNotificacionProblemaResuelto};
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,6 +24,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Registrar Observers para detección automática de problemas resueltos
+        \App\Models\InventarioMovimiento::observe(\App\Observers\InventarioMovimientoObserver::class);
+        \App\Models\Seguimiento::observe(\App\Observers\SeguimientoObserver::class);
+        \App\Models\InventarioLote::observe(\App\Observers\InventarioLoteObserver::class);
+        
+        // Registrar event listeners para notificaciones automáticas
+        Event::listen(AlertaProduccionDetectada::class, CrearNotificacionProduccion::class);
+        Event::listen(StockBajoDetectado::class, CrearNotificacionStock::class);
+        Event::listen(ProblemaResuelto::class, EliminarNotificacionProblemaResuelto::class);
+        
         // Definir los Gates de permisos
         Gate::define('gestionar_usuarios', function (User $user) {
             return $user->hasPermission('gestionar_usuarios');

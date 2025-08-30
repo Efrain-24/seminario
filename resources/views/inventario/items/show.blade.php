@@ -1,4 +1,21 @@
 <x-app-layout>
+    @push('scripts')
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const params = new URLSearchParams(window.location.search);
+        if(params.get('accion') === 'entrada') {
+            // Buscar el botón o enlace de Nueva Entrada y hacer scroll/click
+            const entradaBtn = document.querySelector('a[href*="movimientos.create"][href*="entrada"]');
+            if(entradaBtn) {
+                entradaBtn.scrollIntoView({behavior: 'smooth', block: 'center'});
+                entradaBtn.classList.add('ring-4','ring-emerald-300');
+                setTimeout(() => entradaBtn.classList.remove('ring-4','ring-emerald-300'), 2000);
+                entradaBtn.click();
+            }
+        }
+    });
+    </script>
+    @endpush
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4">

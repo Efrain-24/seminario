@@ -47,7 +47,49 @@ class Lote extends Model
     // Accesorios
     public function getBiomasaAttribute()
     {
-        return $this->cantidad_actual * $this->peso_promedio_inicial;
+        $ultimoSeguimiento = $this->seguimientos()->orderBy('fecha_seguimiento', 'desc')->first();
+        
+        if ($ultimoSeguimiento && $ultimoSeguimiento->peso_promedio) {
+            // Usar datos del último seguimiento
+            $pesoPromedio = $ultimoSeguimiento->peso_promedio; // ya está en kg
+            $cantidadActual = $ultimoSeguimiento->cantidad_actual ?? $this->cantidad_actual;
+            return round($pesoPromedio * $cantidadActual, 2);
+        }
+        
+        // Fallback: usar datos iniciales si no hay seguimientos
+        if ($this->peso_promedio_inicial && $this->cantidad_actual) {
+            return round($this->peso_promedio_inicial * $this->cantidad_actual, 2);
+        }
+        
+        return 0;
+    }
+
+    /**
+     * Obtener el peso promedio actual basado en el último seguimiento
+     */
+    public function getPesoPromedioActualAttribute()
+    {
+        $ultimoSeguimiento = $this->seguimientos()->orderBy('fecha_seguimiento', 'desc')->first();
+        
+        if ($ultimoSeguimiento && $ultimoSeguimiento->peso_promedio) {
+            return $ultimoSeguimiento->peso_promedio; // en kg
+        }
+        
+        return $this->peso_promedio_inicial; // fallback
+    }
+
+    /**
+     * Obtener la cantidad actual basada en el último seguimiento
+     */
+    public function getCantidadActualRealAttribute()
+    {
+        $ultimoSeguimiento = $this->seguimientos()->orderBy('fecha_seguimiento', 'desc')->first();
+        
+        if ($ultimoSeguimiento && $ultimoSeguimiento->cantidad_actual) {
+            return $ultimoSeguimiento->cantidad_actual;
+        }
+        
+        return $this->cantidad_actual; // fallback
     }
 
     // Scopes

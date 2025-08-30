@@ -48,14 +48,22 @@ class Seguimiento extends Model
     }
 
     /**
-     * Calcular biomasa estimada
+     * Calcular biomasa estimada (corregida)
      */
     public function getBiomasaAttribute()
     {
         if ($this->peso_promedio && $this->cantidad_actual) {
-            return ($this->peso_promedio * $this->cantidad_actual) / 1000; // kg
+            return round(($this->peso_promedio * $this->cantidad_actual), 2); // peso ya está en kg
         }
         return 0;
+    }
+
+    /**
+     * Obtener peso promedio en gramos para mostrar en interfaz
+     */
+    public function getPesoPromedioGramosAttribute()
+    {
+        return $this->peso_promedio ? round($this->peso_promedio * 1000, 1) : null;
     }
 
     /**

@@ -3,7 +3,8 @@
 namespace App\Services;
 
 use App\Models\{InventarioItem, InventarioExistencia, InventarioMovimiento, Bodega, InventarioLote};
-use Illuminate\Support\Facades\DB;
+use App\Events\StockBajoDetectado;
+use Illuminate\Support\Facades\{DB, Auth};
 use Carbon\Carbon;
 
 class InventarioService
@@ -56,7 +57,7 @@ class InventarioService
                 'cantidad_origen'  => $cantidad,
                 'fecha'            => Carbon::today(),
                 'descripcion'      => $desc,
-                'user_id'          => auth()->id(),
+                'user_id'          => Auth::id(),
                 'referencia_type'  => $ref?->getMorphClass(),
                 'referencia_id'    => $ref?->id,
             ]);
@@ -102,6 +103,12 @@ class InventarioService
             }
             $ex->decrement('stock_actual', $base);
 
+            // Verificar si el stock quedó por debajo del mínimo
+            if ($item->stock_minimo > 0 && $ex->stock_actual < $item->stock_minimo) {
+                // Disparar evento para notificación automática
+                StockBajoDetectado::dispatch($item, $ex->stock_actual);
+            }
+
             // 2) movimiento
             InventarioMovimiento::create([
                 'item_id'          => $item->id,
@@ -112,7 +119,7 @@ class InventarioService
                 'cantidad_origen'  => $cantidad,
                 'fecha'            => Carbon::today(),
                 'descripcion'      => $desc,
-                'user_id'          => auth()->id(),
+                'user_id'          => Auth::id(),
                 'referencia_type'  => $ref?->getMorphClass(),
                 'referencia_id'    => $ref?->id,
             ]);
@@ -156,7 +163,7 @@ class InventarioService
                 'cantidad_origen'  => $delta,
                 'fecha'            => Carbon::today(),
                 'descripcion'      => $motivo ?? 'Ajuste de inventario',
-                'user_id'          => auth()->id(),
+                'user_id'          => Auth::id(),
             ]);
 
             // Nota: no redistribuimos lotes en ajuste; si necesitas, lo hacemos luego.

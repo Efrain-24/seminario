@@ -200,7 +200,20 @@
                             @if($lote->peso_promedio_inicial)
                                 <div class="flex justify-between items-center">
                                     <span class="text-gray-600 dark:text-gray-400">Peso Promedio Inicial:</span>
-                                    <span class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ number_format($lote->peso_promedio_inicial, 3) }} kg</span>
+                                    <span class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                        {{ number_format($lote->peso_promedio_inicial * 1000, 1) }}g 
+                                        <span class="text-sm text-gray-500">({{ number_format($lote->peso_promedio_inicial, 3) }} kg)</span>
+                                    </span>
+                                </div>
+                            @endif
+                            
+                            @if($lote->peso_promedio_actual && $lote->peso_promedio_actual != $lote->peso_promedio_inicial)
+                                <div class="flex justify-between items-center bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+                                    <span class="text-gray-600 dark:text-gray-400 font-medium">Peso Promedio Actual:</span>
+                                    <span class="text-lg font-semibold text-blue-600 dark:text-blue-400">
+                                        {{ number_format($lote->peso_promedio_actual * 1000, 1) }}g 
+                                        <span class="text-sm">({{ number_format($lote->peso_promedio_actual, 3) }} kg)</span>
+                                    </span>
                                 </div>
                             @endif
                             
@@ -211,10 +224,10 @@
                                 </div>
                             @endif
 
-                            @if($lote->peso_promedio_inicial && $lote->cantidad_actual > 0)
-                                <div class="flex justify-between items-center">
-                                    <span class="text-gray-600 dark:text-gray-400">Biomasa Estimada:</span>
-                                    <span class="text-lg font-semibold text-blue-600">{{ number_format($lote->biomasa, 2) }} kg</span>
+                            @if($lote->biomasa > 0)
+                                <div class="flex justify-between items-center bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+                                    <span class="text-gray-600 dark:text-gray-400 font-medium">Biomasa Actual:</span>
+                                    <span class="text-lg font-semibold text-green-600 dark:text-green-400">{{ number_format($lote->biomasa, 2) }} kg</span>
                                 </div>
                             @endif
 

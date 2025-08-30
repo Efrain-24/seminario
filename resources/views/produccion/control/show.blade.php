@@ -39,7 +39,7 @@
                 <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                     <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Peso prom. estimado
                     </div>
-                    <div class="mt-1 text-2xl font-bold">{{ $peso_hoy ? number_format($peso_hoy, 2) : '—' }} <span
+                    <div class="mt-1 text-2xl font-bold">{{ $peso_hoy ? number_format($peso_hoy, 1) : '—' }} <span
                             class="text-base font-medium">g</span></div>
                 </div>
                 <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-700">

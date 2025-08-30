@@ -11,11 +11,24 @@ class BiomasaService
     protected float $FCR;              // 1.5–1.8 típico
     protected float $SGR_percent_day;  // 1–3 %/día típico
     protected const LB_TO_KG = 0.45359237;
+    protected const KG_TO_G = 1000;
 
     public function __construct(float $FCR = 1.6, float $SGR_percent_day = 1.5)
     {
         $this->FCR = $FCR;
         $this->SGR_percent_day = $SGR_percent_day;
+    }
+
+    /** Conversión de kg a gramos */
+    public static function kgToGramos(float $kg): float 
+    {
+        return $kg * self::KG_TO_G;
+    }
+
+    /** Conversión de gramos a kg */
+    public static function gramosToKg(float $gramos): float 
+    {
+        return $gramos / self::KG_TO_G;
     }
 
     /** Devuelve el nombre de la columna fecha disponible en una tabla */
@@ -115,7 +128,7 @@ class BiomasaService
 
         $feedKg = $this->alimentoDesde($lote, $t0);
         if ($feedKg > 0) {
-            $pobl_prom = max(1, (int)$lote->cantidad_actual);
+            $pobl_prom = max(1, (int)$lote->cantidad_actual_real);
             $ganancia_total_kg  = $feedKg / $this->FCR;
             $ganancia_por_pez_kg = $ganancia_total_kg / $pobl_prom;
             return max(0.0, $w0 + $ganancia_por_pez_kg);
@@ -128,12 +141,19 @@ class BiomasaService
         return $w0;
     }
 
+    /** Peso promedio actual en gramos (g/pez) para mostrar en interfaz */
+    public function estimarPesoPromedioActualEnGramos(Lote $lote): ?float
+    {
+        $pesoKg = $this->estimarPesoPromedioActual($lote);
+        return $pesoKg ? round(self::kgToGramos($pesoKg), 1) : null; // convertir kg a gramos
+    }
+
     /** Biomasa estimada hoy (kg) */
     public function estimarBiomasaKg(Lote $lote): ?float
     {
         $w = $this->estimarPesoPromedioActual($lote);
         if ($w === null) return null;
-        return round($w * max(0, (int)$lote->cantidad_actual), 2);
+        return round($w * max(0, (int)$lote->cantidad_actual_real), 2);
     }
 
     /** Predicción hasta fecha objetivo */
@@ -144,7 +164,7 @@ class BiomasaService
 
         $dias  = max(0, today()->diffInDays($fechaObjetivo));
         $w_obj = $w_hoy * exp(($this->SGR_percent_day / 100.0) * $dias);
-        $bio   = round($w_obj * max(0, (int)$lote->cantidad_actual), 2);
+        $bio   = round($w_obj * max(0, (int)$lote->cantidad_actual_real), 2);
 
         return ['dias' => $dias, 'peso_promedio_kg' => round($w_obj, 3), 'biomasa_kg' => $bio];
     }
@@ -165,7 +185,7 @@ class BiomasaService
         $t     = log($pesoObjetivo_kg / $w_hoy) / ($this->SGR_percent_day / 100.0);
         $dias  = (int) ceil($t);
         $fecha = today()->addDays($dias);
-        $bio   = round($pesoObjetivo_kg * max(0, (int)$lote->cantidad_actual), 2);
+        $bio   = round($pesoObjetivo_kg * max(0, (int)$lote->cantidad_actual_real), 2);
 
         return ['dias' => $dias, 'fecha' => $fecha, 'peso_promedio_kg' => $pesoObjetivo_kg, 'biomasa_kg' => $bio];
     }

@@ -122,7 +122,7 @@
                                                 @if($seguimiento->peso_promedio)
                                                     <div class="flex justify-between">
                                                         <span class="text-sm text-gray-600 dark:text-gray-400">Peso promedio:</span>
-                                                        <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $seguimiento->peso_promedio }}kg</span>
+                                                        <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $seguimiento->peso_promedio_gramos }}g ({{ $seguimiento->peso_promedio }}kg)</span>
                                                     </div>
                                                 @endif
                                                 @if($seguimiento->talla_promedio)

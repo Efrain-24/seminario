@@ -17,6 +17,7 @@ class ControlProduccionController extends Controller
         $rows = $lotes->map(fn($l) => [
             'lote'            => $l,
             'peso_promedio_kg' => $this->svc->estimarPesoPromedioActual($l),
+            'peso_promedio_g' => $this->svc->estimarPesoPromedioActualEnGramos($l),
             'biomasa_kg'      => $this->svc->estimarBiomasaKg($l),
         ]);
         return view('produccion.control.index', compact('rows'));
@@ -28,10 +29,11 @@ class ControlProduccionController extends Controller
         $lotes = Lote::orderBy('codigo_lote')->get(['id', 'codigo_lote']);
 
         $hoy         = now()->toDateString();
-        $peso_hoy    = $this->svc->estimarPesoPromedioActual($lote);
+        $peso_hoy    = $this->svc->estimarPesoPromedioActualEnGramos($lote); // en gramos para mostrar
+        $peso_hoy_kg = $this->svc->estimarPesoPromedioActual($lote); // en kg para cálculos
         $biomasa_hoy = $this->svc->estimarBiomasaKg($lote);
 
-        return view('produccion.control.show', compact('lote', 'lotes', 'hoy', 'peso_hoy', 'biomasa_hoy'));
+        return view('produccion.control.show', compact('lote', 'lotes', 'hoy', 'peso_hoy', 'peso_hoy_kg', 'biomasa_hoy'));
     }
 
 

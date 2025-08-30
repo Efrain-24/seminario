@@ -12,18 +12,11 @@ class MantenimientoUnidadSeeder extends Seeder
 {
     public function run()
     {
-        // Verificar si ya existen datos
-        $registrosExistentes = MantenimientoUnidad::count();
-        if ($registrosExistentes > 0) {
-            $this->command->info("✅ Ya existen {$registrosExistentes} registros de mantenimiento en la base de datos.");
-            return;
-        }
-
         $unidades = UnidadProduccion::all();
         $usuarios = User::all();
 
         if ($unidades->isEmpty() || $usuarios->isEmpty()) {
-            $this->command->warn('No hay unidades de producción o usuarios disponibles. Saltando seeder de mantenimientos.');
+            $this->command->info('No hay unidades de producción o usuarios disponibles. Saltando seeder de mantenimientos.');
             return;
         }
 
@@ -127,17 +120,9 @@ class MantenimientoUnidadSeeder extends Seeder
                     $data['hora_inicio'] = sprintf('%02d:00:00', $horaInicio);
                 }
 
-                // Verificar si ya existe un mantenimiento similar
-                $existente = MantenimientoUnidad::where([
-                    'unidad_produccion_id' => $data['unidad_produccion_id'],
-                    'fecha_mantenimiento' => $data['fecha_mantenimiento'],
-                    'tipo_mantenimiento' => $data['tipo_mantenimiento']
-                ])->first();
+                $mantenimiento = MantenimientoUnidad::create($data);
 
-                if (!$existente) {
-                    $mantenimiento = MantenimientoUnidad::create($data);
-                    $this->command->info("Mantenimiento creado: {$mantenimiento->tipo_mantenimiento} - {$unidad->nombre}");
-                }
+                $this->command->info("Mantenimiento creado: {$mantenimiento->tipo_mantenimiento} - {$unidad->nombre}");
             }
         }
 
@@ -146,29 +131,18 @@ class MantenimientoUnidadSeeder extends Seeder
             $unidad = $unidades->random();
             $tipo = ['correctivo', 'inspeccion'][array_rand(['correctivo', 'inspeccion'])];
             
-            // Verificar si ya existe
-            $fecha = Carbon::now()->addDays(rand(1, 7))->format('Y-m-d');
-            $existente = MantenimientoUnidad::where([
+            MantenimientoUnidad::create([
                 'unidad_produccion_id' => $unidad->id,
-                'fecha_mantenimiento' => $fecha,
-                'tipo_mantenimiento' => $tipo
-            ])->first();
-
-            if (!$existente) {
-                MantenimientoUnidad::create([
-                    'unidad_produccion_id' => $unidad->id,
-                    'user_id' => $usuarios->random()->id,
-                    'tipo_mantenimiento' => $tipo,
-                    'descripcion_trabajo' => $descripciones[$tipo][array_rand($descripciones[$tipo])],
-                    'fecha_mantenimiento' => $fecha,
-                    'prioridad' => ['alta', 'critica'][array_rand(['alta', 'critica'])],
-                    'estado_mantenimiento' => 'programado',
-                    'observaciones_antes' => 'Mantenimiento urgente programado.',
-                ]);
-            }
+                'user_id' => $usuarios->random()->id,
+                'tipo_mantenimiento' => $tipo,
+                'descripcion_trabajo' => $descripciones[$tipo][array_rand($descripciones[$tipo])],
+                'fecha_mantenimiento' => Carbon::now()->addDays(rand(1, 7))->format('Y-m-d'),
+                'prioridad' => ['alta', 'critica'][array_rand(['alta', 'critica'])],
+                'estado_mantenimiento' => 'programado',
+                'observaciones_antes' => 'Mantenimiento urgente programado.',
+            ]);
         }
 
-        $totalMantenimientos = MantenimientoUnidad::count();
-        $this->command->info("✅ Mantenimientos procesados: {$totalMantenimientos} total en la base de datos.");
+        $this->command->info('Seeder de MantenimientoUnidad completado exitosamente.');
     }
 }

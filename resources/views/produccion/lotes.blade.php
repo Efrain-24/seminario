@@ -93,6 +93,11 @@
                                                 <span class="font-semibold">{{ number_format($lote->cantidad_actual) }}</span> 
                                                 <span class="text-gray-500">/ {{ number_format($lote->cantidad_inicial) }}</span>
                                             </div>
+                                            @if($lote->peso_promedio_actual)
+                                                <div class="text-xs text-gray-500">
+                                                    Peso actual: {{ number_format($lote->peso_promedio_actual * 1000, 1) }}g
+                                                </div>
+                                            @endif
                                             @if($lote->peso_promedio_inicial)
                                                 <div class="text-xs text-gray-500">
                                                     Biomasa: {{ number_format($lote->biomasa, 2) }} kg

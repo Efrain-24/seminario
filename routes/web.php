@@ -173,4 +173,17 @@ Route::middleware('auth')->prefix('alimentacion')->name('alimentacion.')->group(
     Route::patch('/tipos-alimento/{tipoAlimento}/toggle', [TipoAlimentoController::class, 'toggle'])->name('tipos-alimento.toggle')->middleware('permission:alimentacion.edit');
 });
 
+// Rutas de Notificaciones (AJAX)
+Route::middleware('auth')->prefix('notificaciones')->name('notificaciones.')->group(function () {
+    Route::get('/', [App\Http\Controllers\NotificacionController::class, 'index'])->name('index');
+    Route::get('/todas', [App\Http\Controllers\NotificacionController::class, 'todas'])->name('todas');
+    Route::get('/count', [App\Http\Controllers\NotificacionController::class, 'count'])->name('count');
+    Route::patch('/{notificacion}/marcar-leida', [App\Http\Controllers\NotificacionController::class, 'marcarComoLeida'])->name('marcar-leida');
+    Route::patch('/{notificacion}/marcar-resuelta', [App\Http\Controllers\NotificacionController::class, 'marcarComoResuelta'])->name('marcar-resuelta');
+    Route::post('/marcar-todas-leidas', [App\Http\Controllers\NotificacionController::class, 'marcarTodasComoLeidas'])->name('marcar-todas-leidas');
+    Route::delete('/{notificacion}', [App\Http\Controllers\NotificacionController::class, 'destroy'])->name('destroy');
+    Route::post('/generar-reales', [App\Http\Controllers\NotificacionController::class, 'generarReales'])->name('generar-reales');
+    Route::post('/programar-automaticas', [App\Http\Controllers\NotificacionController::class, 'programarAutomaticas'])->name('programar-automaticas');
+});
+
 require __DIR__ . '/auth.php';

@@ -134,7 +134,7 @@
                                                         </div>
                                                         <div class="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
                                                             @if($seguimiento->peso_promedio)
-                                                                <span>{{ $seguimiento->peso_promedio }}kg</span>
+                                                                <span>{{ $seguimiento->peso_promedio_gramos }}g</span>
                                                             @endif
                                                             @if($seguimiento->biomasa > 0)
                                                                 <span>{{ number_format($seguimiento->biomasa, 1) }}kg</span>

@@ -29,6 +29,11 @@
 
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
+                <!-- Notificaciones -->
+                <div class="mr-4">
+                    <x-notificaciones-panel />
+                </div>
+
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button

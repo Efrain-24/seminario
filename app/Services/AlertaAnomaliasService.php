@@ -2,7 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\{Lote, Seguimiento, Alimentacion, Mortalidad};
+use App\Models\{Lote, Seguimiento, Alimentacion, Mortalidad, Notificacion};
+use App\Events\AlertaProduccionDetectada;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Schema;
 
@@ -110,6 +111,18 @@ class AlertaAnomaliasService
         $defPct  = $deficit / $gananciaEsperada_kg; // 0..1
 
         if ($defPct >= $this->tolerancia) {
+            // Crear notificación automática
+            $this->crearNotificacionAnomalia($lote, $defPct, $deficit);
+            
+            // Disparar evento para notificación en tiempo real
+            $alertData = [
+                'deficit_pct' => round($defPct * 100, 2),
+                'deficit_kg' => round($deficit, 3),
+                'ganancia_esperada_kg' => round($gananciaEsperada_kg, 3),
+                'ganancia_observada_kg' => round($gananciaObservada_kg, 3)
+            ];
+            AlertaProduccionDetectada::dispatch($lote, $alertData);
+
             return [
                 'lote_id'             => $lote->id,
                 'codigo_lote'         => $lote->codigo_lote,
@@ -124,11 +137,51 @@ class AlertaAnomaliasService
                 'ganancia_observada_kg' => round($gananciaObservada_kg, 3),
                 'deficit_kg'           => round($deficit, 3),
                 'deficit_pct'         => round($defPct * 100, 2),
+
+                // Conversiones a gramos para presentación
+                'peso_inicial_g'       => round($peso0 * 1000, 2),
+                'peso_final_g'         => round($peso1 * 1000, 2),
+                'ganancia_esperada_g'  => round($gananciaEsperada_kg * 1000, 2),
+                'ganancia_observada_g' => round($gananciaObservada_kg * 1000, 2),
+                'deficit_g'            => round($deficit * 1000, 2),
+
                 'fcr'                 => $this->FCR,
                 'tolerancia_pct'      => $this->tolerancia * 100,
             ];
         }
 
         return null;
+    }
+
+    /**
+     * Crear notificación de anomalía en producción
+     */
+    private function crearNotificacionAnomalia(Lote $lote, float $defPct, float $deficit): void
+    {
+        // Verificar si ya existe una notificación reciente para este lote
+        $existeReciente = Notificacion::where('tipo', 'error')
+            ->whereJsonContains('datos->lote_id', $lote->id)
+            ->where('created_at', '>', now()->subHours(6)) // Solo crear si no hay una en las últimas 6 horas
+            ->exists();
+
+        if (!$existeReciente) {
+            $severidad = $defPct >= 0.4 ? 'crítica' : ($defPct >= 0.25 ? 'alta' : 'media');
+            
+            Notificacion::create([
+                'tipo' => 'error',
+                'titulo' => 'Anomalía de Producción Detectada',
+                'mensaje' => "El lote {$lote->codigo_lote} presenta bajo rendimiento ({$severidad}). Déficit: " . round($defPct * 100, 1) . "%",
+                'datos' => [
+                    'lote_id' => $lote->id,
+                    'codigo_lote' => $lote->codigo_lote,
+                    'deficit_pct' => $defPct * 100,
+                    'deficit_kg' => $deficit,
+                    'severidad' => $severidad
+                ],
+                'icono' => 'alert-triangle',
+                'url' => route('produccion.alertas.index', ['lote_id' => $lote->id]),
+                'fecha_vencimiento' => now()->addDays(7) // Las alertas de producción expiran en 7 días
+            ]);
+        }
     }
 }

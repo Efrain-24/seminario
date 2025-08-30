@@ -118,7 +118,7 @@
                                 if ($seguimientos->count() >= 1) {
                                     // DATOS REALES: Usar el seguimiento más reciente
                                     $ultimoSeguimiento = $seguimientos->first();
-                                    $pesoEsperadoActual = $ultimoSeguimiento->peso_promedio ?? $pesoEsperadoActual;
+                                    $pesoEsperadoActual = ($ultimoSeguimiento->peso_promedio ?? $pesoEsperadoActual) * 1000; // convertir a gramos
                                     $cantidadActual = $ultimoSeguimiento->cantidad_actual ?? $lote->cantidad_actual;
                                     
                                     // Calcular supervivencia real
@@ -127,8 +127,8 @@
                                     // Determinar tendencia basada en seguimientos recientes REALES
                                     if ($seguimientos->count() >= 2) {
                                         $penultimoSeguimiento = $seguimientos->skip(1)->first();
-                                        $ultimoPeso = $ultimoSeguimiento->peso_promedio;
-                                        $penultimoPeso = $penultimoSeguimiento->peso_promedio;
+                                        $ultimoPeso = $ultimoSeguimiento->peso_promedio * 1000; // en gramos
+                                        $penultimoPeso = $penultimoSeguimiento->peso_promedio * 1000; // en gramos
                                         
                                         if ($ultimoPeso > $penultimoPeso * 1.05) {
                                             $tendencia = 'creciente';
@@ -142,16 +142,17 @@
                                     } else {
                                         // Con un solo seguimiento, estimar crecimiento promedio
                                         $diasTranscurridos = $lote->fecha_inicio->diffInDays(now());
-                                        if ($diasTranscurridos > 0) {
-                                            $tasaCrecimientoSemanal = (($pesoEsperadoActual - $lote->peso_promedio_inicial) / $lote->peso_promedio_inicial) / ($diasTranscurridos / 7);
+                                        if ($diasTranscurridos > 0 && $lote->peso_promedio_inicial > 0) {
+                                            $pesoInicialGramos = $lote->peso_promedio_inicial * 1000;
+                                            $tasaCrecimientoSemanal = (($pesoEsperadoActual - $pesoInicialGramos) / $pesoInicialGramos) / ($diasTranscurridos / 7);
                                             $prediccionProximaSemana = $pesoEsperadoActual * (1 + $tasaCrecimientoSemanal);
                                         }
                                     }
                                 } else {
                                     // FALLBACK: Si no hay seguimientos, usar estimación básica
                                     $diasTranscurridos = $lote->fecha_inicio->diffInDays(now());
-                                    $pesoEsperadoActual = $lote->peso_promedio_inicial + ($diasTranscurridos * 0.5); // Crecimiento conservador
-                                    $prediccionProximaSemana = $pesoEsperadoActual + 3.5; // Estimación semanal
+                                    $pesoEsperadoActual = ($lote->peso_promedio_inicial * 1000) + ($diasTranscurridos * 0.5); // Crecimiento conservador en gramos
+                                    $prediccionProximaSemana = $pesoEsperadoActual + 3.5; // Estimación semanal en gramos
                                     $supervivenciaEstimada = max(85, 95 - ($semanasTranscurridas * 0.5));
                                 }
                                 
@@ -164,7 +165,7 @@
                                     'tendencia' => $tendencia,
                                     'seguimientos_recientes' => $seguimientos,
                                     'supervivencia_estimada' => round($supervivenciaEstimada, 1),
-                                    'biomasa_estimada' => round(($cantidadActual * ($pesoEsperadoActual / 1000)), 2),
+                                    'biomasa_estimada' => round(($cantidadActual * ($pesoEsperadoActual / 1000)), 2), // biomasa en kg
                                     'tiene_datos_reales' => $seguimientos->count() > 0
                                 ];
                             });

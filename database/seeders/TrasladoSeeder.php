@@ -17,13 +17,6 @@ class TrasladoSeeder extends Seeder
      */
     public function run(): void
     {
-        // Verificar si ya existen datos
-        $registrosExistentes = Traslado::count();
-        if ($registrosExistentes > 0) {
-            $this->command->info("✅ Ya existen {$registrosExistentes} registros de traslado en la base de datos.");
-            return;
-        }
-
         $lotes = Lote::all();
         $unidades = UnidadProduccion::all();
         $usuarios = User::all();
@@ -109,7 +102,6 @@ class TrasladoSeeder extends Seeder
             }
         }
 
-        $totalTraslados = Traslado::count();
-        $this->command->info("✅ Traslados procesados: {$totalTraslados} total en la base de datos.");
+        $this->command->info('Traslados de prueba creados exitosamente.');
     }
 }
