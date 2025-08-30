@@ -4,7 +4,7 @@
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                 {{ __('Tipos de Alimento') }}
             </h2>
-            <a href="{{ route('tipos-alimento.create') }}" 
+            <a href="{{ route('alimentacion.tipos-alimento.create') }}" 
                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                 Nuevo Tipo de Alimento
             </a>
@@ -17,7 +17,7 @@
             <!-- Filtros -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6">
-                    <form method="GET" action="{{ route('tipos-alimento.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <form method="GET" action="{{ route('alimentacion.tipos-alimento.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
                             <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Buscar</label>
                             <input type="text" 
@@ -58,7 +58,7 @@
                                     class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex-1">
                                 Filtrar
                             </button>
-                            <a href="{{ route('tipos-alimento.index') }}" 
+                            <a href="{{ route('alimentacion.tipos-alimento.index') }}" 
                                class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
                                 Limpiar
                             </a>
@@ -144,11 +144,11 @@
                                                 </span>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                                <a href="{{ route('tipos-alimento.show', $tipo) }}" 
+                                                <a href="{{ route('alimentacion.tipos-alimento.show', $tipo) }}" 
                                                    class="text-indigo-600 hover:text-indigo-900">Ver</a>
-                                                <a href="{{ route('tipos-alimento.edit', $tipo) }}" 
+                                                <a href="{{ route('alimentacion.tipos-alimento.edit', $tipo) }}" 
                                                    class="text-yellow-600 hover:text-yellow-900">Editar</a>
-                                                <form action="{{ route('tipos-alimento.toggle', $tipo) }}" 
+                                                <form action="{{ route('alimentacion.tipos-alimento.toggle', $tipo) }}" 
                                                       method="POST" 
                                                       class="inline">
                                                     @csrf
@@ -174,7 +174,7 @@
                             <div class="text-gray-500 dark:text-gray-400 text-lg">
                                 No se encontraron tipos de alimento.
                             </div>
-                            <a href="{{ route('tipos-alimento.create') }}" 
+                            <a href="{{ route('alimentacion.tipos-alimento.create') }}" 
                                class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-block">
                                 Crear el primer tipo de alimento
                             </a>
