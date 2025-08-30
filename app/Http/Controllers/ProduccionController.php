@@ -12,6 +12,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
+
+
 class ProduccionController extends Controller
 {
     public function index()
@@ -593,13 +595,13 @@ class ProduccionController extends Controller
                        ->with('success', 'Traslado cancelado exitosamente.');
     }
 
-    public function destroyUnidad(UnidadProduccion $unidad)
+    public function inhabilitarUnidad(UnidadProduccion $unidad)
     {
         try {
             // Verificar que no tenga lotes activos
             $lotesActivos = $unidad->lotes()->activos()->count();
             if ($lotesActivos > 0) {
-                return back()->withErrors(['error' => 'No se puede eliminar la unidad porque tiene lotes activos asignados.']);
+                return back()->withErrors(['error' => 'No se puede inhabilitar la unidad porque tiene lotes activos asignados.']);
             }
 
             // Verificar que no tenga mantenimientos pendientes
@@ -607,17 +609,87 @@ class ProduccionController extends Controller
                 ->whereIn('estado_mantenimiento', ['programado', 'en_proceso'])
                 ->count();
             if ($mantenimientosPendientes > 0) {
-                return back()->withErrors(['error' => 'No se puede eliminar la unidad porque tiene mantenimientos pendientes.']);
+                return back()->withErrors(['error' => 'No se puede inhabilitar la unidad porque tiene mantenimientos pendientes.']);
             }
 
-            // Soft delete de la unidad
-            $unidad->delete();
+            // Cambiar estado a inactivo
+            $unidad->estado = 'inactivo';
+            $unidad->save();
 
             return redirect()->route('produccion.unidades')
-                           ->with('success', 'Unidad de producción eliminada exitosamente.');
-                           
+                           ->with('success', 'Unidad de producción inhabilitada exitosamente.');
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Error al eliminar la unidad: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Error al inhabilitar la unidad: ' . $e->getMessage()]);
         }
+    }
+    /**
+     * Muestra el historial de eventos de una unidad de producción (mantenimientos, traslados, seguimientos, etc.)
+     */
+    public function historialUnidad(UnidadProduccion $unidad)
+    {
+        // Mantenimientos
+        $mantenimientos = $unidad->mantenimientos()->get()->map(function($m) {
+            return (object) [
+                'fecha' => $m->fecha_mantenimiento ? $m->fecha_mantenimiento->setTime(8,0) : $m->created_at,
+                'tipo' => 'Mantenimiento',
+                'descripcion' => $m->descripcion_trabajo,
+                'enlace' => route('mantenimientos.show', $m->id)
+            ];
+        });
+
+        // Traslados como origen o destino
+        $trasladosOrigen = $unidad->trasladosOrigen()->get()->map(function($t) {
+            return (object) [
+                'fecha' => $t->fecha_traslado ? $t->fecha_traslado->setTime(8,0) : $t->created_at,
+                'tipo' => 'Traslado (Origen)',
+                'descripcion' => 'Salida de lote ' . ($t->lote->codigo_lote ?? '-') . ' hacia ' . ($t->unidadDestino->nombre ?? '-'),
+                'enlace' => route('produccion.traslados.show', $t->id)
+            ];
+        });
+        $trasladosDestino = $unidad->trasladosDestino()->get()->map(function($t) {
+            return (object) [
+                'fecha' => $t->fecha_traslado ? $t->fecha_traslado->setTime(8,0) : $t->created_at,
+                'tipo' => 'Traslado (Destino)',
+                'descripcion' => 'Ingreso de lote ' . ($t->lote->codigo_lote ?? '-') . ' desde ' . ($t->unidadOrigen->nombre ?? '-'),
+                'enlace' => route('produccion.traslados.show', $t->id)
+            ];
+        });
+
+        // Seguimientos de lotes en la unidad
+        $seguimientos = $unidad->lotes->flatMap(function($lote) {
+            return $lote->seguimientos->map(function($s) use ($lote) {
+                return (object) [
+                    'fecha' => $s->fecha_seguimiento ? $s->fecha_seguimiento->setTime(8,0) : $s->created_at,
+                    'tipo' => 'Seguimiento (' . $s->tipo_seguimiento . ')',
+                    'descripcion' => 'Lote: ' . ($lote->codigo_lote ?? '-') . ' - ' . ($s->observaciones ?? '-') ,
+                    'enlace' => null // Puedes agregar enlace si tienes una ruta de detalle
+                ];
+            });
+        });
+
+        // Unir y ordenar todos los eventos por fecha descendente
+        $eventos = collect()
+            ->merge($mantenimientos)
+            ->merge($trasladosOrigen)
+            ->merge($trasladosDestino)
+            ->merge($seguimientos)
+            ->sortByDesc('fecha')
+            ->values();
+
+        // Paginación manual (opcional, si la colección es grande)
+        $perPage = 20;
+        $page = request('page', 1);
+        $eventosPaginados = new \Illuminate\Pagination\LengthAwarePaginator(
+            $eventos->forPage($page, $perPage),
+            $eventos->count(),
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+
+        return view('produccion.historial-unidad', [
+            'unidad' => $unidad,
+            'eventos' => $eventosPaginados
+        ]);
     }
 }
