@@ -242,19 +242,64 @@ class ProduccionController extends Controller
             'user_id' => 'required|exists:users,id',
             'observaciones_antes' => 'nullable|string|max:1000',
             'requiere_vaciado' => 'boolean',
-            'requiere_traslado_peces' => 'boolean'
+            'requiere_traslado_peces' => 'boolean',
+            'repeat_type' => 'nullable|string',
+            'repeat_every' => 'nullable|integer|min:1',
+            'repeat_unit' => 'nullable|string',
+            'repeat_n_months' => 'nullable|integer|min:2|max:12',
+            'advanced_week' => 'nullable|integer|min:1|max:4',
+            'advanced_weekday' => 'nullable|integer|min:1|max:7',
+            'repeat_count' => 'nullable|integer|min:1|max:24',
         ]);
 
         $validated['estado_mantenimiento'] = 'programado';
-
-        // Convertir checkboxes
         $validated['requiere_vaciado'] = $request->has('requiere_vaciado');
         $validated['requiere_traslado_peces'] = $request->has('requiere_traslado_peces');
 
-        $mantenimiento = MantenimientoUnidad::create($validated);
+        // Lógica de repetición
+        $repeatType = $request->input('repeat_type', 'none');
+        $repeatCount = (int)($request->input('repeat_count', 1));
+        $fechas = [];
+        $inicio = \Carbon\Carbon::parse($validated['fecha_mantenimiento']);
+        if ($repeatType === 'interval') {
+            $every = max(1, (int)$request->input('repeat_every', 1));
+            $unit = $request->input('repeat_unit', 'days');
+            for ($i = 0; $i < $repeatCount; $i++) {
+                $fechas[] = $inicio->copy()->add($unit, $every * $i);
+            }
+        } elseif ($repeatType === 'n_months') {
+            $n = max(2, (int)$request->input('repeat_n_months', 2));
+            for ($i = 0; $i < $repeatCount; $i++) {
+                $fechas[] = $inicio->copy()->addMonths($n * $i);
+            }
+        } elseif ($repeatType === 'advanced') {
+            $week = (int)$request->input('advanced_week', 1);
+            $weekday = (int)$request->input('advanced_weekday', 1); // 1=Lunes ... 7=Domingo
+            $date = $inicio->copy();
+            for ($i = 0; $i < $repeatCount; $i++) {
+                $mes = $date->copy()->addMonths($i)->month;
+                $anio = $date->copy()->addMonths($i)->year;
+                $firstDay = \Carbon\Carbon::create($anio, $mes, 1);
+                $target = $firstDay->copy()->next($weekday);
+                if ($week > 1) {
+                    $target->addWeeks($week - 1);
+                }
+                $fechas[] = $target;
+            }
+        } else {
+            $fechas[] = $inicio;
+        }
 
-        return redirect()->route('produccion.mantenimientos', $mantenimiento->unidadProduccion)
-                        ->with('success', 'Mantenimiento programado exitosamente.');
+        $mantenimientos = [];
+        foreach ($fechas as $fecha) {
+            $data = $validated;
+            $data['fecha_mantenimiento'] = $fecha->format('Y-m-d');
+            $mantenimientos[] = MantenimientoUnidad::create($data);
+        }
+
+        // Redirigir a la unidad del primer mantenimiento creado
+        return redirect()->route('produccion.mantenimientos', $mantenimientos[0]->unidadProduccion)
+                        ->with('success', count($mantenimientos) > 1 ? 'Mantenimientos programados exitosamente.' : 'Mantenimiento programado exitosamente.');
     }
 
     public function showMantenimiento(MantenimientoUnidad $mantenimiento)
