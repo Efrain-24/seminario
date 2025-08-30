@@ -147,14 +147,21 @@
                                             <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">
                                                 {{ $moduleName }}
                                             </h4>
-                                            <label class="flex items-center">
-                                                <input type="checkbox" 
-                                                       class="module-toggle rounded border-gray-300 text-purple-600 shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50"
-                                                       data-module="{{ $moduleKey }}"
-                                                       {{ $hasModulePermissions ? 'checked' : '' }}
-                                                       onchange="toggleModulePermissions('{{ $moduleKey }}')">
-                                                <span class="ml-2 text-xs text-gray-600 dark:text-gray-400">Habilitar módulo</span>
-                                            </label>
+                                            <div class="flex items-center space-x-2">
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" 
+                                                           class="module-toggle rounded border-gray-300 text-purple-600 shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50"
+                                                           data-module="{{ $moduleKey }}"
+                                                           {{ $hasModulePermissions ? 'checked' : '' }}
+                                                           onchange="toggleModulePermissions('{{ $moduleKey }}')">
+                                                    <span class="ml-2 text-xs text-gray-600 dark:text-gray-400">Habilitar módulo</span>
+                                                </label>
+                                                <button type="button" onclick="checkAllPermissions('{{ $moduleKey }}')"
+                                                    class="ml-2 px-2 py-1 bg-purple-500 hover:bg-purple-700 text-white text-xs rounded transition duration-150"
+                                                    title="Activar todos los permisos de este módulo">
+                                                    Activar todos
+                                                </button>
+                                            </div>
                                         </div>
                                         
                                                                                 <div class="permission-levels-{{ $moduleKey }} grid grid-cols-2 md:grid-cols-4 gap-3" style="opacity: {{ $hasModulePermissions ? '1' : '0.5' }}; pointer-events: {{ $hasModulePermissions ? 'auto' : 'none' }}; transition: opacity 0.3s ease;">
@@ -278,5 +285,19 @@
             }
         });
     });
+    // Activar todos los permisos de un módulo
+    function checkAllPermissions(moduleKey) {
+        const moduleToggle = document.querySelector(`[data-module="${moduleKey}"]`);
+        const permissionLevels = document.querySelector(`.permission-levels-${moduleKey}`);
+        const checkboxes = document.querySelectorAll(`.permission-checkbox-${moduleKey}`);
+        if (moduleToggle && permissionLevels) {
+            moduleToggle.checked = true;
+            permissionLevels.style.opacity = '1';
+            permissionLevels.style.pointerEvents = 'auto';
+        }
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = true;
+        });
+    }
     </script>
 </x-app-layout>

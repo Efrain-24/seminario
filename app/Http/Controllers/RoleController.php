@@ -33,12 +33,20 @@ class RoleController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:roles', 'alpha_dash'],
+            'name' => ['required', 'string', 'max:255', 'alpha_dash'],
             'display_name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:500'],
             'permissions' => ['nullable', 'array'],
             'permissions.*' => ['string'],
         ]);
+
+        // Validación case-insensitive para nombre único
+        $exists = Role::whereRaw('LOWER(name) = ?', [strtolower($request->name)])->exists();
+        if ($exists) {
+            return back()
+                ->withInput()
+                ->withErrors(['name' => 'Ya existe un rol con ese nombre.']);
+        }
 
         Role::create([
             'name' => $request->name,
@@ -152,13 +160,23 @@ class RoleController extends Controller
     public function update(Request $request, Role $role): RedirectResponse
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255', 'alpha_dash', 'unique:roles,name,'.$role->id],
+            'name' => ['required', 'string', 'max:255', 'alpha_dash'],
             'display_name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:500'],
             'permissions' => ['nullable', 'array'],
             'permissions.*' => ['string'],
             'is_active' => ['boolean'],
         ]);
+
+        // Validación case-insensitive para nombre único (excepto el actual)
+        $exists = Role::whereRaw('LOWER(name) = ?', [strtolower($request->name)])
+            ->where('id', '!=', $role->id)
+            ->exists();
+        if ($exists) {
+            return back()
+                ->withInput()
+                ->withErrors(['name' => 'Ya existe un rol con ese nombre (sin importar mayúsculas/minúsculas).']);
+        }
 
         $role->update([
             'name' => $request->name,
