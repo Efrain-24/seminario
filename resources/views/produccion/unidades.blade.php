@@ -21,9 +21,9 @@
     <x-notification type="error" :message="session('error')" />
 
     <!-- Filtros -->
-    <div class="py-6">
+    <div class="pt-4 pb-2">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-2">
                 <div class="p-6">
                     <form method="GET" action="{{ route('produccion.unidades') }}" class="space-y-4">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -91,10 +91,6 @@
                                class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg transition duration-200">
                                 Limpiar filtros
                             </a>
-                            
-                            <div class="text-sm text-gray-500 dark:text-gray-400">
-                                {{ $unidades->total() }} unidad(es) encontrada(s)
-                            </div>
                         </div>
                     </form>
                 </div>
@@ -102,10 +98,10 @@
         </div>
     </div>
 
-    <div class="py-6">
+    <div class="pt-0 pb-4">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
+                <div class="p-4 text-gray-900 dark:text-gray-100">
                     <!-- Información sobre la tabla -->
                     <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-md">
                         <div class="flex items-center">
@@ -118,8 +114,8 @@
                         </div>
                     </div>
                     
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full table-auto">
+                    <div class="overflow-x-auto md:overflow-x-visible">
+                        <table class="w-full table-auto">
                             <thead>
                                 <tr class="bg-gray-50 dark:bg-gray-700">
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
