@@ -48,47 +48,6 @@
                             <x-input-error :messages="$errors->get('role')" class="mt-2" />
                         </div>
 
-                        <!-- Separador -->
-                        <div class="my-6 border-t border-gray-200 dark:border-gray-700"></div>
-                        
-                        <div class="mb-4">
-                            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                                Cambiar Contraseña (Opcional)
-                            </h3>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                                Deja estos campos vacíos si no deseas cambiar la contraseña.
-                            </p>
-                        </div>
-
-                        <!-- Nueva Contraseña -->
-                        <div class="mb-4">
-                            <x-input-label for="password" :value="__('Nueva Contraseña')" />
-                            <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" autocomplete="new-password" />
-                            <div id="password-help" class="text-xs text-gray-500 mt-1">
-                                <ul>
-                                    <li>Mínimo 8 caracteres</li>
-                                    <li>Al menos una minúscula</li>
-                                    <li>Al menos una mayúscula</li>
-                                    <li>Al menos un número</li>
-                                    <li>Al menos un carácter especial (@$!%*#?&._-)</li>
-                                </ul>
-                            </div>
-                            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-                        </div>
-</x-app-layout>
-@push('scripts')
-    <script src="{{ asset('js/password-validator.js') }}"></script>
-@endpush
-@stack('scripts')
-
-
-                        <!-- Confirmar Nueva Contraseña -->
-                        <div class="mb-6">
-                            <x-input-label for="password_confirmation" :value="__('Confirmar Nueva Contraseña')" />
-                            <x-text-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" autocomplete="new-password" />
-                            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-                        </div>
-
                             <!-- Estado -->
                             <div class="mb-4">
                                 <x-input-label for="estado" :value="__('Estado')" />

@@ -48,31 +48,31 @@
                             <x-input-error :messages="$errors->get('role')" class="mt-2" />
                         </div>
 
-
-                        <!-- Contraseña -->
-                        <div class="mb-4">
-                            <x-input-label for="password" :value="__('Contraseña')" />
-                            <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
-                            <div id="password-help" class="text-xs text-gray-500 mt-1">
-                                <ul>
-                                    <li>Mínimo 8 caracteres</li>
-                                    <li>Al menos una minúscula</li>
-                                    <li>Al menos una mayúscula</li>
-                                    <li>Al menos un número</li>
-                                    <li>Al menos un carácter especial (@$!%*#?&._-)</li>
-                                </ul>
+                        <!-- Información sobre contraseña -->
+                        <div class="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-md">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">
+                                        Contraseña Temporal
+                                    </h3>
+                                    <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
+                                        <p>Se generará automáticamente una contraseña temporal segura de 8 caracteres que incluirá:</p>
+                                        <ul class="list-disc list-inside mt-1">
+                                            <li>Al menos una letra mayúscula</li>
+                                            <li>Al menos una letra minúscula</li>
+                                            <li>Al menos un número</li>
+                                            <li>Al menos un carácter especial</li>
+                                        </ul>
+                                        <p class="mt-2 font-medium">Esta contraseña se enviará por correo electrónico al usuario junto con las instrucciones para verificar su cuenta y cambiar la contraseña.</p>
+                                    </div>
+                                </div>
                             </div>
-                            <x-input-error :messages="$errors->get('password')" class="mt-2" />
                         </div>
-
-                        <!-- Confirmar Contraseña -->
-                        <div class="mb-4">
-                            <x-input-label for="password_confirmation" :value="__('Confirmar Contraseña')" />
-                            <x-text-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required autocomplete="new-password" />
-                            <div id="password-confirm-help" class="text-xs mt-1"></div>
-                        </div>
-
-
 
                         <div class="flex items-center justify-end mt-4">
                             <a href="{{ route('users.index') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 mr-2">

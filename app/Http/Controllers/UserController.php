@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use App\Notifications\UserCreated;
+use App\Notifications\PasswordReset;
 
 class UserController extends Controller
 {
@@ -40,35 +42,25 @@ class UserController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => [
-                'required',
-                'confirmed',
-                'min:8',
-                'regex:/[a-z]/',      // minúscula
-                'regex:/[A-Z]/',      // mayúscula
-                'regex:/[0-9]/',      // número
-                'regex:/[@$!%*#?&._-]/' // carácter especial
-            ],
             'role' => ['required', 'in:' . implode(',', $validRoles)],
-        ], [
-            'password.regex' => 'La contraseña debe contener al menos una mayúscula, una minúscula, un número y un carácter especial.'
         ]);
 
+        // Generar contraseña temporal
+        $temporaryPassword = User::generateTemporaryPassword();
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'password' => Hash::make($temporaryPassword),
             'role' => $request->role,
+            'password_changed_at' => null, // Marcar como contraseña temporal
         ]);
 
-        // Enviar correo de verificación
-        if (method_exists($user, 'sendEmailVerificationNotification')) {
-            $user->sendEmailVerificationNotification();
-        }
+        // Enviar correo con contraseña temporal y enlace de verificación
+        $user->notify(new UserCreated($user, $temporaryPassword));
 
         return redirect()->route('users.index')
-                        ->with('success', 'Usuario creado exitosamente.');
+                        ->with('success', 'Usuario creado exitosamente. Se ha enviado un correo con la contraseña temporal.');
     }
 
     /**
@@ -148,5 +140,32 @@ class UserController extends Controller
 
         return redirect()->route('users.index')
                         ->with('success', 'Usuario inactivado exitosamente.');
+    }
+
+    /**
+     * Reiniciar la contraseña del usuario
+     */
+    public function resetPassword(User $user): RedirectResponse
+    {
+        // Evitar que el usuario reinicie su propia contraseña desde aquí
+        if ($user->id === Auth::user()->id) {
+            return redirect()->route('users.show', $user)
+                            ->with('error', 'No puedes reiniciar tu propia contraseña desde aquí.');
+        }
+
+        // Generar nueva contraseña temporal
+        $temporaryPassword = User::generateTemporaryPassword();
+
+        // Actualizar la contraseña y marcar como temporal
+        $user->update([
+            'password' => Hash::make($temporaryPassword),
+            'password_changed_at' => null,
+        ]);
+
+        // Enviar correo con nueva contraseña temporal
+        $user->notify(new PasswordReset($temporaryPassword));
+
+        return redirect()->route('users.show', $user)
+                        ->with('success', 'Contraseña reiniciada exitosamente. Se ha enviado un correo con la nueva contraseña temporal.');
     }
 }

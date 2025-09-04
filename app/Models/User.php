@@ -23,6 +23,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'role',
         'estado',
+        'password_changed_at',
     ];
 
     /**
@@ -46,6 +47,49 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Generar una contraseña temporal segura de 8 caracteres
+     */
+    public static function generateTemporaryPassword(): string
+    {
+        $lowercase = 'abcdefghijklmnopqrstuvwxyz';
+        $uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $numbers = '0123456789';
+        $specials = '@$!%*#?&._-';
+        
+        // Asegurar al menos uno de cada tipo
+        $password = '';
+        $password .= $lowercase[rand(0, strlen($lowercase) - 1)]; // minúscula
+        $password .= $uppercase[rand(0, strlen($uppercase) - 1)]; // mayúscula
+        $password .= $numbers[rand(0, strlen($numbers) - 1)]; // número
+        $password .= $specials[rand(0, strlen($specials) - 1)]; // especial
+        
+        // Completar los 4 caracteres restantes aleatoriamente
+        $allChars = $lowercase . $uppercase . $numbers . $specials;
+        for ($i = 4; $i < 8; $i++) {
+            $password .= $allChars[rand(0, strlen($allChars) - 1)];
+        }
+        
+        // Mezclar los caracteres para que no sigan un patrón
+        return str_shuffle($password);
+    }
+
+    /**
+     * Marcar que el usuario necesita cambiar su contraseña
+     */
+    public function markPasswordAsTemporary(): void
+    {
+        $this->update(['password_changed_at' => null]);
+    }
+
+    /**
+     * Verificar si el usuario tiene una contraseña temporal
+     */
+    public function hasTemporaryPassword(): bool
+    {
+        return is_null($this->password_changed_at);
     }
 
     /**

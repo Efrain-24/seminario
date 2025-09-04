@@ -5,7 +5,7 @@
                 {{ __('Aplicaciones') }} - Sistema de Gestión Piscícola
             </h2>
             <div class="text-sm text-gray-600 dark:text-gray-400">
-                Bienvenido, <span class="font-medium">{{ Auth::user()->name }}</span>
+                Bienvenido, <span class="font-medium">{{ Auth::user() ? Auth::user()->name : 'Usuario' }}</span>
                 ({{ Auth::user()->roleDisplayName }})
             </div>
         </div>

@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'permission' => \App\Http\Middleware\CheckPermission::class,
+            'redirect.temp.password' => \App\Http\Middleware\RedirectIfTemporaryPassword::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -179,7 +179,7 @@
                         </div>
                         @else
                         <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 text-center">
-                            <p class="text-gray-600 dark:text-gray-300 mb-4">¡Bienvenido de nuevo, {{ Auth::user()->name }}!</p>
+                            <p class="text-gray-600 dark:text-gray-300 mb-4">¡Bienvenido de nuevo, {{ Auth::user() ? Auth::user()->name : 'Usuario' }}!</p>
                             <a href="{{ route('aplicaciones') }}" 
                                class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium transition-colors duration-200">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

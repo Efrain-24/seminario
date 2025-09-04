@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 
 class VerifyEmailController extends Controller
@@ -22,12 +22,19 @@ class VerifyEmailController extends Controller
         }
 
         if ($user->hasVerifiedEmail()) {
-            return view('auth.verify-success', ['already' => true]);
+            // Si ya está verificado, autenticar y redirigir
+            Auth::login($user);
+            return redirect()->route('dashboard')
+                ->with('success', 'Tu email ya estaba verificado. ¡Bienvenido!');
         }
 
         $user->markEmailAsVerified();
         event(new Verified($user));
 
-        return view('auth.verify-success', ['already' => false]);
+        // Autenticar al usuario después de la verificación
+        Auth::login($user);
+
+        return redirect()->route('dashboard')
+            ->with('success', '¡Email verificado exitosamente! Bienvenido al sistema.');
     }
 }

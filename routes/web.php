@@ -7,6 +7,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProduccionController;
 use App\Http\Controllers\TipoAlimentoController;
+use App\Http\Controllers\PasswordChangeController;
 use App\Http\Controllers\CosechaParcialController;
 use App\Http\Controllers\ControlProduccionController;
 use App\Http\Controllers\MortalidadController;
@@ -28,13 +29,13 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth', 'verified', 'redirect.temp.password'])->name('dashboard');
 
 Route::get('/aplicaciones', function () {
     return view('aplicaciones');
-})->middleware(['auth', 'verified'])->name('aplicaciones');
+})->middleware(['auth', 'verified', 'redirect.temp.password'])->name('aplicaciones');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'redirect.temp.password'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -45,6 +46,7 @@ Route::middleware('auth')->group(function () {
     Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit')->middleware('permission:users.edit');
     Route::put('users/{user}', [UserController::class, 'update'])->name('users.update')->middleware('permission:users.edit');
     Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy')->middleware('permission:users.delete');
+    Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password')->middleware('permission:users.edit');
 
     Route::middleware('permission:users.view')->group(function () {
         Route::get('users', [UserController::class, 'index'])->name('users.index');
@@ -64,7 +66,7 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-Route::middleware('auth')->prefix('produccion')->name('produccion.')->group(function () {
+Route::middleware(['auth', 'redirect.temp.password'])->prefix('produccion')->name('produccion.')->group(function () {
     Route::get('/', [ProduccionController::class, 'index'])->name('index');
 
     // Rutas de Lotes
@@ -158,7 +160,7 @@ Route::middleware('auth')->prefix('produccion')->name('produccion.')->group(func
 });
 
 // Rutas de Alimentación
-Route::middleware('auth')->prefix('alimentacion')->name('alimentacion.')->group(function () {
+Route::middleware(['auth', 'redirect.temp.password'])->prefix('alimentacion')->name('alimentacion.')->group(function () {
     // Rutas para tipos de alimento (primero)
     Route::get('/tipos-alimento', [TipoAlimentoController::class, 'index'])->name('tipos-alimento.index');
     Route::get('/tipos-alimento/create', [TipoAlimentoController::class, 'create'])->name('tipos-alimento.create')->middleware('permission:alimentacion.create');
@@ -180,7 +182,7 @@ Route::middleware('auth')->prefix('alimentacion')->name('alimentacion.')->group(
 });
 
 // Rutas de Notificaciones (AJAX)
-Route::middleware('auth')->prefix('notificaciones')->name('notificaciones.')->group(function () {
+Route::middleware(['auth', 'redirect.temp.password'])->prefix('notificaciones')->name('notificaciones.')->group(function () {
     Route::get('/', [App\Http\Controllers\NotificacionController::class, 'index'])->name('index');
     Route::get('/todas', [App\Http\Controllers\NotificacionController::class, 'todas'])->name('todas');
     Route::get('/count', [App\Http\Controllers\NotificacionController::class, 'count'])->name('count');
@@ -193,3 +195,9 @@ Route::middleware('auth')->prefix('notificaciones')->name('notificaciones.')->gr
 });
 
 require __DIR__ . '/auth.php';
+
+// Rutas para cambio de contraseña (sin middleware de contraseña temporal)
+Route::middleware('auth')->group(function () {
+    Route::get('password/change', [PasswordChangeController::class, 'show'])->name('password.change');
+    Route::put('password/change', [PasswordChangeController::class, 'update'])->name('password.update');
+});
