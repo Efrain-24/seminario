@@ -57,7 +57,7 @@ class User extends Authenticatable implements MustVerifyEmail
         $lowercase = 'abcdefghijklmnopqrstuvwxyz';
         $uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $numbers = '0123456789';
-        $specials = '@$!%*#?&._-';
+        $specials = '@$!%*#?&-';
         
         // Asegurar al menos uno de cada tipo
         $password = '';

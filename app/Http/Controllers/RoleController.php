@@ -48,11 +48,27 @@ class RoleController extends Controller
                 ->withErrors(['name' => 'Ya existe un rol con ese nombre.']);
         }
 
+        // Validación de permisos duplicados
+        $permissions = $request->permissions ?? [];
+        $similarRoles = Role::getSimilarRolesInfo($permissions);
+        
+        if (!empty($similarRoles)) {
+            $roleNames = collect($similarRoles)->pluck('display_name')->implode(', ');
+            $message = count($similarRoles) === 1 
+                ? "No se puede crear el rol. Ya existe un rol ({$roleNames}) con exactamente los mismos permisos."
+                : "No se puede crear el rol. Ya existen roles ({$roleNames}) con exactamente los mismos permisos.";
+                
+            return back()
+                ->withInput()
+                ->withErrors(['permissions' => $message])
+                ->with('similar_roles', $similarRoles);
+        }
+
         Role::create([
             'name' => $request->name,
             'display_name' => $request->display_name,
             'description' => $request->description,
-            'permissions' => $request->permissions ?? [],
+            'permissions' => $permissions,
             'is_active' => true,
         ]);
 
@@ -178,11 +194,27 @@ class RoleController extends Controller
                 ->withErrors(['name' => 'Ya existe un rol con ese nombre (sin importar mayúsculas/minúsculas).']);
         }
 
+        // Validación de permisos duplicados (excluyendo el rol actual)
+        $permissions = $request->permissions ?? [];
+        $similarRoles = Role::getSimilarRolesInfo($permissions, $role->id);
+        
+        if (!empty($similarRoles)) {
+            $roleNames = collect($similarRoles)->pluck('display_name')->implode(', ');
+            $message = count($similarRoles) === 1 
+                ? "No se puede actualizar el rol. Ya existe un rol ({$roleNames}) con exactamente los mismos permisos."
+                : "No se puede actualizar el rol. Ya existen roles ({$roleNames}) con exactamente los mismos permisos.";
+                
+            return back()
+                ->withInput()
+                ->withErrors(['permissions' => $message])
+                ->with('similar_roles', $similarRoles);
+        }
+
         $role->update([
             'name' => $request->name,
             'display_name' => $request->display_name,
             'description' => $request->description,
-            'permissions' => $request->permissions ?? [],
+            'permissions' => $permissions,
             'is_active' => $request->boolean('is_active', true),
         ]);
 

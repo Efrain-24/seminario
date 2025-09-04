@@ -72,4 +72,64 @@ class Role extends Model
         
         return is_array($permissions) ? $permissions : [];
     }
+
+    /**
+     * Buscar roles existentes con el mismo conjunto de permisos
+     */
+    public static function findRolesWithSamePermissions(array $permissions, ?int $excludeRoleId = null)
+    {
+        // Normalizar y ordenar los permisos para comparación
+        $normalizedPermissions = collect($permissions)->filter()->sort()->values()->toArray();
+        
+        // Si no hay permisos, buscar otros roles sin permisos
+        if (empty($normalizedPermissions)) {
+            $query = self::active()
+                ->where(function($q) {
+                    $q->whereNull('permissions')
+                      ->orWhere('permissions', '[]')
+                      ->orWhere('permissions', '')
+                      ->orWhere('permissions', '[""]')
+                      ->orWhere('permissions', '{}');
+                });
+        } else {
+            // Buscar roles con permisos exactamente iguales
+            $query = self::active();
+        }
+        
+        if ($excludeRoleId) {
+            $query->where('id', '!=', $excludeRoleId);
+        }
+        
+        return $query->get()->filter(function($role) use ($normalizedPermissions) {
+            $rolePermissions = collect($role->getPermissionsArray())->filter()->sort()->values()->toArray();
+            return $rolePermissions === $normalizedPermissions;
+        });
+    }
+
+    /**
+     * Verificar si ya existe un rol con los mismos permisos
+     */
+    public static function hasRoleWithSamePermissions(array $permissions, ?int $excludeRoleId = null): bool
+    {
+        return self::findRolesWithSamePermissions($permissions, $excludeRoleId)->count() > 0;
+    }
+
+    /**
+     * Obtener información de roles con permisos similares
+     */
+    public static function getSimilarRolesInfo(array $permissions, ?int $excludeRoleId = null): array
+    {
+        $similarRoles = self::findRolesWithSamePermissions($permissions, $excludeRoleId);
+        
+        return $similarRoles->map(function($role) {
+            return [
+                'id' => $role->id,
+                'name' => $role->name,
+                'display_name' => $role->display_name,
+                'description' => $role->description,
+                'permissions_count' => count($role->getPermissionsArray()),
+                'users_count' => $role->users()->count()
+            ];
+        })->toArray();
+    }
 }

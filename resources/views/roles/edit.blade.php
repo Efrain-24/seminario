@@ -46,6 +46,52 @@
                         </div>
                     </div>
 
+                    <!-- Alerta de roles similares -->
+                    @if(session('similar_roles') && count(session('similar_roles')) > 0)
+                        <div class="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
+                                        ❌ No se puede actualizar el rol
+                                    </h3>
+                                    <div class="mt-2 text-sm text-red-700 dark:text-red-300">
+                                        <p>Ya existen otros roles con exactamente los mismos permisos:</p>
+                                        <ul class="mt-2 space-y-1">
+                                            @foreach(session('similar_roles') as $similarRole)
+                                                <li class="flex items-center justify-between bg-red-100 dark:bg-red-800/30 px-3 py-2 rounded">
+                                                    <div>
+                                                        <span class="font-medium">{{ $similarRole['display_name'] }}</span>
+                                                        <span class="text-xs text-red-600 dark:text-red-400 ml-2">
+                                                            ({{ $similarRole['permissions_count'] }} permisos, {{ $similarRole['users_count'] }} usuarios)
+                                                        </span>
+                                                    </div>
+                                                    <a href="{{ route('roles.show', $similarRole['id']) }}" 
+                                                       class="text-xs bg-red-200 dark:bg-red-700 text-red-800 dark:text-red-200 px-2 py-1 rounded hover:bg-red-300 dark:hover:bg-red-600"
+                                                       target="_blank">
+                                                        Ver detalles
+                                                    </a>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                        <p class="mt-3 text-xs">
+                                            💡 <strong>Solución:</strong> Modifica los permisos para diferenciar este rol de los existentes.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     <!-- Formulario -->
                     <form action="{{ route('roles.update', $role) }}" method="POST">
                         @csrf
