@@ -670,17 +670,114 @@ class ProduccionController extends Controller
     /**
      * Muestra el historial de eventos de una unidad de producción (mantenimientos, traslados, seguimientos, etc.)
      */
-    public function historialUnidad(UnidadProduccion $unidad)
+    public function historialUnidad(Request $request, UnidadProduccion $unidad)
     {
+        // Filtros
+        $tipoEvento = $request->input('tipo_evento');
+        $fechaDesde = $request->input('fecha_desde');
+        $fechaHasta = $request->input('fecha_hasta');
+
+        // 1. Obtener mantenimientos
+        $mantenimientos = $unidad->mantenimientos()
+            ->when($fechaDesde, function($query) use ($fechaDesde) {
+                return $query->where('fecha_mantenimiento', '>=', $fechaDesde);
+            })
+            ->when($fechaHasta, function($query) use ($fechaHasta) {
+                return $query->where('fecha_mantenimiento', '<=', $fechaHasta);
+            })
+            ->get()
+            ->map(function($m) {
+                return (object) [
+                    'fecha' => $m->fecha_mantenimiento ? $m->fecha_mantenimiento->setTime(8,0) : $m->created_at,
+                    'tipo' => 'Mantenimiento',
+                    'descripcion' => "Mantenimiento {$m->tipo_mantenimiento}: {$m->descripcion_trabajo}",
+                    'enlace' => route('produccion.mantenimientos.show', $m->id)
+                ];
+            });
+
+        // 2. Obtener traslados como origen
+        $trasladosOrigen = $unidad->trasladosOrigen()
+            ->when($fechaDesde, function($query) use ($fechaDesde) {
+                return $query->where('fecha_traslado', '>=', $fechaDesde);
+            })
+            ->when($fechaHasta, function($query) use ($fechaHasta) {
+                return $query->where('fecha_traslado', '<=', $fechaHasta);
+            })
+            ->get()
+            ->map(function($t) {
+                return (object) [
+                    'fecha' => $t->fecha_traslado ? $t->fecha_traslado->setTime(8,0) : $t->created_at,
+                    'tipo' => 'Traslado (Salida)',
+                    'descripcion' => "Salida del lote {$t->lote->codigo_lote} hacia {$t->unidadDestino->nombre}",
+                    'enlace' => route('produccion.traslados.show', $t->id)
+                ];
+            });
+
+        // 3. Obtener traslados como destino
+        $trasladosDestino = $unidad->trasladosDestino()
+            ->when($fechaDesde, function($query) use ($fechaDesde) {
+                return $query->where('fecha_traslado', '>=', $fechaDesde);
+            })
+            ->when($fechaHasta, function($query) use ($fechaHasta) {
+                return $query->where('fecha_traslado', '<=', $fechaHasta);
+            })
+            ->get()
+            ->map(function($t) {
+                return (object) [
+                    'fecha' => $t->fecha_traslado ? $t->fecha_traslado->setTime(8,0) : $t->created_at,
+                    'tipo' => 'Traslado (Entrada)',
+                    'descripcion' => "Entrada del lote {$t->lote->codigo_lote} desde {$t->unidadOrigen->nombre}",
+                    'enlace' => route('produccion.traslados.show', $t->id)
+                ];
+            });
+
+        // Combinar todos los eventos
+        $eventos = collect()
+            ->when(!$tipoEvento || $tipoEvento === 'Mantenimiento', function($collection) use ($mantenimientos) {
+                return $collection->concat($mantenimientos);
+            })
+            ->when(!$tipoEvento || $tipoEvento === 'Traslado (Entrada)', function($collection) use ($trasladosDestino) {
+                return $collection->concat($trasladosDestino);
+            })
+            ->when(!$tipoEvento || $tipoEvento === 'Traslado (Salida)', function($collection) use ($trasladosOrigen) {
+                return $collection->concat($trasladosOrigen);
+            })
+            ->sortByDesc('fecha')
+            ->values();
+
+        // Paginar los resultados
+        $perPage = 10;
+        $page = $request->input('page', 1);
+        $eventos = new \Illuminate\Pagination\LengthAwarePaginator(
+            $eventos->forPage($page, $perPage),
+            $eventos->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return view('produccion.historial-unidad', compact('unidad', 'eventos'));
+        $tipoEvento = $request->input('tipo_evento');
+        $fechaDesde = $request->input('fecha_desde');
+        $fechaHasta = $request->input('fecha_hasta');
+
         // Mantenimientos
-        $mantenimientos = $unidad->mantenimientos()->get()->map(function($m) {
-            return (object) [
-                'fecha' => $m->fecha_mantenimiento ? $m->fecha_mantenimiento->setTime(8,0) : $m->created_at,
-                'tipo' => 'Mantenimiento',
-                'descripcion' => $m->descripcion_trabajo,
-                'enlace' => route('mantenimientos.show', $m->id)
-            ];
-        });
+        $mantenimientos = $unidad->mantenimientos()
+            ->when($fechaDesde, function($query) use ($fechaDesde) {
+                return $query->where('fecha_mantenimiento', '>=', $fechaDesde);
+            })
+            ->when($fechaHasta, function($query) use ($fechaHasta) {
+                return $query->where('fecha_mantenimiento', '<=', $fechaHasta);
+            })
+            ->get()
+            ->map(function($m) {
+                return (object) [
+                    'fecha' => $m->fecha_mantenimiento ? $m->fecha_mantenimiento->setTime(8,0) : $m->created_at,
+                    'tipo' => 'Mantenimiento',
+                    'descripcion' => $m->descripcion_trabajo,
+                    'enlace' => route('mantenimientos.show', $m->id)
+                ];
+            });
 
         // Traslados como origen o destino
         $trasladosOrigen = $unidad->trasladosOrigen()->get()->map(function($t) {
