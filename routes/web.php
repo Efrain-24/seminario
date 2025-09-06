@@ -18,6 +18,7 @@ use App\Http\Controllers\InventarioAlertaController;
 use App\Http\Controllers\ProtocoloSanidadController;
 use App\Http\Controllers\LimpiezaController;
 use App\Http\Controllers\AccionCorrectivaController;
+use App\Http\Controllers\TrazabilidadCosechaController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -35,6 +36,17 @@ Route::get('/dashboard', function () {
 Route::get('/aplicaciones', function () {
     return view('aplicaciones');
 })->middleware(['auth', 'verified', 'redirect.temp.password'])->name('aplicaciones');
+
+// Rutas de Trazabilidad de Cosechas
+Route::middleware(['auth'])->group(function () {
+    Route::get('/cosechas/trazabilidad', [TrazabilidadCosechaController::class, 'index'])->name('cosechas.trazabilidad.index');
+    Route::get('/cosechas/trazabilidad/crear', [TrazabilidadCosechaController::class, 'create'])->name('cosechas.trazabilidad.create');
+    Route::post('/cosechas/trazabilidad', [TrazabilidadCosechaController::class, 'store'])->name('cosechas.trazabilidad.store');
+    Route::get('/cosechas/trazabilidad/{trazabilidad}', [TrazabilidadCosechaController::class, 'show'])->name('cosechas.trazabilidad.show');
+    Route::get('/cosechas/trazabilidad/{trazabilidad}/editar', [TrazabilidadCosechaController::class, 'edit'])->name('cosechas.trazabilidad.edit');
+    Route::put('/cosechas/trazabilidad/{trazabilidad}', [TrazabilidadCosechaController::class, 'update'])->name('cosechas.trazabilidad.update');
+    Route::delete('/cosechas/trazabilidad/{trazabilidad}', [TrazabilidadCosechaController::class, 'destroy'])->name('cosechas.trazabilidad.destroy');
+});
 
 Route::middleware(['auth', 'redirect.temp.password'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

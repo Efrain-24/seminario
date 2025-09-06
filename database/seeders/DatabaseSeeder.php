@@ -48,6 +48,10 @@ class DatabaseSeeder extends Seeder
                     'sanidad.view',
                     'sanidad.create',
                     'sanidad.edit',
+                    'trazabilidad.view',
+                    'trazabilidad.create',
+                    'trazabilidad.edit',
+                    'trazabilidad.delete',
                     'sanidad.delete',
                     'crecimiento.view',
                     'crecimiento.create',
@@ -98,6 +102,9 @@ class DatabaseSeeder extends Seeder
                     'crecimiento.delete',
                     'costos.view',
                     'costos.create',
+                    'trazabilidad.view',
+                    'trazabilidad.create',
+                    'trazabilidad.edit',
                     'costos.edit',
                     'costos.delete',
                     'monitoreo.view',
@@ -133,7 +140,8 @@ class DatabaseSeeder extends Seeder
                     'costos.create',
                     'monitoreo.view',
                     'monitoreo.create',
-                    'monitoreo.edit'
+                    'monitoreo.edit',
+                    'trazabilidad.view'
                 ],
                 'is_active' => true
             ],
@@ -241,6 +249,7 @@ class DatabaseSeeder extends Seeder
             LimpiezaSeeder::class,
             AccionCorrectivaSeeder::class,
             AlertaAnomaliaSeeder::class,
+            TrazabilidadPermissionsSeeder::class,
         ]);
     }
 }
