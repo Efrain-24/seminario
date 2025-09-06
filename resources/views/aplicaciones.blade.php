@@ -112,6 +112,15 @@
                                 'color' => 'from-yellow-500 to-amber-600',
                                 'available' => true,
                             ],
+                            'sanidad' => [
+                                'name' => 'Sanidad y Bioseguridad',
+                                'description' => 'Registro de protocolos de sanidad y eventos de limpieza',
+                                'icon' => '<i data-lucide="shield"></i>',
+                                'route' => 'protocolo-sanidad.index',
+                                'permission_prefix' => 'sanidad',
+                                'color' => 'from-lime-500 to-green-600',
+                                'available' => true,
+                            ],
                             'usuarios' => [
                                 'name' => 'Gestión de Usuarios',
                                 'description' => 'Administra usuarios y sus datos en el sistema',

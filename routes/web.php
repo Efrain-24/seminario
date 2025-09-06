@@ -17,6 +17,8 @@ use App\Http\Controllers\InventarioItemController;
 use App\Http\Controllers\BodegaController;
 use App\Http\Controllers\InventarioMovimientoController;
 use App\Http\Controllers\InventarioAlertaController;
+use App\Http\Controllers\ProtocoloSanidadController;
+use App\Http\Controllers\LimpiezaController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -201,3 +203,7 @@ Route::middleware('auth')->group(function () {
     Route::get('password/change', [PasswordChangeController::class, 'show'])->name('password.change');
     Route::put('password/change', [PasswordChangeController::class, 'update'])->name('password.update');
 });
+
+
+    Route::resource('protocolo-sanidad', ProtocoloSanidadController::class);
+    Route::resource('limpieza', LimpiezaController::class);
