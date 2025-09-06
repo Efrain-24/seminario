@@ -247,7 +247,7 @@ class DatabaseSeeder extends Seeder
             InventarioSeederNew::class,
             ProtocoloSanidadSeeder::class,
             LimpiezaSeeder::class,
-            AccionCorrectivaSeeder::class,
+            AccionCorrectivaDemoSeeder::class,
             AlertaAnomaliaSeeder::class,
             TrazabilidadPermissionsSeeder::class,
         ]);

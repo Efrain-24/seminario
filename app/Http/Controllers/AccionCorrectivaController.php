@@ -10,7 +10,7 @@ class AccionCorrectivaController extends Controller
 {
     public function index()
     {
-        $acciones = AccionCorrectiva::with('responsable')->latest()->paginate(10);
+    $acciones = AccionCorrectiva::with('responsable')->orderBy('id', 'asc')->paginate(10);
         return view('acciones_correctivas.index', compact('acciones'));
     }
 
