@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-    // Crear roles básicos primero
+        // Definir roles y permisos
         $roles = [
             [
                 'name' => 'admin',
@@ -239,6 +239,7 @@ class DatabaseSeeder extends Seeder
             InventarioSeederNew::class,
             ProtocoloSanidadSeeder::class,
             LimpiezaSeeder::class,
+            AccionCorrectivaSeeder::class,
         ]);
     }
 }

@@ -121,6 +121,15 @@
                                 'color' => 'from-lime-500 to-green-600',
                                 'available' => true,
                             ],
+                            'acciones_correctivas' => [
+                                'name' => 'Acciones Correctivas',
+                                'description' => 'Registro y gestión de acciones correctivas en el sistema',
+                                'icon' => '<i data-lucide="check-circle"></i>',
+                                'route' => 'acciones_correctivas.index',
+                                'permission_prefix' => 'acciones_correctivas',
+                                'color' => 'from-cyan-600 to-blue-700',
+                                'available' => true,
+                            ],
                             'usuarios' => [
                                 'name' => 'Gestión de Usuarios',
                                 'description' => 'Administra usuarios y sus datos en el sistema',
@@ -154,7 +163,7 @@
                                 if (Gate::allows('alimentacion.view')) {
                                     $userModules[$key] = $module;
                                 }
-                            } elseif (in_array($module['permission_prefix'], ['inventario', 'cosechas', 'mortalidad', 'control_produccion', 'alertas'])) {
+                            } elseif (in_array($module['permission_prefix'], ['inventario', 'cosechas', 'mortalidad', 'control_produccion', 'alertas', 'acciones_correctivas'])) {
                                 // Para los nuevos módulos, siempre mostrar (por ahora)
                                 $userModules[$key] = $module;
                             } else {
@@ -174,7 +183,7 @@
                                         $hasPermission = Gate::allows('gestionar_usuarios');
                                     } elseif ($module['permission_prefix'] === 'alimentacion') {
                                         $hasPermission = Gate::allows('alimentacion.view');
-                                    } elseif (in_array($module['permission_prefix'], ['inventario', 'cosechas', 'mortalidad', 'control_produccion', 'alertas'])) {
+                                    } elseif (in_array($module['permission_prefix'], ['inventario', 'cosechas', 'mortalidad', 'control_produccion', 'alertas', 'acciones_correctivas'])) {
                                         // Para los nuevos módulos, siempre permitir acceso (por ahora)
                                         $hasPermission = true;
                                     } else {

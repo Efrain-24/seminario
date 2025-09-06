@@ -19,6 +19,7 @@ use App\Http\Controllers\InventarioMovimientoController;
 use App\Http\Controllers\InventarioAlertaController;
 use App\Http\Controllers\ProtocoloSanidadController;
 use App\Http\Controllers\LimpiezaController;
+use App\Http\Controllers\AccionCorrectivaController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -207,3 +208,4 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('protocolo-sanidad', ProtocoloSanidadController::class);
     Route::resource('limpieza', LimpiezaController::class);
+    Route::resource('acciones_correctivas', AccionCorrectivaController::class);
