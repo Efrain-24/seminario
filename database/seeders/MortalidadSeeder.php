@@ -44,7 +44,7 @@ class MortalidadSeeder extends Seeder
                 $mortalidades[] = [
                     'lote_id' => $lote->id,
                     'fecha_registro' => $fechaBase->format('Y-m-d'),
-                    'cantidad' => rand(5, 50),
+                    'cantidad' => $fechaBase->diffInDays(now()) <= 5 ? rand(30, 50) : rand(5, 15), // Alta mortalidad en los últimos 5 días
                     'causa_principal' => $causas[array_rand($causas)],
                     'sintomas_observados' => $this->generarSintomas(),
                     'acciones_tomadas' => $this->generarAcciones(),

@@ -24,10 +24,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-                \App\Models\Mortalidad::observe(\App\Observers\MortalidadObserver::class);
+        \App\Models\Mortalidad::observe(\App\Observers\MortalidadObserver::class);
         \App\Models\Lote::observe(\App\Observers\LoteObserver::class);
         \App\Models\Enfermedad::observe(\App\Observers\EnfermedadObserver::class);
-        
+
         // Registrar Observers para detección automática de problemas
         \App\Models\InventarioMovimiento::observe(\App\Observers\InventarioMovimientoObserver::class);
         \App\Models\Seguimiento::observe(\App\Observers\SeguimientoObserver::class);

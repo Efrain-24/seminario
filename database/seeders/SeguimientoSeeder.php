@@ -41,8 +41,14 @@ class SeguimientoSeeder extends Seeder
                 $pesoPromedio = $this->calcularPesoRealista($lote, $semana);
                 $tallaPromedio = $this->calcularTallaRealista($lote, $semana);
                 
-                // Agregar variabilidad natural (+/- 10%)
-                $variacion = rand(-10, 10) / 100;
+                // Simular bajo peso en las últimas semanas
+                if ($semana > $semanasTranscurridas - 2) {
+                    // Últimas dos semanas con peso significativamente bajo (-30% a -20%)
+                    $variacion = rand(-30, -20) / 100;
+                } else {
+                    // Resto del tiempo variabilidad normal
+                    $variacion = rand(-10, 10) / 100;
+                }
                 $pesoPromedio = $pesoPromedio * (1 + $variacion);
                 $tallaPromedio = $tallaPromedio * (1 + $variacion);
 

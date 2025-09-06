@@ -39,7 +39,8 @@ class AlimentacionSeeder extends Seeder
                 $usuario = $usuarios->random();
                 
                 $hora = sprintf('%02d:%02d:00', rand(6, 18), rand(0, 59));
-                $cantidadKg = rand(22, 220) / 10; // Entre 2.2 y 22.0 libras
+                // Simular bajo consumo de alimento en algunos casos
+                $cantidadKg = $i < 5 ? rand(10, 15) / 10 : rand(22, 220) / 10; // Últimos 5 días con consumo muy bajo
                 $costoTotal = $tipoAlimento->costo_por_kg ? $cantidadKg * $tipoAlimento->costo_por_kg : null;
                 
                 Alimentacion::create([
