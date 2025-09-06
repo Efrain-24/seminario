@@ -240,6 +240,7 @@ class DatabaseSeeder extends Seeder
             ProtocoloSanidadSeeder::class,
             LimpiezaSeeder::class,
             AccionCorrectivaSeeder::class,
+            AlertaAnomaliaSeeder::class,
         ]);
     }
 }

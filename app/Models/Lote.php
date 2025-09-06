@@ -177,5 +177,19 @@ class Lote extends Model
         }
         
         return substr($acronimo, 0, 3); // Máximo 3 caracteres
+
+
+    }
+
+    // app/Models/Lote.php
+
+    public function mortalidades()
+    {
+        return $this->hasMany(\App\Models\Mortalidad::class);
+    }
+
+    public function enfermedades()
+    {
+        return $this->hasMany(\App\Models\Enfermedad::class);
     }
 }

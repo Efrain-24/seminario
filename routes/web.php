@@ -1,5 +1,3 @@
-
-
 <?php
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
