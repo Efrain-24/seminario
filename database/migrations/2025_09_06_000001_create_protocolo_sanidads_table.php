@@ -14,7 +14,14 @@ return new class extends Migration
             $table->text('descripcion')->nullable();
             $table->date('fecha_implementacion');
             $table->string('responsable');
+            $table->json('actividades')->nullable(); // Array de actividades del protocolo
+            $table->integer('version')->default(1); // Versión del protocolo
+            $table->enum('estado', ['vigente', 'obsoleta'])->default('vigente'); // Estado del protocolo
+            $table->unsignedBigInteger('protocolo_base_id')->nullable(); // Referencia al protocolo original
             $table->timestamps();
+            
+            $table->foreign('protocolo_base_id')->references('id')->on('protocolo_sanidads')->onDelete('set null');
+            $table->index(['estado', 'protocolo_base_id']);
         });
     }
 

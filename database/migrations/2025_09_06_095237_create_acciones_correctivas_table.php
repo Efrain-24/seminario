@@ -19,6 +19,7 @@ return new class extends Migration {
             $table->enum('estado', ['pendiente','en_progreso','completada','cancelada'])
                   ->default('pendiente');
             $table->text('observaciones')->nullable();
+            $table->json('evidencias')->nullable(); // archivos de evidencia
             $table->timestamps();
         });
     }

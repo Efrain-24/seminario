@@ -217,5 +217,33 @@ Route::middleware('auth')->group(function () {
 
 
     Route::resource('protocolo-sanidad', ProtocoloSanidadController::class);
+    Route::get('protocolo-sanidad/{protocoloSanidad}/nueva-version', [ProtocoloSanidadController::class, 'crearNuevaVersion'])->name('protocolo-sanidad.nueva-version');
+    Route::post('protocolo-sanidad/{protocoloSanidad}/nueva-version', [ProtocoloSanidadController::class, 'guardarNuevaVersion'])->name('protocolo-sanidad.guardar-nueva-version');
+    Route::patch('protocolo-sanidad/{protocoloSanidad}/marcar-obsoleto', [ProtocoloSanidadController::class, 'marcarObsoleto'])->name('protocolo-sanidad.marcar-obsoleto');
     Route::resource('limpieza', LimpiezaController::class);
-    Route::resource('acciones_correctivas', AccionCorrectivaController::class);
+    Route::get('limpieza/protocolo/{protocolo}/actividades', [LimpiezaController::class, 'getProtocoloActividades'])->name('limpieza.protocolo.actividades');
+    Route::middleware(['auth'])->group(function () {
+        Route::resource('acciones_correctivas', AccionCorrectivaController::class)->parameters(['acciones_correctivas' => 'accion']);
+        Route::patch('acciones_correctivas/{accion}/cambiar-estado', [AccionCorrectivaController::class, 'cambiarEstado'])->name('acciones_correctivas.cambiar-estado');
+        Route::post('acciones_correctivas/{accion}/seguimiento', [AccionCorrectivaController::class, 'agregarSeguimiento'])->name('acciones_correctivas.agregarSeguimiento');
+        Route::get('acciones_correctivas/{accion}/seguimiento/{seguimiento}/editar', [AccionCorrectivaController::class, 'editarSeguimiento'])->name('acciones_correctivas.editarSeguimiento');
+        Route::put('acciones_correctivas/{accion}/seguimiento/{seguimiento}', [AccionCorrectivaController::class, 'actualizarSeguimiento'])->name('acciones_correctivas.actualizarSeguimiento');
+        Route::delete('acciones_correctivas/{accion}/seguimiento/{seguimiento}', [AccionCorrectivaController::class, 'eliminarSeguimiento'])->name('acciones_correctivas.eliminarSeguimiento');
+    });
+
+// Rutas temporales para desarrollo - REMOVER EN PRODUCCIÓN
+if (app()->environment('local')) {
+    Route::get('/dev/login', function () {
+        $users = \App\Models\User::all();
+        return view('dev-login', compact('users'));
+    })->name('dev.login.form');
+    
+    Route::post('/dev/login', function (Illuminate\Http\Request $request) {
+        $user = \App\Models\User::find($request->user_id);
+        if ($user) {
+            Auth::login($user);
+            return redirect()->route('acciones_correctivas.index')->with('success', 'Sesión iniciada como ' . $user->name);
+        }
+        return back()->with('error', 'Usuario no encontrado');
+    })->name('dev.login');
+}

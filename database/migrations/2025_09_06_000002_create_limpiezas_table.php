@@ -12,9 +12,11 @@ return new class extends Migration
             $table->id();
             $table->date('fecha');
             $table->string('area');
-            $table->text('descripcion')->nullable();
             $table->string('responsable');
             $table->foreignId('protocolo_sanidad_id')->constrained('protocolo_sanidads')->onDelete('cascade');
+            $table->json('actividades_ejecutadas')->nullable(); // Array de actividades con estado ejecutado/no ejecutado y comentarios
+            $table->text('observaciones')->nullable(); // Observaciones generales
+            $table->enum('estado', ['no_ejecutado', 'en_progreso', 'completado'])->default('no_ejecutado'); // Estado de la limpieza
             $table->timestamps();
         });
     }
