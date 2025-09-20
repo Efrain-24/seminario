@@ -130,7 +130,12 @@
                             @endif
                             @if($user->password_changed_at)
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    Última actualización: {{ $user->password_changed_at->format('d/m/Y H:i:s') }}
+                                    Última actualización: 
+                                    @if(is_string($user->password_changed_at))
+                                        {{ $user->password_changed_at }}
+                                    @else
+                                        {{ $user->password_changed_at->format('d/m/Y H:i:s') }}
+                                    @endif
                                 </p>
                             @endif
                         </div>

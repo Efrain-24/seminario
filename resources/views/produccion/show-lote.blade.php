@@ -146,7 +146,16 @@
                                 <div>
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Días de Vida</p>
                                     <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                        {{ formatDiasVida($lote->fecha_inicio->diffInDays(now())) }}
+                                        @php
+                                            $dias = $lote->fecha_inicio->diffInDays(now());
+                                            $meses = floor($dias / 30);
+                                            $diasRestantes = $dias % 30;
+                                        @endphp
+                                        @if($meses > 0)
+                                            {{ $meses }}m {{ $diasRestantes }}d
+                                        @else
+                                            {{ $dias }} días
+                                        @endif
                                     </p>
                                 </div>
                             </div>

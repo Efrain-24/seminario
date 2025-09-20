@@ -123,7 +123,10 @@ class AlimentacionController extends Controller
                     'descripcion' => $item->descripcion ?: 'Alimento para acuicultura',
                     'cantidad_disponible' => round($existencia->stock_actual, 2),
                     'unidad' => $item->unidad_base,
-                    'stock_minimo' => round($item->stock_minimo, 2)
+                    'stock_minimo' => round($item->stock_minimo, 2),
+                    'costo_unitario' => $item->costo_unitario ? round($item->costo_unitario, 2) : 0,
+                    'moneda' => $item->moneda ?: 'GTQ',
+                    'tiene_costo' => !is_null($item->costo_unitario)
                 ];
             }
         }
@@ -165,6 +168,11 @@ class AlimentacionController extends Controller
         
         if (!$existencia || $existencia->stock_actual < $validated['cantidad_kg']) {
             return back()->withErrors(['cantidad_kg' => 'No hay suficiente stock disponible en la bodega seleccionada.']);
+        }
+
+        // Calcular costo total basado en el costo del inventario
+        if ($inventarioItem->costo_unitario) {
+            $validated['costo_total'] = $validated['cantidad_kg'] * $inventarioItem->costo_unitario;
         }
 
         // Combinar fecha y hora

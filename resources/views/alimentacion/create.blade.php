@@ -252,6 +252,9 @@
                     option.value = item.inventario_item_id;
                     option.dataset.stockMinimo = item.stock_minimo;
                     option.dataset.unidad = item.unidad;
+                    option.dataset.costoUnitario = item.costo_unitario;
+                    option.dataset.moneda = item.moneda;
+                    option.dataset.tieneCosto = item.tiene_costo;
                     
                     // Mostrar nombre con información del inventario
                     let texto = `${item.nombre_completo}`;
@@ -262,6 +265,11 @@
                         texto += ` - ${item.descripcion}`;
                     }
                     texto += ` (${item.cantidad_disponible} ${item.unidad} disponible)`;
+                    
+                    // Mostrar costo si está disponible
+                    if (item.tiene_costo && item.costo_unitario > 0) {
+                        texto += ` - ${item.moneda} ${item.costo_unitario}/${item.unidad}`;
+                    }
                     
                     // Alerta si está por debajo del stock mínimo
                     if (item.cantidad_disponible <= item.stock_minimo) {
@@ -318,21 +326,47 @@
                 return true;
             }
 
+            // Función para calcular costo estimado
+            function calcularCostoEstimado() {
+                const selectedOption = inventarioItemSelect.options[inventarioItemSelect.selectedIndex];
+                const cantidad = parseFloat(cantidadInput.value) || 0;
+                const costoEstimadoDiv = document.getElementById('costo_estimado');
+                const costoValorSpan = document.getElementById('costo_valor');
+                
+                if (selectedOption.value && cantidad > 0) {
+                    const costoUnitario = parseFloat(selectedOption.getAttribute('data-costo-unitario')) || 0;
+                    const moneda = selectedOption.getAttribute('data-moneda') || 'GTQ';
+                    const tieneCosto = selectedOption.getAttribute('data-tiene-costo') === 'true';
+                    
+                    if (tieneCosto && costoUnitario > 0) {
+                        const costoTotal = costoUnitario * cantidad;
+                        costoValorSpan.textContent = `${moneda} ${costoTotal.toFixed(2)}`;
+                        costoEstimadoDiv.style.display = 'block';
+                    } else {
+                        costoEstimadoDiv.style.display = 'none';
+                    }
+                } else {
+                    costoEstimadoDiv.style.display = 'none';
+                }
+            }
+
             // Función para mostrar información del item seleccionado
             function mostrarInfoItem() {
                 const selectedOption = inventarioItemSelect.options[inventarioItemSelect.selectedIndex];
                 if (selectedOption.value) {
                     const unidad = selectedOption.getAttribute('data-unidad') || 'kg';
                     const stockMinimo = selectedOption.getAttribute('data-stock-minimo') || 0;
-                    console.log(`Item seleccionado - Unidad: ${unidad}, Stock mínimo: ${stockMinimo}`);
+                    const costoUnitario = selectedOption.getAttribute('data-costo-unitario') || 0;
+                    console.log(`Item seleccionado - Unidad: ${unidad}, Stock mínimo: ${stockMinimo}, Costo: ${costoUnitario}`);
+                    calcularCostoEstimado();
                 }
             }
 
             inventarioItemSelect.addEventListener('change', mostrarInfoItem);
-            cantidadInput.addEventListener('input', validarCantidad);
-
-            // Calcular al cargar la página si hay valores seleccionados
-            calcularCosto();
+            cantidadInput.addEventListener('input', function() {
+                validarCantidad();
+                calcularCostoEstimado();
+            });
         });
     </script>
 </x-app-layout>

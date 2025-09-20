@@ -56,6 +56,9 @@ class InventarioItemController extends Controller
             'unidad_base' => ['required', 'in:kg,lb,unidad,litro'],
             'stock_minimo' => ['nullable', 'numeric', 'min:0'],
             'descripcion'  => ['nullable', 'string'],
+            'costo_unitario' => ['nullable', 'numeric', 'min:0'],
+            'moneda' => ['nullable', 'in:GTQ,USD,EUR'],
+            'fecha_ultimo_costo' => ['nullable', 'date'],
         ]);
         
         // Generar SKU automáticamente si no se proporciona
@@ -63,7 +66,24 @@ class InventarioItemController extends Controller
             $data['sku'] = $this->generateUniqueSKU($data['tipo'], $data['nombre']);
         }
         
+        // Configurar valores por defecto para campos de costo
+        if (empty($data['moneda'])) {
+            $data['moneda'] = 'GTQ';
+        }
+        
+        if (!empty($data['costo_unitario']) && empty($data['fecha_ultimo_costo'])) {
+            $data['fecha_ultimo_costo'] = now()->toDateString();
+        }
+        
         $item = InventarioItem::create($data);
+        
+        // Si se proporcionó un costo, inicializar los rangos mín/máx
+        if (!empty($data['costo_unitario'])) {
+            $item->update([
+                'costo_minimo' => $data['costo_unitario'],
+                'costo_maximo' => $data['costo_unitario'],
+            ]);
+        }
         
         // Redirigir directamente al formulario de entrada para registrar stock inicial
         return redirect()
@@ -86,7 +106,26 @@ class InventarioItemController extends Controller
             'unidad_base' => ['required', 'in:kg,lb,unidad,litro'],
             'stock_minimo' => ['nullable', 'numeric', 'min:0'],
             'descripcion'  => ['nullable', 'string'],
+            'costo_unitario' => ['nullable', 'numeric', 'min:0'],
+            'moneda' => ['nullable', 'in:GTQ,USD,EUR'],
+            'fecha_ultimo_costo' => ['nullable', 'date'],
         ]);
+        
+        // Configurar valores por defecto para campos de costo
+        if (empty($data['moneda'])) {
+            $data['moneda'] = 'GTQ';
+        }
+        
+        // Si se actualiza el costo, actualizar también la fecha
+        if (!empty($data['costo_unitario']) && $data['costo_unitario'] != $item->costo_unitario) {
+            if (empty($data['fecha_ultimo_costo'])) {
+                $data['fecha_ultimo_costo'] = now()->toDateString();
+            }
+            
+            // Actualizar rangos mín/máx usando el método del modelo
+            $item->actualizarCosto($data['costo_unitario']);
+        }
+        
         $item->update($data);
         return redirect()->route('produccion.inventario.items.index')->with('success', 'Ítem actualizado.');
     }

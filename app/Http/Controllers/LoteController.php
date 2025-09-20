@@ -13,23 +13,23 @@ class LoteController extends Controller
         $lotes = Lote::with(['unidadProduccion', 'seguimientos'])
             ->where('estado', 'activo')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(10);
 
-        return view('produccion.lotes.index', compact('lotes'));
+        return view('produccion.lotes', compact('lotes'));
     }
 
     public function show(Lote $lote)
     {
         $lote->load(['unidadProduccion', 'seguimientos', 'traslados']);
         
-        return view('produccion.lotes.show', compact('lote'));
+        return view('produccion.show-lote', compact('lote'));
     }
 
     public function create()
     {
         $unidades = UnidadProduccion::where('estado', 'activo')->get();
         
-        return view('produccion.lotes.create', compact('unidades'));
+        return view('produccion.create-lote', compact('unidades'));
     }
 
     public function store(Request $request)
