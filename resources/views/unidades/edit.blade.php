@@ -1,0 +1,163 @@
+<x-app-layout>
+    <x-slot name="header">
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+                {{ __('Editar Unidad de Producción') }}
+                <span class="text-base font-normal text-gray-600 dark:text-gray-400">- {{ $unidad->nombre }}</span>
+            </h2>
+            <a href="{{ route('unidades.show', $unidad) }}" 
+               class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105 inline-flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
+                </svg>
+                Volver a Detalles
+            </a>
+        </div>
+    </x-slot>
+
+    <!-- Notificaciones flotantes -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+
+    <div class="py-12">
+        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900 dark:text-gray-100">
+                    <form method="POST" action="{{ route('unidades.update', $unidad) }}" class="space-y-6">
+                        @csrf
+                        @method('PUT')
+
+                        <!-- Información sobre código -->
+                        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <p class="text-sm text-blue-800 dark:text-blue-200">
+                                    <strong>Código actual:</strong> {{ $unidad->codigo }}. 
+                                    El código de las unidades no puede ser modificado para mantener la integridad de los registros.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Tipo de Unidad -->
+                            <div class="md:col-span-2">
+                                <label for="tipo" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Tipo de Unidad * <span class="text-xs text-gray-500">(el código actual se mantendrá)</span>
+                                </label>
+                                <select name="tipo" id="tipo" 
+                                        class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" required>
+                                    <option value="">Seleccionar tipo de unidad</option>
+                                    <option value="tanque" {{ old('tipo', $unidad->tipo) == 'tanque' ? 'selected' : '' }}>Tanque</option>
+                                    <option value="estanque" {{ old('tipo', $unidad->tipo) == 'estanque' ? 'selected' : '' }}>Estanque</option>
+                                    <option value="jaula" {{ old('tipo', $unidad->tipo) == 'jaula' ? 'selected' : '' }}>Jaula</option>
+                                    <option value="sistema_especializado" {{ old('tipo', $unidad->tipo) == 'sistema_especializado' ? 'selected' : '' }}>Sistema Especializado</option>
+                                </select>
+                                @error('tipo')
+                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Nombre -->
+                            <div>
+                                <label for="nombre" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Nombre *
+                                </label>
+                                <input type="text" name="nombre" id="nombre" 
+                                       value="{{ old('nombre', $unidad->nombre) }}"
+                                       class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                       placeholder="Ej: Tanque Principal 1" required>
+                                @error('nombre')
+                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Capacidad Máxima -->
+                            <div>
+                                <label for="capacidad_maxima" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Capacidad Máxima (L)
+                                </label>
+                                <input type="number" step="0.01" name="capacidad_maxima" id="capacidad_maxima" 
+                                       value="{{ old('capacidad_maxima', $unidad->capacidad_maxima) }}"
+                                       class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                       placeholder="0.00" min="0">
+                                @error('capacidad_maxima')
+                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Área -->
+                            <div>
+                                <label for="area" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Área (m²)
+                                </label>
+                                <input type="number" step="0.01" name="area" id="area" 
+                                       value="{{ old('area', $unidad->area) }}"
+                                       class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                       placeholder="0.00" min="0">
+                                @error('area')
+                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Profundidad -->
+                            <div>
+                                <label for="profundidad" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Profundidad (m)
+                                </label>
+                                <input type="number" step="0.01" name="profundidad" id="profundidad" 
+                                       value="{{ old('profundidad', $unidad->profundidad) }}"
+                                       class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                       placeholder="0.00" min="0">
+                                @error('profundidad')
+                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Fecha de Construcción -->
+                            <div class="md:col-span-2">
+                                <label for="fecha_construccion" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Fecha de Construcción
+                                </label>
+                                <input type="date" name="fecha_construccion" id="fecha_construccion" 
+                                       value="{{ old('fecha_construccion', $unidad->fecha_construccion?->format('Y-m-d')) }}"
+                                       class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
+                                @error('fecha_construccion')
+                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Descripción -->
+                            <div class="md:col-span-2">
+                                <label for="descripcion" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Descripción
+                                </label>
+                                <textarea name="descripcion" id="descripcion" rows="3" 
+                                          class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                          placeholder="Información adicional sobre la unidad...">{{ old('descripcion', $unidad->descripcion) }}</textarea>
+                                @error('descripcion')
+                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-end space-x-4">
+                            <a href="{{ route('unidades.show', $unidad) }}" 
+                               class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
+                                Cancelar
+                            </a>
+                            <button type="submit" 
+                                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105 inline-flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a1 1 0 011.828 0L16 16m-2-2l1.586-1.586a1 1 0 011.828 0L20 15m-6-6h.01M6 2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2z"></path>
+                                </svg>
+                                Actualizar Unidad
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</x-app-layout>

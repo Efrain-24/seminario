@@ -20,4 +20,9 @@ class InventarioItem extends Model
     {
         return (float) $this->existencias()->sum('stock_actual');
     }
+    
+    public function tipoAlimento()
+    {
+        return $this->hasOne(TipoAlimento::class, 'inventario_item_id');
+    }
 }

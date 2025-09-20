@@ -3,6 +3,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProduccionController;
 use App\Http\Controllers\TipoAlimentoController;
 use App\Http\Controllers\PasswordChangeController;
@@ -18,7 +19,10 @@ use App\Http\Controllers\InventarioAlertaController;
 use App\Http\Controllers\ProtocoloSanidadController;
 use App\Http\Controllers\LimpiezaController;
 use App\Http\Controllers\AccionCorrectivaController;
+use App\Http\Controllers\UnidadProduccionController;
 use App\Http\Controllers\TrazabilidadCosechaController;
+use App\Http\Controllers\LoteController;
+use App\Http\Controllers\VentaController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -29,13 +33,53 @@ Route::get('produccion/lotes/{lote}/mortalidad-log', [\App\Http\Controllers\Mort
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified', 'redirect.temp.password'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified', 'redirect.temp.password'])
+    ->name('dashboard');
 
 Route::get('/aplicaciones', function () {
     return view('aplicaciones');
 })->middleware(['auth', 'verified', 'redirect.temp.password'])->name('aplicaciones');
+
+// Rutas de Paneles de Módulos
+Route::middleware(['auth', 'verified', 'redirect.temp.password'])->group(function () {
+    Route::get('/unidades/panel', function () {
+        return view('unidades.panel');
+    })->name('unidades.panel');
+    
+    Route::get('/produccion/panel', function () {
+        return view('produccion.panel');
+    })->name('produccion.panel');
+    
+    Route::get('/inventarios/panel', function () {
+        return view('inventarios.panel');
+    })->name('inventarios.panel');
+    
+    Route::get('/usuarios/panel', function () {
+        return view('usuarios.panel');
+    })->name('usuarios.panel');
+    
+    Route::get('/acciones-correctivas/panel', function () {
+        return view('acciones-correctivas.panel');
+    })->name('acciones-correctivas.panel');
+    
+    Route::get('/protocolos/panel', function () {
+        return view('protocolos.panel');
+    })->name('protocolos.panel');
+    
+    Route::get('/ventas/panel', [VentaController::class, 'panel'])->name('ventas.panel');
+    
+    Route::get('/compras/panel', function () {
+        return view('compras.panel');
+    })->name('compras.panel');
+});
+
+// Rutas de Ventas
+Route::middleware(['auth'])->group(function () {
+    Route::resource('ventas', VentaController::class);
+    Route::patch('ventas/{venta}/completar', [VentaController::class, 'completar'])->name('ventas.completar');
+    Route::patch('ventas/{venta}/cancelar', [VentaController::class, 'cancelar'])->name('ventas.cancelar');
+});
 
 // Rutas de Trazabilidad de Cosechas
 Route::middleware(['auth'])->group(function () {
@@ -88,16 +132,17 @@ Route::middleware(['auth', 'redirect.temp.password'])->prefix('produccion')->nam
     Route::post('/lotes', [ProduccionController::class, 'storeLote'])->name('lotes.store')->middleware('permission:crear_lotes');
     Route::get('/lotes/{lote}', [ProduccionController::class, 'showLote'])->name('lotes.show')->middleware('permission:ver_lotes');
 
-    // Rutas de Unidades
-    Route::get('/unidades', [ProduccionController::class, 'gestionUnidades'])->name('unidades')->middleware('permission:ver_unidades');
-    Route::get('/unidades/create', [ProduccionController::class, 'createUnidad'])->name('unidades.create')->middleware('permission:crear_unidades');
-    Route::post('/unidades', [ProduccionController::class, 'storeUnidad'])->name('unidades.store')->middleware('permission:crear_unidades');
-    Route::get('/unidades/{unidad}', [ProduccionController::class, 'showUnidad'])->name('unidades.show')->middleware('permission:ver_unidades');
-    Route::get('/unidades/{unidad}/edit', [ProduccionController::class, 'editUnidad'])->name('unidades.edit')->middleware('permission:editar_unidades');
-    Route::put('/unidades/{unidad}', [ProduccionController::class, 'updateUnidad'])->name('unidades.update')->middleware('permission:editar_unidades');
-    Route::patch('/unidades/{unidad}/inhabilitar', [ProduccionController::class, 'inhabilitarUnidad'])->name('unidades.inhabilitar')->middleware('permission:eliminar_unidades');
-    Route::get('/unidades/generate-code/{tipo}', [ProduccionController::class, 'generateUnidadCode'])->name('unidades.generate-code');
-    Route::get('/unidades/{unidad}/historial', [ProduccionController::class, 'historialUnidad'])->name('unidades.historial')->middleware('permission:ver_unidades');
+    // Rutas de Unidades - Ahora usando UnidadProduccionController
+    Route::get('/unidades', [UnidadProduccionController::class, 'index'])->name('unidades')->middleware('permission:ver_unidades');
+    Route::get('/unidades/create', [UnidadProduccionController::class, 'create'])->name('unidades.create')->middleware('permission:crear_unidades');
+    Route::post('/unidades', [UnidadProduccionController::class, 'store'])->name('unidades.store')->middleware('permission:crear_unidades');
+    Route::get('/unidades/{unidad}', [UnidadProduccionController::class, 'show'])->name('unidades.show')->middleware('permission:ver_unidades');
+    Route::get('/unidades/{unidad}/edit', [UnidadProduccionController::class, 'edit'])->name('unidades.edit')->middleware('permission:editar_unidades');
+    Route::put('/unidades/{unidad}', [UnidadProduccionController::class, 'update'])->name('unidades.update')->middleware('permission:editar_unidades');
+    Route::patch('/unidades/{unidad}/toggle-estado', [UnidadProduccionController::class, 'toggleEstado'])->name('unidades.toggle-estado')->middleware('permission:eliminar_unidades');
+    Route::delete('/unidades/{unidad}', [UnidadProduccionController::class, 'destroy'])->name('unidades.destroy')->middleware('permission:eliminar_unidades');
+    Route::get('/unidades/generate-code/{tipo}', [UnidadProduccionController::class, 'generateCodigo'])->name('unidades.generate-code');
+    Route::get('/unidades/{unidad}/historial', [UnidadProduccionController::class, 'historial'])->name('unidades.historial')->middleware('permission:ver_unidades');
 
     // Otras rutas
     Route::get('/traslados', [ProduccionController::class, 'gestionTraslados'])->name('traslados');
@@ -133,7 +178,7 @@ Route::middleware(['auth', 'redirect.temp.password'])->prefix('produccion')->nam
     Route::post('/control/lote/{lote}/fecha',  [ControlProduccionController::class, 'predecirHastaFecha'])->name('control.pred.fecha');
     Route::post('/control/lote/{lote}/peso',   [ControlProduccionController::class, 'predecirParaPeso'])->name('control.pred.peso');
 
-    // ✅ Registro de Cosechas Parciales
+    // Registro de Cosechas Parciales
     Route::resource('cosechas', CosechaParcialController::class)
         ->parameters(['cosechas' => 'cosecha'])   // para usar {cosecha} en vez de {cosechas}
         ->names('cosechas');
@@ -150,7 +195,7 @@ Route::middleware(['auth', 'redirect.temp.password'])->prefix('produccion')->nam
         ->except(['show']);              // opcional: si no tienes página show
 
     Route::get('alertas', [AlertaAnomaliaController::class, 'index'])
-        ->name('alertas.index');
+        ->name('produccion.alertas.index');
 
     Route::get('inventario', [InventarioController::class, 'index'])->name('inventario.index');
 
@@ -170,6 +215,35 @@ Route::middleware(['auth', 'redirect.temp.password'])->prefix('produccion')->nam
 
     Route::get('inventario/alertas', [InventarioAlertaController::class, 'index'])
         ->name('inventario.alertas.index');
+});
+
+// Rutas de Lotes (independientes del prefijo produccion)
+Route::middleware(['auth', 'redirect.temp.password'])->group(function () {
+    Route::resource('lotes', LoteController::class);
+    Route::get('lotes/{lote}/historial', [LoteController::class, 'historial'])->name('lotes.historial');
+});
+
+// Rutas de Seguimientos (usar ProduccionController temporalmente)
+Route::middleware(['auth', 'redirect.temp.password'])->group(function () {
+    Route::get('seguimientos', [ProduccionController::class, 'seguimientoLotes'])->name('seguimientos.index');
+    Route::get('seguimientos/create', [ProduccionController::class, 'crearSeguimiento'])->name('seguimientos.create');
+    Route::post('seguimientos', [ProduccionController::class, 'storeSeguimiento'])->name('seguimientos.store');
+});
+
+// Rutas de Mantenimiento de Unidades (usar ProduccionController temporalmente)
+Route::middleware(['auth', 'redirect.temp.password'])->group(function () {
+    Route::get('mantenimiento-unidades', [ProduccionController::class, 'gestionMantenimientos'])->name('mantenimiento-unidades.index');
+    Route::get('mantenimiento-unidades/create', [ProduccionController::class, 'crearMantenimiento'])->name('mantenimiento-unidades.create');
+    Route::post('mantenimiento-unidades', [ProduccionController::class, 'storeMantenimiento'])->name('mantenimiento-unidades.store');
+    Route::get('mantenimiento-unidades/{mantenimiento}', [ProduccionController::class, 'showMantenimiento'])->name('mantenimiento-unidades.show');
+    Route::patch('mantenimiento-unidades/{mantenimiento}/iniciar', [ProduccionController::class, 'iniciarMantenimiento'])->name('mantenimiento-unidades.iniciar');
+    Route::patch('mantenimiento-unidades/{mantenimiento}/completar', [ProduccionController::class, 'completarMantenimiento'])->name('mantenimiento-unidades.completar');
+});
+
+// Rutas de Tipos de Alimentos (independientes)
+Route::middleware(['auth', 'redirect.temp.password'])->group(function () {
+    Route::resource('tipos-alimentos', TipoAlimentoController::class);
+    Route::patch('tipos-alimentos/{tipoAlimento}/toggle', [TipoAlimentoController::class, 'toggle'])->name('tipos-alimentos.toggle');
 });
 
 // Rutas de Alimentación
@@ -222,6 +296,14 @@ Route::middleware('auth')->group(function () {
     Route::patch('protocolo-sanidad/{protocoloSanidad}/marcar-obsoleto', [ProtocoloSanidadController::class, 'marcarObsoleto'])->name('protocolo-sanidad.marcar-obsoleto');
     Route::resource('limpieza', LimpiezaController::class);
     Route::get('limpieza/protocolo/{protocolo}/actividades', [LimpiezaController::class, 'getProtocoloActividades'])->name('limpieza.protocolo.actividades');
+    // Rutas de Unidades de Producción (independientes)
+    Route::middleware(['auth'])->group(function () {
+        Route::resource('unidades', UnidadProduccionController::class);
+        Route::patch('unidades/{unidad}/toggle-estado', [UnidadProduccionController::class, 'toggleEstado'])->name('unidades.toggle-estado');
+        Route::get('unidades/generate-code/{tipo}', [UnidadProduccionController::class, 'generateCodigo'])->name('unidades.generate-code');
+        Route::get('unidades/{unidad}/historial', [UnidadProduccionController::class, 'historial'])->name('unidades.historial');
+    });
+
     Route::middleware(['auth'])->group(function () {
         Route::resource('acciones_correctivas', AccionCorrectivaController::class)->parameters(['acciones_correctivas' => 'accion']);
         Route::patch('acciones_correctivas/{accion}/cambiar-estado', [AccionCorrectivaController::class, 'cambiarEstado'])->name('acciones_correctivas.cambiar-estado');
@@ -231,19 +313,4 @@ Route::middleware('auth')->group(function () {
         Route::delete('acciones_correctivas/{accion}/seguimiento/{seguimiento}', [AccionCorrectivaController::class, 'eliminarSeguimiento'])->name('acciones_correctivas.eliminarSeguimiento');
     });
 
-// Rutas temporales para desarrollo - REMOVER EN PRODUCCIÓN
-if (app()->environment('local')) {
-    Route::get('/dev/login', function () {
-        $users = \App\Models\User::all();
-        return view('dev-login', compact('users'));
-    })->name('dev.login.form');
-    
-    Route::post('/dev/login', function (Illuminate\Http\Request $request) {
-        $user = \App\Models\User::find($request->user_id);
-        if ($user) {
-            Auth::login($user);
-            return redirect()->route('acciones_correctivas.index')->with('success', 'Sesión iniciada como ' . $user->name);
-        }
-        return back()->with('error', 'Usuario no encontrado');
-    })->name('dev.login');
-}
+

@@ -30,6 +30,7 @@
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <!-- Notificaciones -->
+                
                 <div class="mr-4">
                     <x-notificaciones-panel />
                 </div>

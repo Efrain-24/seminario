@@ -49,25 +49,35 @@
                                     @enderror
                                 </div>
 
-                                <!-- Tipo de Alimento -->
+                                <!-- Alimento del Inventario -->
                                 <div>
-                                    <label for="tipo_alimento_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Tipo de Alimento <span class="text-red-500">*</span>
+                                    <label for="inventario_item_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Alimento del Inventario <span class="text-red-500">*</span>
                                     </label>
-                                    <select name="tipo_alimento_id" id="tipo_alimento_id" required
-                                            class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('tipo_alimento_id') border-red-500 @enderror">
-                                        <option value="">Selecciona un tipo de alimento</option>
-                                        @foreach($tiposAlimento as $tipo)
-                                            <option value="{{ $tipo->id }}" 
-                                                    data-costo="{{ $tipo->costo_por_kg }}" 
-                                                    data-categoria="{{ $tipo->categoria }}"
-                                                    {{ old('tipo_alimento_id') == $tipo->id ? 'selected' : '' }}>
-                                                {{ $tipo->nombre_completo }} - {{ ucfirst($tipo->categoria) }}
-                                                @if($tipo->costo_por_kg) (Q{{ $tipo->costo_por_kg }}/lbs) @endif
+                                    <select name="inventario_item_id" id="inventario_item_id" required
+                                            class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('inventario_item_id') border-red-500 @enderror">
+                                        <option value="">Primero selecciona una bodega</option>
+                                    </select>
+                                    @error('inventario_item_id')
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <!-- Bodega -->
+                                <div>
+                                    <label for="bodega_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Bodega <span class="text-red-500">*</span>
+                                    </label>
+                                    <select name="bodega_id" id="bodega_id" required onchange="actualizarAlimentosPorBodega()"
+                                            class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('bodega_id') border-red-500 @enderror">
+                                        <option value="">Selecciona una bodega</option>
+                                        @foreach($bodegas as $bodega)
+                                            <option value="{{ $bodega->id }}" {{ old('bodega_id') == $bodega->id ? 'selected' : '' }}>
+                                                {{ $bodega->nombre }} - {{ $bodega->ubicacion }}
                                             </option>
                                         @endforeach
                                     </select>
-                                    @error('tipo_alimento_id')
+                                    @error('bodega_id')
                                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                     @enderror
                                 </div>
@@ -223,28 +233,103 @@
     </div>
 
     <script>
+        // Datos de existencias por bodega del controlador
+        const existenciasPorBodega = @json($existenciasPorBodega);
+        
+        // Función para actualizar tipos de alimento cuando se selecciona una bodega
+        function actualizarAlimentosPorBodega() {
+            const bodegaSelect = document.getElementById('bodega_id');
+            const alimentoSelect = document.getElementById('inventario_item_id');
+            const bodegaId = bodegaSelect.value;
+            
+            // Limpiar opciones actuales
+            alimentoSelect.innerHTML = '<option value="">Selecciona un alimento del inventario</option>';
+            
+            if (bodegaId && existenciasPorBodega[bodegaId]) {
+                // Agregar opciones para los alimentos disponibles en esta bodega
+                existenciasPorBodega[bodegaId].forEach(function(item) {
+                    const option = document.createElement('option');
+                    option.value = item.inventario_item_id;
+                    option.dataset.stockMinimo = item.stock_minimo;
+                    option.dataset.unidad = item.unidad;
+                    
+                    // Mostrar nombre con información del inventario
+                    let texto = `${item.nombre_completo}`;
+                    if (item.sku) {
+                        texto += ` (${item.sku})`;
+                    }
+                    if (item.descripcion) {
+                        texto += ` - ${item.descripcion}`;
+                    }
+                    texto += ` (${item.cantidad_disponible} ${item.unidad} disponible)`;
+                    
+                    // Alerta si está por debajo del stock mínimo
+                    if (item.cantidad_disponible <= item.stock_minimo) {
+                        texto += ' ⚠️ Stock bajo';
+                    }
+                    
+                    option.textContent = texto;
+                    alimentoSelect.appendChild(option);
+                });
+            }
+            
+            // Limpiar campos dependientes cuando cambia la bodega
+            document.getElementById('cantidad_kg').value = '';
+            const costoEstimadoDiv = document.getElementById('costo_estimado');
+            if (costoEstimadoDiv) {
+                costoEstimadoDiv.style.display = 'none';
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
-            const tipoAlimentoSelect = document.getElementById('tipo_alimento_id');
+            const inventarioItemSelect = document.getElementById('inventario_item_id');
             const cantidadInput = document.getElementById('cantidad_kg');
             const costoEstimadoDiv = document.getElementById('costo_estimado');
             const costoValorSpan = document.getElementById('costo_valor');
 
-            function calcularCosto() {
-                const selectedOption = tipoAlimentoSelect.options[tipoAlimentoSelect.selectedIndex];
-                const costoPorKg = parseFloat(selectedOption.getAttribute('data-costo')) || 0;
+            function validarCantidad() {
+                const selectedOption = inventarioItemSelect.options[inventarioItemSelect.selectedIndex];
+                const stockMinimo = parseFloat(selectedOption.getAttribute('data-stock-minimo')) || 0;
+                const unidad = selectedOption.getAttribute('data-unidad') || 'kg';
                 const cantidad = parseFloat(cantidadInput.value) || 0;
 
-                if (costoPorKg > 0 && cantidad > 0) {
-                    const costoTotal = costoPorKg * cantidad;
-                    costoValorSpan.textContent = 'Q' + costoTotal.toFixed(2);
-                    costoEstimadoDiv.style.display = 'block';
-                } else {
-                    costoEstimadoDiv.style.display = 'none';
+                // Obtener cantidad disponible del texto de la opción
+                const textoOpcion = selectedOption.textContent;
+                const match = textoOpcion.match(/\((\d+(?:\.\d+)?)\s+\w+\s+disponible\)/);
+                const cantidadDisponible = match ? parseFloat(match[1]) : 0;
+
+                // Validar que no exceda el stock disponible
+                if (cantidad > cantidadDisponible) {
+                    alert(`La cantidad solicitada (${cantidad} ${unidad}) excede el stock disponible (${cantidadDisponible} ${unidad})`);
+                    cantidadInput.value = cantidadDisponible;
+                    return false;
+                }
+
+                // Advertir si quedará por debajo del stock mínimo
+                const stockRestante = cantidadDisponible - cantidad;
+                if (stockRestante < stockMinimo) {
+                    const confirmar = confirm(`Advertencia: Después de esta alimentación quedarán ${stockRestante} ${unidad}, por debajo del stock mínimo de ${stockMinimo} ${unidad}. ¿Desea continuar?`);
+                    if (!confirmar) {
+                        cantidadInput.value = '';
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            // Función para mostrar información del item seleccionado
+            function mostrarInfoItem() {
+                const selectedOption = inventarioItemSelect.options[inventarioItemSelect.selectedIndex];
+                if (selectedOption.value) {
+                    const unidad = selectedOption.getAttribute('data-unidad') || 'kg';
+                    const stockMinimo = selectedOption.getAttribute('data-stock-minimo') || 0;
+                    console.log(`Item seleccionado - Unidad: ${unidad}, Stock mínimo: ${stockMinimo}`);
                 }
             }
 
-            tipoAlimentoSelect.addEventListener('change', calcularCosto);
-            cantidadInput.addEventListener('input', calcularCosto);
+            inventarioItemSelect.addEventListener('change', mostrarInfoItem);
+            cantidadInput.addEventListener('input', validarCantidad);
 
             // Calcular al cargar la página si hay valores seleccionados
             calcularCosto();

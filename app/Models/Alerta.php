@@ -13,6 +13,7 @@ class Alerta extends Model
         'lote_id',
         'tipo_alerta',
         'detalles',
+        'fecha_resolucion',
         // Campos para enfermedades
         'nombre_enfermedad',
         'cantidad_afectados',
@@ -37,6 +38,7 @@ class Alerta extends Model
     protected $casts = [
         'fecha_deteccion' => 'date',
         'fecha_inicio_tratamiento' => 'date',
+        'fecha_resolucion' => 'datetime',
         'historico_pesos' => 'array',
         'peso_actual' => 'float',
         'peso_esperado' => 'float',

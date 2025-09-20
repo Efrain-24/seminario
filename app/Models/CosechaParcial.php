@@ -44,4 +44,9 @@ class CosechaParcial extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function ventas()
+    {
+        return $this->hasMany(Venta::class);
+    }
 }

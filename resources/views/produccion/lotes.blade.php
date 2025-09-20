@@ -70,7 +70,7 @@
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 @forelse($lotes as $lote)
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-150" 
-                                        onclick="window.location='{{ route('produccion.lotes.show', $lote) }}'">
+                                        onclick="window.location='{{ route('lotes.show', $lote) }}'"
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center">
                                                 <div class="flex-shrink-0 h-10 w-10">

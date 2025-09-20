@@ -1,6 +1,15 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-xl font-semibold leading-tight text-gray-900 dark:text-gray-100">Acciones Correctivas</h2>
+        <div class="flex justify-between items-center">
+            <div class="flex items-center">
+                <a href="{{ route('acciones-correctivas.panel') }}" class="mr-4 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </a>
+                <h2 class="text-xl font-semibold leading-tight text-gray-900 dark:text-gray-100">Acciones Correctivas</h2>
+            </div>
+        </div>
     </x-slot>
     <div class="py-8 max-w-7xl mx-auto px-4">
         @if (session('success'))
@@ -10,7 +19,7 @@
         @endif
         <!-- Filtros -->
         <div class="bg-white dark:bg-gray-800 shadow rounded p-4 mb-4">
-            <form method="GET" action="{{ route('acciones_correctivas.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <form method="GET" action="{{ route('acciones_correctivas.index') }}" class="grid grid-cols-1 {{ auth()->user()->isAdmin() ? 'md:grid-cols-4' : 'md:grid-cols-3' }} gap-4 items-end">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Buscar</label>
                     <input type="text" name="buscar" value="{{ request('buscar') }}" 
@@ -27,6 +36,7 @@
                         <option value="cancelada" {{ request('estado') == 'cancelada' ? 'selected' : '' }}>Cancelada</option>
                     </select>
                 </div>
+                @if(auth()->user()->isAdmin())
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Responsable</label>
                     <select name="responsable" class="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-2">
@@ -38,6 +48,7 @@
                         @endforeach
                     </select>
                 </div>
+                @endif
                 <div class="flex gap-2">
                     <button type="submit" class="px-4 py-2 rounded bg-gray-600 hover:bg-gray-700 text-white">
                         Filtrar
@@ -48,6 +59,31 @@
                 </div>
             </form>
         </div>
+
+        <!-- Indicador de Vista -->
+        @if(auth()->user()->isAdmin())
+            <div class="mb-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded p-3">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="text-sm text-blue-800 dark:text-blue-200">
+                        <strong>Vista de Administrador:</strong> Puedes ver todas las acciones correctivas del sistema.
+                    </span>
+                </div>
+            </div>
+        @else
+            <div class="mb-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded p-3">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    <span class="text-sm text-yellow-800 dark:text-yellow-200">
+                        Mostrando solo tus acciones correctivas asignadas.
+                    </span>
+                </div>
+            </div>
+        @endif
 
         <div class="flex flex-col sm:flex-row gap-3 sm:items-end sm:justify-between mb-4">
             <div></div>

@@ -1,9 +1,16 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                {{ __('Gestión de Alimentación') }}
-            </h2>
+            <div class="flex items-center">
+                <a href="{{ route('produccion.panel') }}" class="mr-4 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </a>
+                <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+                    {{ __('Gestión de Alimentación') }}
+                </h2>
+            </div>
             <div class="flex space-x-3">
                 @can('alimentacion.create')
                     <a href="{{ route('alimentacion.create') }}" 
@@ -50,12 +57,15 @@
                         </div>
 
                         <div>
-                            <label for="tipo_alimento_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo de Alimento</label>
-                            <select name="tipo_alimento_id" id="tipo_alimento_id" class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                <option value="">Todos los tipos</option>
+                            <label for="inventario_item_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Alimento del Inventario</label>
+                            <select name="inventario_item_id" id="inventario_item_id" class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Todos los alimentos</option>
                                 @foreach($tiposAlimento as $tipo)
-                                    <option value="{{ $tipo->id }}" {{ request('tipo_alimento_id') == $tipo->id ? 'selected' : '' }}>
-                                        {{ $tipo->nombre_completo }}
+                                    <option value="{{ $tipo->inventarioItem->id ?? '' }}" {{ request('inventario_item_id') == ($tipo->inventarioItem->id ?? '') ? 'selected' : '' }}>
+                                        {{ $tipo->inventarioItem->nombre ?? $tipo->nombre_completo }} 
+                                        @if($tipo->inventarioItem && $tipo->inventarioItem->sku)
+                                            ({{ $tipo->inventarioItem->sku }})
+                                        @endif
                                     </option>
                                 @endforeach
                             </select>

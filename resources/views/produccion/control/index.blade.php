@@ -19,7 +19,8 @@
                 </thead>
                 <tbody>
                     @forelse($rows as $r)
-                        <tr class="border-t border-gray-200 dark:border-gray-700">
+                        <tr class="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors" 
+                            onclick="window.location.href='{{ route('produccion.control.show', $r['lote']) }}'">
                             <td class="px-4 py-2">{{ $r['lote']->codigo_lote }}</td>
                             <td class="px-4 py-2 text-right">{{ number_format($r['lote']->cantidad_actual) }}</td>
                             <td class="px-4 py-2 text-right">

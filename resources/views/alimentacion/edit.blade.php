@@ -84,6 +84,25 @@
                                     @enderror
                                 </div>
 
+                                <!-- Bodega -->
+                                <div>
+                                    <label for="bodega_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Bodega <span class="text-red-500">*</span>
+                                    </label>
+                                    <select name="bodega_id" id="bodega_id" required onchange="actualizarAlimentosPorBodega()"
+                                            class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        <option value="">Selecciona una bodega</option>
+                                        @foreach($bodegas as $bodega)
+                                            <option value="{{ $bodega->id }}" {{ old('bodega_id', $alimentacion->bodega_id) == $bodega->id ? 'selected' : '' }}>
+                                                {{ $bodega->nombre }} - {{ $bodega->ubicacion }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('bodega_id')
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
                                 <!-- Fecha de Alimentación -->
                                 <div>
                                     <label for="fecha_alimentacion" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -235,6 +254,47 @@
     </div>
 
     <script>
+        // Datos de existencias por bodega del controlador
+        const existenciasPorBodega = @json($existenciasPorBodega);
+        
+        // Función para actualizar tipos de alimento cuando se selecciona una bodega
+        function actualizarAlimentosPorBodega() {
+            const bodegaSelect = document.getElementById('bodega_id');
+            const alimentoSelect = document.getElementById('tipo_alimento_id');
+            const bodegaId = bodegaSelect.value;
+            const alimentoActual = {{ $alimentacion->tipo_alimento_id }};
+            
+            // Limpiar opciones actuales
+            alimentoSelect.innerHTML = '<option value="">Selecciona un tipo de alimento</option>';
+            
+            if (bodegaId && existenciasPorBodega[bodegaId]) {
+                // Agregar opciones para los alimentos disponibles en esta bodega
+                existenciasPorBodega[bodegaId].forEach(function(item) {
+                    const option = document.createElement('option');
+                    option.value = item.tipo_alimento_id;
+                    option.dataset.costo = item.costo_por_kg;
+                    option.dataset.categoria = item.categoria;
+                    
+                    // Mostrar nombre con cantidad disponible
+                    option.textContent = `${item.nombre_completo} - ${item.categoria} (${item.cantidad_disponible} kg disponible)`;
+                    
+                    if (item.costo_por_kg) {
+                        option.textContent += ` - Q${item.costo_por_kg}/kg`;
+                    }
+                    
+                    // Mantener selección actual si existe
+                    if (item.tipo_alimento_id == alimentoActual) {
+                        option.selected = true;
+                    }
+                    
+                    alimentoSelect.appendChild(option);
+                });
+            }
+            
+            // Recalcular costo después del cambio
+            calcularCosto();
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const tipoAlimentoSelect = document.getElementById('tipo_alimento_id');
             const cantidadInput = document.getElementById('cantidad_kg');
@@ -259,6 +319,9 @@
             tipoAlimentoSelect.addEventListener('change', calcularCosto);
             cantidadInput.addEventListener('input', calcularCosto);
 
+            // Inicializar los alimentos para la bodega seleccionada al cargar
+            actualizarAlimentosPorBodega();
+            
             // Calcular al cargar la página
             calcularCosto();
         });

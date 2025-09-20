@@ -43,7 +43,8 @@
                 </thead>
                 <tbody>
                     @forelse($items as $it)
-                        <tr class="border-t border-gray-200 dark:border-gray-700">
+                        <tr class="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors" 
+                            onclick="window.location.href='{{ route('produccion.inventario.items.show', $it) }}'">
                             <td class="px-4 py-2">{{ $it->nombre }}</td>
                             <td class="px-4 py-2 text-center">{{ $it->sku ?? '—' }}</td>
                             <td class="px-4 py-2 text-center capitalize">{{ $it->tipo }}</td>

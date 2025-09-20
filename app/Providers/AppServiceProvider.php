@@ -27,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Mortalidad::observe(\App\Observers\MortalidadObserver::class);
         \App\Models\Lote::observe(\App\Observers\LoteObserver::class);
         \App\Models\Enfermedad::observe(\App\Observers\EnfermedadObserver::class);
+        \App\Models\Alimentacion::observe(\App\Observers\AlimentacionObserver::class);
 
         // Registrar Observers para detección automática de problemas
         \App\Models\InventarioMovimiento::observe(\App\Observers\InventarioMovimientoObserver::class);

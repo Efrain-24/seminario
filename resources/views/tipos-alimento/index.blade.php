@@ -100,7 +100,8 @@
                                 </thead>
                                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                     @foreach($tiposAlimento as $tipo)
-                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors" 
+                                            onclick="window.location.href='{{ route('tipos-alimento.show', $tipo) }}'">
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                     {{ $tipo->nombre }}

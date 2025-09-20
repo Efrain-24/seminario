@@ -9,6 +9,8 @@ class UnidadProduccion extends Model
 {
     use HasFactory;
 
+    protected $table = 'unidad_produccions';
+
     protected $fillable = [
         'codigo',
         'nombre',

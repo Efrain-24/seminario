@@ -1,0 +1,204 @@
+@extends('layouts.app')
+
+@section('title', 'Gestión de Ventas')
+
+@section('content')
+<div class="container mx-auto px-6 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                Gestión de Ventas
+            </h2>
+            <p class="text-gray-600 dark:text-gray-400 mt-2">
+                Administra las ventas de productos acuícolas
+            </p>
+        </div>
+        <div class="flex space-x-3">
+            <a href="{{ route('ventas.create') }}" 
+               class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition duration-200 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Nueva Venta
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <form method="GET" class="flex flex-wrap gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Estado</label>
+                <select name="estado" class="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                    <option value="">Todos los estados</option>
+                    <option value="pendiente" {{ request('estado') == 'pendiente' ? 'selected' : '' }}>Pendiente</option>
+                    <option value="completada" {{ request('estado') == 'completada' ? 'selected' : '' }}>Completada</option>
+                    <option value="cancelada" {{ request('estado') == 'cancelada' ? 'selected' : '' }}>Cancelada</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cliente</label>
+                <input type="text" name="cliente" value="{{ request('cliente') }}" 
+                       placeholder="Buscar por cliente..." 
+                       class="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">
+                    Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla de Ventas -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead class="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Código / Cliente
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Cosecha
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Fecha Venta
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Cantidad
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Total
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Estado
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Método Pago
+                        </th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Acciones
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    @forelse($ventas as $venta)
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors" 
+                            onclick="window.location.href='{{ route('ventas.show', $venta) }}'">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        {{ $venta->codigo_venta }}
+                                    </div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                                        {{ $venta->cliente }}
+                                    </div>
+                                    @if($venta->telefono_cliente)
+                                        <div class="text-xs text-gray-400">
+                                            📞 {{ $venta->telefono_cliente }}
+                                        </div>
+                                    @endif
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if($venta->cosechaParcial)
+                                    <div class="text-sm text-gray-900 dark:text-gray-100">
+                                        {{ $venta->cosechaParcial->lote->codigo_lote ?? 'N/A' }}
+                                    </div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                                        {{ $venta->cosechaParcial->fecha->format('d/m/Y') }}
+                                    </div>
+                                @else
+                                    <span class="text-gray-400">Sin cosecha</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                {{ $venta->fecha_venta->format('d/m/Y') }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900 dark:text-gray-100">
+                                    {{ number_format($venta->cantidad_kg, 2) }} kg
+                                </div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400">
+                                    Q{{ number_format($venta->precio_kg, 2) }}/kg
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                    Q{{ number_format($venta->total, 2) }}
+                                </div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400">
+                                    ${{ number_format($venta->total_usd, 2) }} USD
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $venta->estado_badge }}">
+                                    {{ ucfirst($venta->estado) }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $venta->metodo_pago_badge }}">
+                                    {{ ucfirst(str_replace('_', ' ', $venta->metodo_pago)) }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div class="flex justify-end space-x-2">
+                                    <a href="{{ route('ventas.edit', $venta) }}" 
+                                       class="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300"
+                                       onclick="event.stopPropagation()" 
+                                       title="Editar">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                    </a>
+                                    @if($venta->estado === 'pendiente')
+                                        <form action="{{ route('ventas.completar', $venta) }}" method="POST" class="inline"
+                                              onclick="event.stopPropagation()">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" 
+                                                    class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
+                                                    title="Completar">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                </svg>
+                                <h3 class="mt-4 text-lg font-medium">No hay ventas registradas</h3>
+                                <p class="mt-2">Comienza registrando tu primera venta.</p>
+                                <div class="mt-6">
+                                    <a href="{{ route('ventas.create') }}" 
+                                       class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                        </svg>
+                                        Nueva Venta
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        @if($ventas->hasPages())
+            <div class="bg-white dark:bg-gray-800 px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+                {{ $ventas->links() }}
+            </div>
+        @endif
+    </div>
+</div>
+@endsection

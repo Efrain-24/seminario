@@ -71,7 +71,8 @@
                 </thead>
                 <tbody>
                     @forelse($cosechas as $c)
-                        <tr class="border-t border-gray-200 dark:border-gray-700">
+                        <tr class="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-150" 
+                            onclick="window.location.href='{{ route('produccion.cosechas.show', $c->id) }}'"
                             <td class="px-4 py-2">{{ $c->fecha?->format('d/m/Y') }}</td>
                             <td class="px-4 py-2">{{ $c->lote->codigo_lote ?? '—' }}</td>
                             <td class="px-4 py-2 text-right">{{ number_format($c->cantidad_cosechada) }}</td>

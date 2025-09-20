@@ -22,6 +22,7 @@ class TipoAlimento extends Model
         'peso_presentacion',
         'costo_por_kg',
         'descripcion',
+        'inventario_item_id',
         'activo'
     ];
 
@@ -40,6 +41,11 @@ class TipoAlimento extends Model
     public function alimentaciones()
     {
         return $this->hasMany(Alimentacion::class);
+    }
+
+    public function inventarioItem()
+    {
+        return $this->belongsTo(InventarioItem::class);
     }
 
     // Scopes

@@ -19,3 +19,5 @@ Artisan::command('notificaciones:auto', function () {
 // Programar tareas automáticas
 Schedule::job(new GenerarNotificacionesAutomaticas())->everyTenMinutes()->name('notificaciones-auto');
 Schedule::command('notificaciones:generar-reales')->hourly()->name('notificaciones-reales-hourly');
+
+Schedule::command('banguat:tipo-cambio')->dailyAt('08:00');

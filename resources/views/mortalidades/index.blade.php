@@ -97,7 +97,8 @@
                 </thead>
                 <tbody>
                     @forelse($mortalidades as $m)
-                        <tr class="border-t border-gray-200 dark:border-gray-700">
+                        <tr class="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-150" 
+                            onclick="window.location.href='{{ route('mortalidades.show', $m->id) }}'">
                             <td class="px-4 py-2">{{ $m->fecha?->format('Y-m-d') }}</td>
                             <td class="px-4 py-2">{{ $m->unidadProduccion->nombre ?? $m->unidadProduccion->codigo ?? '—' }}</td>
                             <td class="px-4 py-2">{{ $m->lote->codigo_lote ?? '—' }}</td>

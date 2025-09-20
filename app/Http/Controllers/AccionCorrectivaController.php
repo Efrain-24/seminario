@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\AccionCorrectiva;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class AccionCorrectivaController extends Controller
 {
@@ -13,6 +15,12 @@ class AccionCorrectivaController extends Controller
     public function index(Request $request)
     {
         $query = AccionCorrectiva::with('responsable');
+        
+        // **FILTRO POR USUARIO**: Solo admin ve todo, usuarios normales ven solo las suyas
+        $user = Auth::user();
+        if ($user && !$user->isAdmin()) {
+            $query->where('user_id', $user->id);
+        }
         
         // Filtro por búsqueda
         if ($request->filled('buscar')) {
@@ -28,8 +36,8 @@ class AccionCorrectivaController extends Controller
             $query->where('estado', $request->estado);
         }
         
-        // Filtro por responsable
-        if ($request->filled('responsable')) {
+        // Filtro por responsable (solo para admins)
+        if ($request->filled('responsable') && $user && $user->isAdmin()) {
             $query->where('user_id', $request->responsable);
         }
         
@@ -296,8 +304,8 @@ class AccionCorrectivaController extends Controller
             $archivo = $request->file('archivo_evidencia');
             if ($archivo->isValid()) {
                 // Eliminar archivo anterior si existe
-                if ($seguimiento->archivo_evidencia && \Storage::disk('public')->exists($seguimiento->archivo_evidencia)) {
-                    \Storage::disk('public')->delete($seguimiento->archivo_evidencia);
+                if ($seguimiento->archivo_evidencia && Storage::disk('public')->exists($seguimiento->archivo_evidencia)) {
+                    Storage::disk('public')->delete($seguimiento->archivo_evidencia);
                 }
 
                 // Guardar nuevo archivo

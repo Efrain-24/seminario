@@ -15,6 +15,8 @@ class Alimentacion extends Model
     protected $fillable = [
         'lote_id',
         'tipo_alimento_id',
+        'inventario_item_id', // Agregar para relación directa con inventario
+        'bodega_id',
         'usuario_id',
         'fecha_alimentacion',
         'hora_alimentacion',
@@ -48,6 +50,16 @@ class Alimentacion extends Model
     public function usuario()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function bodega()
+    {
+        return $this->belongsTo(Bodega::class);
+    }
+
+    public function inventarioItem()
+    {
+        return $this->belongsTo(InventarioItem::class);
     }
 
     // Scopes
