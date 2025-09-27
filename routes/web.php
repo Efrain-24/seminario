@@ -33,6 +33,14 @@ Route::get('produccion/lotes/{lote}/mortalidad-log', [\App\Http\Controllers\Mort
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
+// RUTA DE PRUEBA TEMPORAL - SIN AUTENTICACIÓN
+Route::post('/test-cosecha', function(Request $request) {
+    \Illuminate\Support\Facades\Log::info('=== RUTA DE PRUEBA FUNCIONANDO ===');
+    \Illuminate\Support\Facades\Log::info('Datos recibidos:', $request->all());
+    return response()->json(['status' => 'success', 'message' => 'Datos recibidos correctamente', 'data' => $request->all()]);
+})->name('test.cosecha');
+// FIN RUTA DE PRUEBA
+
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified', 'redirect.temp.password'])
     ->name('dashboard');
@@ -68,6 +76,8 @@ Route::middleware(['auth', 'verified', 'redirect.temp.password'])->group(functio
     })->name('protocolos.panel');
     
     Route::get('/ventas/panel', [VentaController::class, 'panel'])->name('ventas.panel');
+    
+    Route::get('/cosechas/panel', [CosechaParcialController::class, 'panel'])->name('cosechas.panel');
     
     Route::get('/compras/panel', function () {
         return view('compras.panel');

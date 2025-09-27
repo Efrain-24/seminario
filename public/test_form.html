@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Formulario Cosecha</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .form-group { margin: 10px 0; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select, textarea { width: 300px; padding: 8px; }
+        button { padding: 12px 24px; background: #007cba; color: white; border: none; cursor: pointer; }
+        .result { margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Prueba de Formulario de Cosecha</h1>
+    
+    <form id="testForm" action="http://127.0.0.1:8000/produccion/cosechas" method="POST">
+        <input type="hidden" name="_token" value="">
+        <input type="hidden" name="_method" value="POST">
+        
+        <div class="form-group">
+            <label>Lote ID:</label>
+            <input type="number" name="lote_id" value="1" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Fecha:</label>
+            <input type="date" name="fecha" value="2025-09-27" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Cantidad Cosechada:</label>
+            <input type="number" name="cantidad_cosechada" value="1" min="1" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Peso (kg):</label>
+            <input type="number" name="peso_cosechado_kg" value="0.5" step="0.01" min="0">
+        </div>
+        
+        <div class="form-group">
+            <label>Destino:</label>
+            <select name="destino" required>
+                <option value="muestra">Muestra</option>
+                <option value="venta">Venta</option>
+                <option value="otro">Otro</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Responsable:</label>
+            <input type="text" name="responsable" value="Test Usuario">
+        </div>
+        
+        <div class="form-group">
+            <label>Observaciones:</label>
+            <textarea name="observaciones" rows="3">Prueba de formulario directo</textarea>
+        </div>
+        
+        <button type="submit">Enviar Cosecha</button>
+    </form>
+
+    <div class="result" id="result" style="display: none;">
+        <h3>Resultado:</h3>
+        <div id="resultContent"></div>
+    </div>
+
+    <script>
+        // Obtener CSRF token desde Laravel
+        fetch('http://127.0.0.1:8000/produccion/cosechas/create')
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const csrfToken = doc.querySelector('input[name="_token"]');
+                if (csrfToken) {
+                    document.querySelector('input[name="_token"]').value = csrfToken.value;
+                    console.log('CSRF token obtenido:', csrfToken.value.substring(0, 20) + '...');
+                }
+            })
+            .catch(err => console.error('Error obteniendo CSRF:', err));
+            
+        document.getElementById('testForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                console.log('Status:', response.status);
+                console.log('Headers:', response.headers);
+                return response.text();
+            })
+            .then(data => {
+                document.getElementById('result').style.display = 'block';
+                document.getElementById('resultContent').innerHTML = '<pre>' + data.substring(0, 1000) + '</pre>';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('result').style.display = 'block';
+                document.getElementById('resultContent').innerHTML = '<span style="color: red;">Error: ' + error.message + '</span>';
+            });
+        });
+    </script>
+</body>
+</html>

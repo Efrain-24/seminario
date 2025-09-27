@@ -1,5 +1,4 @@
-@props(['cosecha' => null, 'lotes' => collect()])
-
+{{-- Formulario parcial para crear/editar cosechas --}}
 <div class="grid md:grid-cols-2 gap-4">
     <div>
         <label class="block text-sm mb-1 text-gray-700 dark:text-gray-200">Lote</label>
@@ -81,7 +80,6 @@
                       text-gray-900 dark:text-gray-100 p-2"
             value="{{ auth()->user()->name ?? 'Sistema' }}"
             readonly>
-        <input type="hidden" name="responsable" value="{{ auth()->user()->name ?? 'Sistema' }}">
         @error('responsable')
             <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
         @enderror
@@ -183,18 +181,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Observaciones al final, fuera de los campos de venta -->
-    <div class="md:col-span-2">
-        <label class="block text-sm mb-1 text-gray-700 dark:text-gray-200">Observaciones (opcional)</label>
-        <textarea name="observaciones" rows="3"
-            class="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800
-                         text-gray-900 dark:text-gray-100 p-2"
-            placeholder="Notas adicionales sobre esta cosecha...">{{ old('observaciones', optional($cosecha)->observaciones) }}</textarea>
-        @error('observaciones')
-            <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-        @enderror
-    </div>
 </div>
 
 <script>
@@ -202,12 +188,14 @@
     const tipoCambio = {{ $tipoCambio ?? 7.8 }};
 
     function toggleVentaFields() {
-        const destino = document.getElementById('destino').value;
+        const destino = document.getElementById('destino');
         const camposVenta = document.getElementById('campos-venta');
         const cliente = document.getElementById('cliente');
         const precioUnitario = document.getElementById('precio_unitario');
         
-        if (destino === 'venta') {
+        if (!destino || !camposVenta) return;
+        
+        if (destino.value === 'venta') {
             camposVenta.style.display = 'block';
             // Hacer campos requeridos
             if (cliente) cliente.required = true;
@@ -221,71 +209,87 @@
     }
 
     function calcularTotales() {
-        const pesoKg = parseFloat(document.getElementById('peso_cosechado_kg').value) || 0;
-        const cantidadPeces = parseFloat(document.getElementById('cantidad_cosechada').value) || 0;
-        const precioUnitario = parseFloat(document.getElementById('precio_unitario').value) || 0;
-        const unidadVenta = document.getElementById('unidad_venta').value;
+        const pesoKgField = document.querySelector('input[name="peso_cosechado_kg"]');
+        const cantidadPecesField = document.querySelector('input[name="cantidad_cosechada"]');
+        const precioUnitarioField = document.getElementById('precio_unitario');
+        const unidadVentaField = document.getElementById('unidad_venta');
         const precioLabel = document.getElementById('precio_label');
         const totalPreview = document.getElementById('total_preview');
         const totalUsdPreview = document.getElementById('total_usd_preview');
         const calculoDetalle = document.getElementById('calculo_detalle');
         
-        // Actualizar etiqueta del precio
-        if (unidadVenta === 'libra') {
-            precioLabel.textContent = 'Precio por libra (Q) *';
-        } else {
-            precioLabel.textContent = 'Precio por pez (Q) *';
-        }
+        if (!pesoKgField || !cantidadPecesField || !precioUnitarioField) return;
         
-        let total = 0;
-        let detalle = '';
-        
-        if (precioUnitario > 0) {
-            if (unidadVenta === 'libra') {
-                // Convertir kg a libras (1 kg = 2.20462 libras)
-                const pesoLibras = pesoKg * 2.20462;
-                total = pesoLibras * precioUnitario;
-                detalle = `${pesoLibras.toFixed(2)} lbs × Q ${precioUnitario.toFixed(2)}`;
-            } else {
-                // Venta por pez
-                total = cantidadPeces * precioUnitario;
-                detalle = `${cantidadPeces} peces × Q ${precioUnitario.toFixed(2)}`;
+        try {
+            const pesoKg = parseFloat(pesoKgField.value) || 0;
+            const cantidadPeces = parseFloat(cantidadPecesField.value) || 0;
+            const precioUnitario = parseFloat(precioUnitarioField.value) || 0;
+            const unidadVenta = unidadVentaField ? unidadVentaField.value : 'libra';
+            
+            // Actualizar etiqueta del precio
+            if (precioLabel) {
+                if (unidadVenta === 'libra') {
+                    precioLabel.textContent = 'Precio por libra (Q) *';
+                } else {
+                    precioLabel.textContent = 'Precio por pez (Q) *';
+                }
             }
-        }
-        
-        // Mostrar totales
-        if (totalPreview) {
-            totalPreview.value = total > 0 ? `Q ${total.toLocaleString('es-GT', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            })}` : '';
-        }
-        
-        if (totalUsdPreview) {
-            const totalUsd = total / tipoCambio;
-            totalUsdPreview.value = total > 0 ? totalUsd.toLocaleString('en-US', {
-                style: 'currency',
-                currency: 'USD'
-            }) : '';
-        }
-        
-        if (calculoDetalle) {
-            calculoDetalle.textContent = detalle || 'Se calculará automáticamente';
+            
+            let total = 0;
+            let detalle = '';
+            
+            if (precioUnitario > 0) {
+                if (unidadVenta === 'libra') {
+                    // Convertir kg a libras (1 kg = 2.20462 libras)
+                    const pesoLibras = pesoKg * 2.20462;
+                    total = pesoLibras * precioUnitario;
+                    detalle = `${pesoLibras.toFixed(2)} lbs × Q ${precioUnitario.toFixed(2)}`;
+                } else {
+                    // Venta por pez
+                    total = cantidadPeces * precioUnitario;
+                    detalle = `${cantidadPeces} peces × Q ${precioUnitario.toFixed(2)}`;
+                }
+            }
+            
+            // Mostrar totales
+            if (totalPreview) {
+                totalPreview.value = total > 0 ? `Q ${total.toFixed(2)}` : '';
+            }
+            
+            if (totalUsdPreview) {
+                const totalUsd = total / tipoCambio;
+                totalUsdPreview.value = total > 0 ? `$${totalUsd.toFixed(2)} USD` : '';
+            }
+            
+            if (calculoDetalle) {
+                calculoDetalle.textContent = detalle || 'Se calculará automáticamente';
+            }
+        } catch (error) {
+            console.error('Error en cálculos:', error);
         }
     }
 
-    // Ejecutar al cargar la página para mostrar campos si ya está seleccionado 'venta'
+    // Ejecutar al cargar la página
     document.addEventListener('DOMContentLoaded', function() {
-        toggleVentaFields();
-        calcularTotales();
-        
-        // También agregar eventos a los campos para recalcular
-        const pesoField = document.getElementById('peso_cosechado_kg');
-        const cantidadField = document.getElementById('cantidad_cosechada');
-        const unidadField = document.getElementById('unidad_venta');
-        
-        if (pesoField) pesoField.addEventListener('input', calcularTotales);
-        if (cantidadField) cantidadField.addEventListener('input', calcularTotales);
-        if (unidadField) unidadField.addEventListener('change', calcularTotales);
+        try {
+            toggleVentaFields();
+            calcularTotales();
+            
+            // Agregar eventos
+            const destino = document.getElementById('destino');
+            const pesoField = document.querySelector('input[name="peso_cosechado_kg"]');
+            const cantidadField = document.querySelector('input[name="cantidad_cosechada"]');
+            const unidadField = document.getElementById('unidad_venta');
+            const precioField = document.getElementById('precio_unitario');
+            
+            if (destino) destino.addEventListener('change', toggleVentaFields);
+            if (pesoField) pesoField.addEventListener('input', calcularTotales);
+            if (cantidadField) cantidadField.addEventListener('input', calcularTotales);
+            if (unidadField) unidadField.addEventListener('change', calcularTotales);
+            if (precioField) precioField.addEventListener('input', calcularTotales);
+        } catch (error) {
+            console.error('Error al inicializar formulario:', error);
+        }
     });
+</script>
 </script>

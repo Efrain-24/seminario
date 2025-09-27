@@ -21,7 +21,7 @@ class CosechaTest extends TestCase
         
         $this->user = User::create([
             'name' => 'Usuario Test',
-            'email' => 'test@example.com',
+            'email' => 'tesst@example.com',
             'password' => bcrypt('password'),
             'role' => 'generico'
         ]);
@@ -42,7 +42,7 @@ class CosechaTest extends TestCase
         // Crear una nueva cosecha
         $cosecha = CosechaParcial::create([
             'lote_id' => $this->lote->id,
-            'fecha' => '2025-09-27',
+            'fecha' => '',
             'cantidad_cosechada' => 100,
             'peso_cosechado_kg' => 45.5,
             'destino' => 'venta',
@@ -55,7 +55,7 @@ class CosechaTest extends TestCase
         $this->assertDatabaseHas('cosechas_parciales', [
             'id' => $cosecha->id,
             'lote_id' => $this->lote->id,
-            'cantidad_cosechada' => 100,
+            'cantidad_cosechada' => 1,
             'peso_cosechado_kg' => 45.5,
             'destino' => 'venta',
             'responsable' => 'Juan Pérez',
