@@ -171,7 +171,7 @@
     </div>
 
     <div class="details-section">
-        <div class="section-header">📋 INFORMACIÓN DEL CLIENTE</div>
+        <div class="section-header">INFORMACIÓN DEL CLIENTE</div>
         <div class="section-content">
             <div class="info-row">
                 <span class="info-label">Cliente:</span>
@@ -227,7 +227,7 @@
     </div>
 
     <div class="details-section">
-        <div class="section-header">💰 DETALLES DE LA VENTA</div>
+        <div class="section-header">DETALLES DE LA VENTA</div>
         <div class="section-content">
             <div class="info-row">
                 <span class="info-label">Peso Vendido:</span>
