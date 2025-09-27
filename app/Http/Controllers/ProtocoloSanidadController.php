@@ -58,7 +58,12 @@ class ProtocoloSanidadController extends Controller
     public function create()
     {
         $usuarios = User::active()->get();
-        return view('protocolo_sanidad.create', compact('usuarios'));
+        // Obtener solo insumos (no alimentos) del inventario
+        $insumos = \App\Models\InventarioItem::where('tipo', 'insumo')
+            ->with('existencias.bodega')
+            ->get();
+            
+        return view('protocolo_sanidad.create', compact('usuarios', 'insumos'));
     }
 
     public function store(Request $request)
@@ -69,17 +74,61 @@ class ProtocoloSanidadController extends Controller
             'responsable' => 'required',
             'actividades' => 'nullable|array',
             'actividades.*' => 'required|string|max:255',
+            // Validación para insumos
+            'insumos' => 'nullable|array',
+            'insumos.*.inventario_item_id' => 'required_with:insumos|exists:inventario_items,id',
+            'insumos.*.cantidad_necesaria' => 'required_with:insumos|numeric|min:0.001',
+            'insumos.*.es_obligatorio' => 'boolean',
+            'insumos.*.notas' => 'nullable|string|max:500',
         ]);
 
         $data = $request->only(['nombre', 'fecha_implementacion', 'responsable']);
         $data['actividades'] = array_filter($request->actividades ?? []);
 
-        ProtocoloSanidad::create($data);
-        return redirect()->route('protocolo-sanidad.index');
+        // Crear el protocolo
+        $protocolo = ProtocoloSanidad::create($data);
+
+        // Guardar los insumos si existen
+        if ($request->has('insumos') && is_array($request->insumos)) {
+            foreach ($request->insumos as $insumoData) {
+                if (!empty($insumoData['inventario_item_id']) && !empty($insumoData['cantidad_necesaria'])) {
+                    // Obtener la unidad del item del inventario
+                    $inventarioItem = \App\Models\InventarioItem::find($insumoData['inventario_item_id']);
+                    
+                    $protocolo->insumos()->create([
+                        'inventario_item_id' => $insumoData['inventario_item_id'],
+                        'cantidad_necesaria' => $insumoData['cantidad_necesaria'],
+                        'unidad' => $inventarioItem->unidad_base,
+                        'es_obligatorio' => $insumoData['es_obligatorio'] ?? true,
+                        'notas' => $insumoData['notas'] ?? null,
+                    ]);
+                }
+            }
+        }
+
+        return redirect()->route('protocolo-sanidad.index')
+                       ->with('success', 'Protocolo de sanidad creado correctamente.');
+    }
+
+    /**
+     * Ejecutar protocolo y descontar insumos
+     */
+    public function ejecutar(ProtocoloSanidad $protocoloSanidad)
+    {
+        try {
+            $protocoloSanidad->ejecutarYDescontarInsumos(request('observaciones_ejecucion'));
+            
+            return redirect()->route('protocolo-sanidad.show', $protocoloSanidad)
+                           ->with('success', 'Protocolo ejecutado correctamente. Los insumos han sido descontados del inventario.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                           ->with('error', 'Error al ejecutar el protocolo: ' . $e->getMessage());
+        }
     }
 
     public function show(ProtocoloSanidad $protocoloSanidad)
     {
+        $protocoloSanidad->load('insumos.inventarioItem');
         return view('protocolo_sanidad.show', compact('protocoloSanidad'));
     }
 

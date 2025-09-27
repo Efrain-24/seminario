@@ -48,21 +48,6 @@
                                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                     @enderror
                                 </div>
-
-                                <!-- Alimento del Inventario -->
-                                <div>
-                                    <label for="inventario_item_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Alimento del Inventario <span class="text-red-500">*</span>
-                                    </label>
-                                    <select name="inventario_item_id" id="inventario_item_id" required
-                                            class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('inventario_item_id') border-red-500 @enderror">
-                                        <option value="">Primero selecciona una bodega</option>
-                                    </select>
-                                    @error('inventario_item_id')
-                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
                                 <!-- Bodega -->
                                 <div>
                                     <label for="bodega_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -82,6 +67,19 @@
                                     @enderror
                                 </div>
 
+                                <!-- Alimento del Inventario -->
+                                <div>
+                                    <label for="inventario_item_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Alimento del Inventario <span class="text-red-500">*</span>
+                                    </label>
+                                    <select name="inventario_item_id" id="inventario_item_id" required
+                                            class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('inventario_item_id') border-red-500 @enderror">
+                                        <option value="">Primero selecciona una bodega</option>
+                                    </select>
+                                    @error('inventario_item_id')
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
                                 <!-- Fecha de Alimentación -->
                                 <div>
                                     <label for="fecha_alimentacion" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

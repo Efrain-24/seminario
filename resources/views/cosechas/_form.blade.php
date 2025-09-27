@@ -59,12 +59,14 @@
 
     <div>
         <label class="block text-sm mb-1 text-gray-700 dark:text-gray-200">Destino</label>
-        <select name="destino"
+        <select name="destino" id="destino"
             class="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800
                        text-gray-900 dark:text-gray-100 p-2"
+            onchange="toggleVentaFields()"
             required>
-            @foreach (['venta', 'consumo', 'muestra', 'otro'] as $opt)
-                <option @selected(old('destino', optional($cosecha)->destino) == $opt)>{{ $opt }}</option>
+            <option value="">Seleccione destino...</option>
+            @foreach (['venta', 'muestra', 'otro'] as $opt)
+                <option value="{{ $opt }}" @selected(old('destino', optional($cosecha)->destino) == $opt)>{{ ucfirst($opt) }}</option>
             @endforeach
         </select>
         @error('destino')
@@ -75,9 +77,11 @@
     <div>
         <label class="block text-sm mb-1 text-gray-700 dark:text-gray-200">Responsable</label>
         <input type="text" name="responsable"
-            class="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800
+            class="w-full rounded border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700
                       text-gray-900 dark:text-gray-100 p-2"
-            value="{{ old('responsable', optional($cosecha)->responsable) }}">
+            value="{{ auth()->user()->name ?? 'Sistema' }}"
+            readonly>
+        <input type="hidden" name="responsable" value="{{ auth()->user()->name ?? 'Sistema' }}">
         @error('responsable')
             <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
         @enderror
@@ -92,4 +96,196 @@
             <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
         @enderror
     </div>
+
+    <!-- Campos de Venta (se muestran solo si destino es 'venta') -->
+    <div id="campos-venta" class="md:col-span-2 space-y-4" style="display: none;">
+        <div class="border-t pt-4 mt-4">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">💰 Información de Venta</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Cliente -->
+                <div>
+                    <label class="block text-sm mb-1 text-gray-700 dark:text-gray-200">Cliente *</label>
+                    <input type="text" name="cliente" id="cliente"
+                        value="{{ old('cliente', optional($cosecha)->cliente) }}"
+                        placeholder="Nombre del cliente"
+                        class="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800
+                               text-gray-900 dark:text-gray-100 p-2">
+                    @error('cliente')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Teléfono Cliente (Opcional) -->
+                <div>
+                    <label class="block text-sm mb-1 text-gray-700 dark:text-gray-200">Teléfono (opcional)</label>
+                    <input type="text" name="telefono_cliente"
+                        value="{{ old('telefono_cliente', optional($cosecha)->telefono_cliente) }}"
+                        placeholder="8888-8888"
+                        class="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800
+                               text-gray-900 dark:text-gray-100 p-2">
+                    @error('telefono_cliente')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Unidad de venta -->
+                <div>
+                    <label class="block text-sm mb-1 text-gray-700 dark:text-gray-200">Vender por *</label>
+                    <select name="unidad_venta" id="unidad_venta" 
+                        onchange="calcularTotales()"
+                        class="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800
+                               text-gray-900 dark:text-gray-100 p-2">
+                        <option value="libra" @selected(old('unidad_venta', 'libra') == 'libra')>Por Libra</option>
+                        <option value="pez" @selected(old('unidad_venta') == 'pez')>Por Pez</option>
+                    </select>
+                    @error('unidad_venta')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Precio -->
+                <div>
+                    <label class="block text-sm mb-1 text-gray-700 dark:text-gray-200">
+                        <span id="precio_label">Precio por libra (Q) *</span>
+                    </label>
+                    <input type="number" name="precio_unitario" id="precio_unitario" step="0.01" min="0"
+                        value="{{ old('precio_unitario', optional($cosecha)->precio_kg) }}"
+                        placeholder="0.00"
+                        oninput="calcularTotales()"
+                        class="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800
+                               text-gray-900 dark:text-gray-100 p-2">
+                    @error('precio_unitario')
+                        <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Total automático -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm mb-1 text-gray-700 dark:text-gray-200">💰 Total de la Venta</label>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <input type="text" id="total_preview" readonly
+                                class="w-full rounded border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700
+                                       text-green-600 dark:text-green-400 p-2 font-bold text-lg"
+                                placeholder="Q 0.00">
+                            <small class="text-gray-500" id="calculo_detalle">Se calculará automáticamente</small>
+                        </div>
+                        <div>
+                            <input type="text" id="total_usd_preview" readonly
+                                class="w-full rounded border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700
+                                       text-blue-600 dark:text-blue-400 p-2 font-bold text-lg"
+                                placeholder="$ 0.00 USD">
+                            <small class="text-gray-500">Equivalente en USD</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Observaciones al final, fuera de los campos de venta -->
+    <div class="md:col-span-2">
+        <label class="block text-sm mb-1 text-gray-700 dark:text-gray-200">Observaciones (opcional)</label>
+        <textarea name="observaciones" rows="3"
+            class="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800
+                         text-gray-900 dark:text-gray-100 p-2"
+            placeholder="Notas adicionales sobre esta cosecha...">{{ old('observaciones', optional($cosecha)->observaciones) }}</textarea>
+        @error('observaciones')
+            <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+        @enderror
+    </div>
 </div>
+
+<script>
+    // Tipo de cambio actual para Guatemala (GTQ a USD)
+    const tipoCambio = {{ $tipoCambio ?? 7.8 }};
+
+    function toggleVentaFields() {
+        const destino = document.getElementById('destino').value;
+        const camposVenta = document.getElementById('campos-venta');
+        const cliente = document.getElementById('cliente');
+        const precioUnitario = document.getElementById('precio_unitario');
+        
+        if (destino === 'venta') {
+            camposVenta.style.display = 'block';
+            // Hacer campos requeridos
+            if (cliente) cliente.required = true;
+            if (precioUnitario) precioUnitario.required = true;
+        } else {
+            camposVenta.style.display = 'none';
+            // Quitar required
+            if (cliente) cliente.required = false;
+            if (precioUnitario) precioUnitario.required = false;
+        }
+    }
+
+    function calcularTotales() {
+        const pesoKg = parseFloat(document.getElementById('peso_cosechado_kg').value) || 0;
+        const cantidadPeces = parseFloat(document.getElementById('cantidad_cosechada').value) || 0;
+        const precioUnitario = parseFloat(document.getElementById('precio_unitario').value) || 0;
+        const unidadVenta = document.getElementById('unidad_venta').value;
+        const precioLabel = document.getElementById('precio_label');
+        const totalPreview = document.getElementById('total_preview');
+        const totalUsdPreview = document.getElementById('total_usd_preview');
+        const calculoDetalle = document.getElementById('calculo_detalle');
+        
+        // Actualizar etiqueta del precio
+        if (unidadVenta === 'libra') {
+            precioLabel.textContent = 'Precio por libra (Q) *';
+        } else {
+            precioLabel.textContent = 'Precio por pez (Q) *';
+        }
+        
+        let total = 0;
+        let detalle = '';
+        
+        if (precioUnitario > 0) {
+            if (unidadVenta === 'libra') {
+                // Convertir kg a libras (1 kg = 2.20462 libras)
+                const pesoLibras = pesoKg * 2.20462;
+                total = pesoLibras * precioUnitario;
+                detalle = `${pesoLibras.toFixed(2)} lbs × Q ${precioUnitario.toFixed(2)}`;
+            } else {
+                // Venta por pez
+                total = cantidadPeces * precioUnitario;
+                detalle = `${cantidadPeces} peces × Q ${precioUnitario.toFixed(2)}`;
+            }
+        }
+        
+        // Mostrar totales
+        if (totalPreview) {
+            totalPreview.value = total > 0 ? `Q ${total.toLocaleString('es-GT', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })}` : '';
+        }
+        
+        if (totalUsdPreview) {
+            const totalUsd = total / tipoCambio;
+            totalUsdPreview.value = total > 0 ? totalUsd.toLocaleString('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }) : '';
+        }
+        
+        if (calculoDetalle) {
+            calculoDetalle.textContent = detalle || 'Se calculará automáticamente';
+        }
+    }
+
+    // Ejecutar al cargar la página para mostrar campos si ya está seleccionado 'venta'
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleVentaFields();
+        calcularTotales();
+        
+        // También agregar eventos a los campos para recalcular
+        const pesoField = document.getElementById('peso_cosechado_kg');
+        const cantidadField = document.getElementById('cantidad_cosechada');
+        const unidadField = document.getElementById('unidad_venta');
+        
+        if (pesoField) pesoField.addEventListener('input', calcularTotales);
+        if (cantidadField) cantidadField.addEventListener('input', calcularTotales);
+        if (unidadField) unidadField.addEventListener('change', calcularTotales);
+    });
+</script>

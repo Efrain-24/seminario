@@ -7,6 +7,8 @@ use App\Models\CosechaParcial;
 use App\Models\TipoCambio;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
+use Carbon\Carbon;
 
 class VentaController extends Controller
 {
@@ -124,8 +126,10 @@ class VentaController extends Controller
     {
         $venta->update(['estado' => 'completada']);
 
+        // Sugerir descarga del ticket cuando se completa la venta
         return redirect()->route('ventas.show', $venta)
-            ->with('success', 'Venta marcada como completada');
+            ->with('success', 'Venta marcada como completada.')
+            ->with('ticket_disponible', true);
     }
 
     public function cancelar(Venta $venta)
@@ -136,9 +140,46 @@ class VentaController extends Controller
             ->with('success', 'Venta cancelada');
     }
 
+    /**
+     * Generar y descargar ticket de venta en PDF
+     */
+    public function generarTicket(Venta $venta)
+    {
+        // Cargar las relaciones necesarias
+        $venta->load(['cosechaParcial.lote']);
+        
+        // Generar el PDF
+        $pdf = PDF::loadView('ventas.ticket', compact('venta'));
+        
+        // Configurar el PDF para ticket (tamaño carta)
+        $pdf->setPaper('letter', 'portrait');
+        
+        // Nombre del archivo
+        $nombreArchivo = 'ticket-venta-' . $venta->codigo_venta . '.pdf';
+        
+        // Retornar el PDF para descarga
+        return $pdf->download($nombreArchivo);
+    }
+
+    /**
+     * Ver ticket de venta en el navegador
+     */
+    public function verTicket(Venta $venta)
+    {
+        // Cargar las relaciones necesarias
+        $venta->load(['cosechaParcial.lote']);
+        
+        // Generar el PDF
+        $pdf = PDF::loadView('ventas.ticket', compact('venta'));
+        $pdf->setPaper('letter', 'portrait');
+        
+        // Mostrar en el navegador
+        return $pdf->stream('ticket-venta-' . $venta->codigo_venta . '.pdf');
+    }
+
     public function panel()
     {
-        $mesActual = now();
+        $mesActual = Carbon::now();
         
         // Estadísticas del mes actual
         $cosechasEsteMes = CosechaParcial::whereMonth('fecha', $mesActual->month)

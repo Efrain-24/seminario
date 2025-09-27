@@ -79,6 +79,10 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('ventas', VentaController::class);
     Route::patch('ventas/{venta}/completar', [VentaController::class, 'completar'])->name('ventas.completar');
     Route::patch('ventas/{venta}/cancelar', [VentaController::class, 'cancelar'])->name('ventas.cancelar');
+    
+    // Rutas para tickets de venta
+    Route::get('ventas/{venta}/ticket/descargar', [VentaController::class, 'generarTicket'])->name('ventas.ticket.descargar');
+    Route::get('ventas/{venta}/ticket/ver', [VentaController::class, 'verTicket'])->name('ventas.ticket.ver');
 });
 
 // Rutas de Trazabilidad de Cosechas
@@ -182,6 +186,12 @@ Route::middleware(['auth', 'redirect.temp.password'])->prefix('produccion')->nam
     Route::resource('cosechas', CosechaParcialController::class)
         ->parameters(['cosechas' => 'cosecha'])   // para usar {cosecha} en vez de {cosechas}
         ->names('cosechas');
+
+    // Rutas adicionales para ventas de cosechas
+    Route::get('cosechas/{cosecha}/completar-venta', [CosechaParcialController::class, 'completarVenta'])->name('cosechas.completar-venta');
+    Route::put('cosechas/{cosecha}/procesar-venta', [CosechaParcialController::class, 'procesarVenta'])->name('cosechas.procesar-venta');
+    Route::get('cosechas/{cosecha}/ticket/descargar', [CosechaParcialController::class, 'generarTicket'])->name('cosechas.ticket.descargar');
+    Route::get('cosechas/{cosecha}/ticket/ver', [CosechaParcialController::class, 'verTicket'])->name('cosechas.ticket.ver');
 
     // 1) Primero los gráficos
     Route::get('mortalidades/graficos', [MortalidadController::class, 'charts'])
@@ -289,28 +299,33 @@ Route::middleware('auth')->group(function () {
     Route::put('password/change', [PasswordChangeController::class, 'update'])->name('password.update');
 });
 
-
+// Rutas de Protocolo de Sanidad
+Route::middleware(['auth', 'redirect.temp.password'])->group(function () {
     Route::resource('protocolo-sanidad', ProtocoloSanidadController::class);
     Route::get('protocolo-sanidad/{protocoloSanidad}/nueva-version', [ProtocoloSanidadController::class, 'crearNuevaVersion'])->name('protocolo-sanidad.nueva-version');
     Route::post('protocolo-sanidad/{protocoloSanidad}/nueva-version', [ProtocoloSanidadController::class, 'guardarNuevaVersion'])->name('protocolo-sanidad.guardar-nueva-version');
     Route::patch('protocolo-sanidad/{protocoloSanidad}/marcar-obsoleto', [ProtocoloSanidadController::class, 'marcarObsoleto'])->name('protocolo-sanidad.marcar-obsoleto');
+    Route::post('protocolo-sanidad/{protocoloSanidad}/ejecutar', [ProtocoloSanidadController::class, 'ejecutar'])->name('protocolo-sanidad.ejecutar');
     Route::resource('limpieza', LimpiezaController::class);
     Route::get('limpieza/protocolo/{protocolo}/actividades', [LimpiezaController::class, 'getProtocoloActividades'])->name('limpieza.protocolo.actividades');
-    // Rutas de Unidades de Producción (independientes)
-    Route::middleware(['auth'])->group(function () {
-        Route::resource('unidades', UnidadProduccionController::class);
-        Route::patch('unidades/{unidad}/toggle-estado', [UnidadProduccionController::class, 'toggleEstado'])->name('unidades.toggle-estado');
-        Route::get('unidades/generate-code/{tipo}', [UnidadProduccionController::class, 'generateCodigo'])->name('unidades.generate-code');
-        Route::get('unidades/{unidad}/historial', [UnidadProduccionController::class, 'historial'])->name('unidades.historial');
-    });
+});
 
-    Route::middleware(['auth'])->group(function () {
-        Route::resource('acciones_correctivas', AccionCorrectivaController::class)->parameters(['acciones_correctivas' => 'accion']);
-        Route::patch('acciones_correctivas/{accion}/cambiar-estado', [AccionCorrectivaController::class, 'cambiarEstado'])->name('acciones_correctivas.cambiar-estado');
-        Route::post('acciones_correctivas/{accion}/seguimiento', [AccionCorrectivaController::class, 'agregarSeguimiento'])->name('acciones_correctivas.agregarSeguimiento');
-        Route::get('acciones_correctivas/{accion}/seguimiento/{seguimiento}/editar', [AccionCorrectivaController::class, 'editarSeguimiento'])->name('acciones_correctivas.editarSeguimiento');
-        Route::put('acciones_correctivas/{accion}/seguimiento/{seguimiento}', [AccionCorrectivaController::class, 'actualizarSeguimiento'])->name('acciones_correctivas.actualizarSeguimiento');
-        Route::delete('acciones_correctivas/{accion}/seguimiento/{seguimiento}', [AccionCorrectivaController::class, 'eliminarSeguimiento'])->name('acciones_correctivas.eliminarSeguimiento');
-    });
+// Rutas de Unidades de Producción (independientes)
+Route::middleware(['auth'])->group(function () {
+    Route::resource('unidades', UnidadProduccionController::class);
+    Route::patch('unidades/{unidad}/toggle-estado', [UnidadProduccionController::class, 'toggleEstado'])->name('unidades.toggle-estado');
+    Route::get('unidades/generate-code/{tipo}', [UnidadProduccionController::class, 'generateCodigo'])->name('unidades.generate-code');
+    Route::get('unidades/{unidad}/historial', [UnidadProduccionController::class, 'historial'])->name('unidades.historial');
+});
+
+// Rutas de Acciones Correctivas  
+Route::middleware(['auth'])->group(function () {
+    Route::resource('acciones_correctivas', AccionCorrectivaController::class)->parameters(['acciones_correctivas' => 'accion']);
+    Route::patch('acciones_correctivas/{accion}/cambiar-estado', [AccionCorrectivaController::class, 'cambiarEstado'])->name('acciones_correctivas.cambiar-estado');
+    Route::post('acciones_correctivas/{accion}/seguimiento', [AccionCorrectivaController::class, 'agregarSeguimiento'])->name('acciones_correctivas.agregarSeguimiento');
+    Route::get('acciones_correctivas/{accion}/seguimiento/{seguimiento}/editar', [AccionCorrectivaController::class, 'editarSeguimiento'])->name('acciones_correctivas.editarSeguimiento');
+    Route::put('acciones_correctivas/{accion}/seguimiento/{seguimiento}', [AccionCorrectivaController::class, 'actualizarSeguimiento'])->name('acciones_correctivas.actualizarSeguimiento');
+    Route::delete('acciones_correctivas/{accion}/seguimiento/{seguimiento}', [AccionCorrectivaController::class, 'eliminarSeguimiento'])->name('acciones_correctivas.eliminarSeguimiento');
+});
 
 

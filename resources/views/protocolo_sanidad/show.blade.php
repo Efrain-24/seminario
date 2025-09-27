@@ -101,10 +101,122 @@
                     </div>
                 @endif
 
+                <!-- Insumos Requeridos -->
+                @if($protocoloSanidad->insumos && $protocoloSanidad->insumos->count() > 0)
+                    <div class="border-t border-gray-200 dark:border-gray-600 pt-6">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-4">
+                            Insumos Requeridos ({{ $protocoloSanidad->insumos->count() }})
+                        </label>
+                        
+                        <div class="space-y-3">
+                            @foreach($protocoloSanidad->insumos as $insumo)
+                                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                        <div>
+                                            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Insumo</span>
+                                            <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                {{ $insumo->inventarioItem->nombre }}
+                                                @if($insumo->inventarioItem->sku)
+                                                    <span class="text-xs text-gray-500">({{ $insumo->inventarioItem->sku }})</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        
+                                        <div>
+                                            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Cantidad Necesaria</span>
+                                            <div class="text-sm text-gray-900 dark:text-gray-100">
+                                                {{ number_format($insumo->cantidad_necesaria, 3) }} {{ $insumo->unidad }}
+                                            </div>
+                                        </div>
+                                        
+                                        <div>
+                                            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Tipo</span>
+                                            <div class="text-sm">
+                                                @if($insumo->es_obligatorio)
+                                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
+                                                        Obligatorio
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">
+                                                        Opcional
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        
+                                        <div>
+                                            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Stock Disponible</span>
+                                            <div class="text-sm text-gray-900 dark:text-gray-100">
+                                                @php
+                                                    $stockTotal = $insumo->inventarioItem->stockTotal();
+                                                    $suficiente = $stockTotal >= $insumo->cantidad_necesaria;
+                                                @endphp
+                                                <span class="{{ $suficiente ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
+                                                    {{ number_format($stockTotal, 2) }} {{ $insumo->unidad }}
+                                                </span>
+                                                @if(!$suficiente)
+                                                    <span class="text-xs text-red-500">⚠️ Insuficiente</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    @if($insumo->notas)
+                                        <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                                            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Notas:</span>
+                                            <div class="text-sm text-gray-700 dark:text-gray-300 mt-1">
+                                                {{ $insumo->notas }}
+                                            </div>
+                                        </div>
+                                    @endif
+                                    
+                                    @if($insumo->inventarioItem->costo_unitario > 0)
+                                        <div class="mt-2">
+                                            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Costo estimado:</span>
+                                            <span class="text-sm font-medium text-blue-600 dark:text-blue-400">
+                                                {{ $insumo->inventarioItem->moneda ?? 'GTQ' }} {{ number_format($insumo->costo_estimado, 2) }}
+                                            </span>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
                 <!-- Acciones del Protocolo -->
                 <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-6">
                     <div class="flex flex-wrap gap-3">
                         @if($protocoloSanidad->estado === 'vigente')
+                            <!-- Ejecutar Protocolo -->
+                            @if($protocoloSanidad->insumos->count() > 0)
+                                @php
+                                    $insumosInsuficientes = $protocoloSanidad->insumos->filter(function($insumo) {
+                                        return $insumo->es_obligatorio && !$insumo->tieneStockSuficiente();
+                                    });
+                                @endphp
+                                
+                                <form method="POST" action="{{ route('protocolo-sanidad.ejecutar', $protocoloSanidad) }}" 
+                                      class="inline-block" onsubmit="return confirmarEjecucion()">
+                                    @csrf
+                                    <button type="submit" 
+                                            class="px-4 py-2 rounded bg-green-600 hover:bg-green-700 text-white flex items-center gap-2 {{ $insumosInsuficientes->count() > 0 ? 'opacity-50 cursor-not-allowed' : '' }}"
+                                            {{ $insumosInsuficientes->count() > 0 ? 'disabled' : '' }}>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        Ejecutar Protocolo
+                                    </button>
+                                </form>
+                                
+                                @if($insumosInsuficientes->count() > 0)
+                                    <div class="text-sm text-red-600 dark:text-red-400 px-3 py-1 bg-red-50 dark:bg-red-900/20 rounded">
+                                        ⚠️ {{ $insumosInsuficientes->count() }} insumos obligatorios sin stock suficiente
+                                    </div>
+                                @endif
+                            @endif
+
                             <a href="{{ route('protocolo-sanidad.edit', $protocoloSanidad) }}" 
                                class="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -148,6 +260,22 @@
     </div>
 
     <script>
+        function confirmarEjecucion() {
+            const insumosObligatorios = @json($protocoloSanidad->insumos->where('es_obligatorio', true)->count());
+            const insumosInsuficientes = @json($protocoloSanidad->insumos->filter(function($insumo) { return $insumo->es_obligatorio && !$insumo->tieneStockSuficiente(); })->count());
+            
+            if (insumosInsuficientes > 0) {
+                alert('No se puede ejecutar el protocolo. Hay ' + insumosInsuficientes + ' insumos obligatorios con stock insuficiente.');
+                return false;
+            }
+            
+            if (insumosObligatorios > 0) {
+                return confirm('¿Estás seguro de que deseas ejecutar este protocolo?\n\nEsto descontará ' + insumosObligatorios + ' insumos del inventario de manera automática.');
+            }
+            
+            return confirm('¿Estás seguro de que deseas ejecutar este protocolo?');
+        }
+
         function marcarObsoleto() {
             if (confirm('¿Está seguro de marcar este protocolo como obsoleto? Ya no estará disponible para nuevos registros de limpieza.')) {
                 // Crear y enviar formulario para marcar como obsoleto

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class ProtocoloSanidad extends Model
 {
@@ -18,6 +19,8 @@ class ProtocoloSanidad extends Model
         'version',
         'estado',
         'protocolo_base_id',
+        'fecha_ejecucion',
+        'observaciones_ejecucion',
     ];
 
     protected $casts = [
@@ -40,6 +43,12 @@ class ProtocoloSanidad extends Model
     public function versiones()
     {
         return $this->hasMany(ProtocoloSanidad::class, 'protocolo_base_id');
+    }
+
+    // Relación con los insumos del protocolo
+    public function insumos()
+    {
+        return $this->hasMany(ProtocoloInsumo::class);
     }
 
     // Método para crear nueva versión
@@ -73,5 +82,116 @@ class ProtocoloSanidad extends Model
     public function getNombreCompletoAttribute()
     {
         return $this->nombre . ' (v' . $this->version . ')';
+    }
+
+    /**
+     * Verificar si el protocolo tiene insumos definidos
+     */
+    public function tieneInsumos()
+    {
+        return $this->insumos()->exists();
+    }
+
+    /**
+     * Verificar si todos los insumos tienen stock suficiente
+     */
+    public function tieneStockSuficiente()
+    {
+        return $this->insumos->every(function($insumo) {
+            return $insumo->tieneStockSuficiente();
+        });
+    }
+
+    /**
+     * Obtener el costo total estimado de todos los insumos
+     */
+    public function getCostoTotalInsumosAttribute()
+    {
+        return $this->insumos->sum('costo_estimado');
+    }
+
+    /**
+     * Ejecutar protocolo y descontar insumos del inventario
+     */
+    public function ejecutarYDescontarInsumos($observaciones = null)
+    {
+        try {
+            DB::beginTransaction();
+
+            // Verificar que todos los insumos obligatorios tengan stock suficiente
+            foreach ($this->insumos->where('es_obligatorio', true) as $insumo) {
+                if (!$insumo->tieneStockSuficiente()) {
+                    throw new \Exception("Stock insuficiente para el insumo obligatorio: {$insumo->inventarioItem->nombre}");
+                }
+            }
+
+            // Descontar insumos del inventario
+            foreach ($this->insumos as $insumo) {
+                if ($insumo->tieneStockSuficiente()) {
+                    $this->descontarInsumo($insumo);
+                }
+            }
+
+            // Marcar protocolo como ejecutado
+            $this->update([
+                'fecha_ejecucion' => now(),
+                'observaciones_ejecucion' => $observaciones,
+                'estado' => 'ejecutado'
+            ]);
+
+            DB::commit();
+            return true;
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Descontar un insumo específico del inventario
+     */
+    private function descontarInsumo($protocoloInsumo)
+    {
+        $inventarioItem = $protocoloInsumo->inventarioItem;
+        $cantidadNecesaria = $protocoloInsumo->cantidad_necesaria;
+
+        // Obtener existencias del item ordenadas por fecha de vencimiento (FIFO)
+        $existencias = $inventarioItem->existencias()
+            ->where('cantidad_disponible', '>', 0)
+            ->orderBy('fecha_vencimiento', 'asc')
+            ->get();
+
+        $cantidadRestante = $cantidadNecesaria;
+
+        foreach ($existencias as $existencia) {
+            if ($cantidadRestante <= 0) break;
+
+            $cantidadADescontar = min($cantidadRestante, $existencia->cantidad_disponible);
+
+            // Crear movimiento de salida
+            \App\Models\InventarioMovimiento::create([
+                'inventario_item_id' => $inventarioItem->id,
+                'tipo_movimiento' => 'salida',
+                'cantidad' => $cantidadADescontar,
+                'fecha_movimiento' => now(),
+                'concepto' => "Protocolo de sanidad ID: {$this->id}",
+                'referencia_tipo' => 'protocolo_sanidad',
+                'referencia_id' => $this->id,
+                'costo_unitario' => $existencia->costo_unitario ?? $inventarioItem->costo_unitario,
+                'bodega_id' => $existencia->bodega_id
+            ]);
+
+            // Actualizar existencia
+            $existencia->update([
+                'cantidad_disponible' => $existencia->cantidad_disponible - $cantidadADescontar
+            ]);
+
+            $cantidadRestante -= $cantidadADescontar;
+        }
+
+        if ($cantidadRestante > 0) {
+            throw new \Exception("No se pudo descontar completamente el insumo: {$inventarioItem->nombre}");
+        }
     }
 }
