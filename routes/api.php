@@ -25,3 +25,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/tipo-cambio/actualizar', [TipoCambioController::class, 'actualizar']);
     Route::get('/tipo-cambio/historial', [TipoCambioController::class, 'historial']);
 });
+
+// Ruta temporal sin auth para pruebas
+Route::post('/tipo-cambio/test-actualizar', [TipoCambioController::class, 'actualizar']);

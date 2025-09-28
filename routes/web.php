@@ -31,7 +31,15 @@ use Illuminate\Support\Facades\Auth;
 Route::get('/produccion/unidades/{unidad}/mortalidad-log', [MortalidadController::class, 'logPorUnidad'])->name('produccion.unidades.mortalidad_log');
 Route::get('produccion/lotes/{lote}/mortalidad-log', [\App\Http\Controllers\MortalidadLogController::class, 'show'])->name('produccion.lotes.mortalidad_log')->middleware('auth');
 
-Route::get('/', [HomeController::class, 'index'])->name('home');
+// Ruta de prueba para tipo de cambio
+// Ruta de prueba para tipo de cambio
+Route::get('/test-tipo-cambio', function () {
+    return view('test-tipo-cambio');
+});
+
+Route::get('/', function () {
+    return view('welcome');
+});
 
 // RUTA DE PRUEBA TEMPORAL - SIN AUTENTICACIÓN
 Route::post('/test-cosecha', function(Request $request) {

@@ -31,30 +31,77 @@ class TipoCambioController extends Controller
     /**
      * Actualizar el tipo de cambio ejecutando el comando
      */
-    public function actualizar()
+    public function actualizar(Request $request)
     {
         try {
             // Ejecutar el comando para obtener el tipo de cambio
-            Artisan::call('banguat:tipo-cambio');
+            $exitCode = Artisan::call('banguat:tipo-cambio');
             
-            // Obtener el resultado actualizado
-            $tipoCambio = TipoCambio::actual();
+            // Capturar la salida del comando
+            $output = Artisan::output();
             
-            return response()->json([
-                'success' => true,
-                'message' => 'Tipo de cambio actualizado correctamente',
-                'data' => [
-                    'fecha' => $tipoCambio->fecha->format('Y-m-d'),
-                    'fecha_formateada' => $tipoCambio->fecha->format('d/m/Y'),
-                    'valor' => $tipoCambio->valor,
-                    'valor_formateado' => $tipoCambio->valor_formateado
-                ]
-            ]);
+            // Obtener el último tipo de cambio disponible
+            $tipoCambio = TipoCambio::ultimoDisponible();
+            
+            if ($tipoCambio) {
+                $esHoy = $tipoCambio->fecha === now()->toDateString();
+                
+                // Determinar si fue un éxito o se usó fallback
+                $usoFallback = str_contains($output, 'fallback') || str_contains($output, 'Error al consultar Banguat');
+                
+                $mensaje = $usoFallback 
+                    ? "⚠️ El servicio del Banguat no está disponible. Se está usando un valor aproximado de referencia."
+                    : "✅ Tipo de cambio actualizado correctamente.";
+                
+                $status = $usoFallback ? 'warning' : 'success';
+                
+                return response()->json([
+                    'success' => true,
+                    'status' => $status,
+                    'message' => $mensaje,
+                    'data' => [
+                        'valor' => $tipoCambio->valor_formateado,
+                        'fecha' => $tipoCambio->fecha_formateada,
+                        'es_hoy' => $esHoy,
+                        'uso_fallback' => $usoFallback,
+                        'detalle' => $usoFallback 
+                            ? 'Los valores de referencia se basan en promedios históricos del tipo de cambio GTQ/USD.'
+                            : 'Información obtenida directamente del Banco de Guatemala.'
+                    ],
+                    'output' => $output
+                ]);
+            } else {
+                Log::error('No se pudo obtener ningún tipo de cambio, ni siquiera el fallback');
+                return response()->json([
+                    'success' => false,
+                    'message' => '❌ Error grave: No se pudo obtener ningún tipo de cambio.',
+                    'output' => $output
+                ], 500);
+            }
             
         } catch (\Exception $e) {
+            Log::error('Error al actualizar tipo de cambio: ' . $e->getMessage());
+            
+            // Intentar obtener el último disponible como respaldo
+            $tipoCambio = TipoCambio::ultimoDisponible();
+            
+            if ($tipoCambio) {
+                return response()->json([
+                    'success' => true,
+                    'status' => 'warning',
+                    'message' => '⚠️ No se pudo actualizar, pero hay un tipo de cambio disponible.',
+                    'data' => [
+                        'valor' => $tipoCambio->valor_formateado,
+                        'fecha' => $tipoCambio->fecha_formateada,
+                        'es_hoy' => $tipoCambio->fecha === now()->toDateString(),
+                        'uso_fallback' => true
+                    ]
+                ]);
+            }
+            
             return response()->json([
                 'success' => false,
-                'message' => 'Error al actualizar el tipo de cambio: ' . $e->getMessage()
+                'message' => '❌ Error al actualizar el tipo de cambio: ' . $e->getMessage(),
             ], 500);
         }
     }

@@ -71,20 +71,26 @@ function actualizarTipoCambio() {
     btn.disabled = true;
     
     // Hacer petición AJAX para actualizar
-    fetch('/api/tipo-cambio/actualizar', {
+    fetch('/api/tipo-cambio/test-actualizar', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
         }
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            // Mostrar mensaje personalizado según el estado
+            if (data.status === 'warning') {
+                alert('⚠️ ' + data.message + '\n\n' + (data.data?.detalle || ''));
+            } else {
+                alert('✅ ' + data.message);
+            }
             // Recargar la página para mostrar el nuevo valor
             window.location.reload();
         } else {
-            alert('Error al actualizar: ' + (data.message || 'Error desconocido'));
+            alert('❌ Error al actualizar: ' + (data.message || 'Error desconocido'));
         }
     })
     .catch(error => {
