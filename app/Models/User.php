@@ -129,9 +129,10 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Check if user is admin
      */
-    public function isAdmin(): bool
+    public function isAdmin()
     {
-        return $this->role === 'admin';
+        // Adjust this logic based on your application's admin identification
+        return $this->role === 'admin' || $this->is_admin === true;
     }
 
     /**
@@ -297,6 +298,7 @@ class User extends Authenticatable implements MustVerifyEmail
         
         return $modules;
     }
+ 
 
     /**
      * Get available roles from database
