@@ -23,6 +23,7 @@ use App\Http\Controllers\UnidadProduccionController;
 use App\Http\Controllers\TrazabilidadCosechaController;
 use App\Http\Controllers\LoteController;
 use App\Http\Controllers\VentaController;
+use App\Http\Controllers\ProveedorController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -344,6 +345,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('acciones_correctivas/{accion}/seguimiento/{seguimiento}/editar', [AccionCorrectivaController::class, 'editarSeguimiento'])->name('acciones_correctivas.editarSeguimiento');
     Route::put('acciones_correctivas/{accion}/seguimiento/{seguimiento}', [AccionCorrectivaController::class, 'actualizarSeguimiento'])->name('acciones_correctivas.actualizarSeguimiento');
     Route::delete('acciones_correctivas/{accion}/seguimiento/{seguimiento}', [AccionCorrectivaController::class, 'eliminarSeguimiento'])->name('acciones_correctivas.eliminarSeguimiento');
+});
+
+// Rutas de Proveedores
+Route::middleware(['auth'])->group(function () {
+    Route::resource('proveedores', ProveedorController::class)->parameters([
+        'proveedores' => 'proveedor'
+    ]);
+    Route::patch('proveedores/{proveedor}/cambiar-estado', [ProveedorController::class, 'cambiarEstado'])->name('proveedores.cambiar-estado');
+    Route::patch('proveedores/{proveedor}/evaluar', [ProveedorController::class, 'evaluar'])->name('proveedores.evaluar');
 });
 
 

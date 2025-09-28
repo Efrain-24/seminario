@@ -85,7 +85,7 @@
 
                         <!-- Submódulo Gestión de Proveedores -->
                         <div class="group relative">
-                            <a href="#" class="block">
+                            <a href="{{ route('proveedores.index') }}" class="block">
                                 <div class="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/30 rounded-xl p-6 border border-amber-200 dark:border-amber-700 hover:shadow-lg transition-all duration-300 group-hover:scale-105">
                                     <div class="flex items-center justify-between mb-4">
                                         <div class="w-12 h-12 bg-amber-500 rounded-lg flex items-center justify-center">

@@ -87,6 +87,7 @@
                             'color' => 'from-cyan-500 to-blue-600',
                             'available' => true,
                         ],
+
                     ];
                     $userModules = $moduleDefinitions; // ahora todos disponibles
                 @endphp
