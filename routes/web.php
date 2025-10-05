@@ -1,7 +1,5 @@
 <?php
 
-// Historial de limpiezas por unidad
-Route::get('/limpieza/historial-unidad/{codigo}', [App\Http\Controllers\LimpiezaController::class, 'historialUnidad'])->name('limpieza.historial_unidad');
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
@@ -41,6 +39,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('clientes/buscar', [ClienteController::class, 'search'])->name('clientes.search'); // ruta ajax
     Route::resource('clientes', App\Http\Controllers\ClienteController::class);
 });
+// Historial de limpiezas por unidad
+Route::get('/limpieza/historial-unidad/{codigo}', [App\Http\Controllers\LimpiezaController::class, 'historialUnidad'])->name('limpieza.historial_unidad');
 
 
 // Ocultar módulos de aplicación por rol
@@ -400,4 +400,114 @@ Route::middleware(['auth'])->prefix('bitacora')->name('bitacora.')->group(functi
 // Rutas para eliminar seguimientos
 Route::delete('/seguimientos/{seguimiento}', [App\Http\Controllers\SeguimientoController::class, 'destroy'])->name('seguimientos.destroy');
 
+// Rutas de Reportes
+Route::middleware(['auth', 'redirect.temp.password'])->prefix('reportes')->name('reportes.')->group(function () {
+    // Reportes de Ganancias (usando funciones temporalmente)
+    Route::get('/ganancias', function () {
+        $unidades = \App\Models\UnidadProduccion::all();
+        $lotes = \App\Models\Lote::with(['unidadProduccion'])->orderBy('created_at', 'desc')->get();
+        return view('reportes.ganancias.index', compact('unidades', 'lotes'));
+    })->name('ganancias');
+    
+    Route::get('/ganancias/{lote}', function (\App\Models\Lote $lote) {
+        // Cargar relaciones necesarias
+        $lote->load(['alimentaciones.tipoAlimento', 'ventas', 'unidadProduccion']);
+        
+        // Calcular costos detallados
+        $totalAlimentacion = $lote->alimentaciones->sum('costo_total');
+        
+        // Obtener mantenimientos de la unidad de producción (filtrar por fechas relevantes del lote si es necesario)
+        $mantenimientos = collect();
+        if ($lote->unidadProduccion) {
+            $mantenimientos = \App\Models\MantenimientoUnidad::where('unidad_produccion_id', $lote->unidad_produccion_id)
+                ->where('estado_mantenimiento', 'completado')
+                ->get();
+        }
+        $totalMantenimientos = $mantenimientos->sum('costo_mantenimiento') ?? 0;
+        
+        // Obtener limpiezas (filtrar por fechas relevantes del lote si es necesario)
+        $limpiezas = collect();
+        // Nota: Las limpiezas pueden no estar directamente relacionadas con lotes
+        $totalLimpiezas = 0; // Por ahora, dejar en 0 hasta definir la relación correcta
+        
+        $precioCompraLote = $lote->precio_compra ?? 0;
+        
+        $totalCostos = $precioCompraLote + $totalAlimentacion + $totalMantenimientos + $totalLimpiezas;
+        $totalVentas = $lote->ventas->sum('total_venta');
+        $gananciaReal = $totalVentas - $totalCostos;
+        $margenGanancia = $totalVentas > 0 ? ($gananciaReal / $totalVentas) * 100 : 0;
+        
+        // Preparar desglose financiero
+        $desglose = [
+            'precio_compra_lote' => $precioCompraLote,
+            'total_alimentacion' => $totalAlimentacion,
+            'total_mantenimientos' => $totalMantenimientos,
+            'total_limpiezas' => $totalLimpiezas,
+            'total_costos' => $totalCostos,
+            'total_ventas' => $totalVentas,
+            'ganancia_real' => $gananciaReal,
+            'margen_ganancia' => $margenGanancia
+        ];
+        
+        // Preparar detalles para las tablas
+        $alimentacionDetalle = $lote->alimentaciones->map(function ($alimentacion) {
+            return [
+                'fecha' => $alimentacion->fecha_alimentacion ? $alimentacion->fecha_alimentacion->format('d/m/Y') : 'N/A',
+                'producto' => $alimentacion->tipoAlimento->nombre ?? 'N/A',
+                'cantidad' => $alimentacion->cantidad_kg ?? 0,
+                'costo' => $alimentacion->costo_total ?? 0
+            ];
+        });
+        
+        $mantenimientoDetalle = $mantenimientos->map(function ($mantenimiento) {
+            return [
+                'fecha' => $mantenimiento->fecha_mantenimiento ? $mantenimiento->fecha_mantenimiento->format('d/m/Y') : 'N/A',
+                'tipo' => $mantenimiento->tipo_mantenimiento ?? 'N/A',
+                'descripcion' => $mantenimiento->descripcion_trabajo ?? 'N/A',
+                'costo' => $mantenimiento->costo_mantenimiento ?? 0
+            ];
+        });
+        
+        $limpiezaDetalle = $limpiezas->map(function ($limpieza) {
+            return [
+                'fecha' => $limpieza->fecha ? $limpieza->fecha->format('d/m/Y') : 'N/A',
+                'tipo' => 'Limpieza',
+                'productos' => $limpieza->observaciones ?? 'N/A',
+                'costo' => 0 // Las limpiezas pueden no tener costo directo
+            ];
+        });
+        
+        $ventasDetalle = $lote->ventas->map(function ($venta) {
+            return [
+                'fecha' => $venta->fecha_venta,
+                'codigo' => $venta->codigo_venta ?? 'N/A',
+                'cliente' => $venta->cliente ?? 'N/A',
+                'peso_kg' => $venta->cantidad_vendida ?? 0,
+                'precio_kg' => $venta->precio_unitario ?? 0,
+                'total' => $venta->total_venta ?? 0,
+                'estado' => $venta->estado ?? 'completada'
+            ];
+        });
+        
+        return view('reportes.ganancias.reporte', compact(
+            'lote', 
+            'desglose', 
+            'alimentacionDetalle', 
+            'mantenimientoDetalle', 
+            'limpiezaDetalle', 
+            'ventasDetalle'
+        ));
+    })->name('ganancias.reporte');
+    
+    // Panel de Reportes
+    Route::get('/panel', function () {
+        return view('reportes.panel');
+    })->name('panel');
+    
+    // Reportes de Usuarios (futuro)
+    Route::get('/usuarios', function () {
+        return view('reportes.usuarios.index');
+    })->name('usuarios');
+});
 
+require __DIR__ . '/auth.php';

@@ -1,64 +1,5 @@
 @extends('layouts.app')
 
-@section('content')
-    <div class="container mx-auto py-8">
-        <h1 class="text-2xl font-bold mb-6">Detalle de Ganancias del Lote</h1>
-        <div class="bg-white dark:bg-gray-800 shadow rounded p-6">
-            <h2 class="text-lg font-semibold mb-4">Tanque/Lote: {{ $lote->codigo_lote }}</h2>
-            <p><strong>Especie:</strong> {{ $lote->especie }}</p>
-            <p><strong>Fecha Inicio:</strong> {{ $lote->fecha_inicio ? $lote->fecha_inicio->format('d/m/Y') : '-' }}</p>
-            <p><strong>Costo Total:</strong> ${{ number_format($lote->costo_total, 2) }}</p>
-            <p><strong>Ventas:</strong> ${{ number_format($lote->ventas_total, 2) }}</p>
-            <p><strong>Ganancia Real:</strong> ${{ number_format($lote->ganancia_real, 2) }}</p>
-        </div>
-        <div class="mt-8">
-            <h3 class="text-md font-bold mb-2">Detalle de Alimentaciones</h3>
-            <table class="min-w-full bg-white dark:bg-gray-800 rounded shadow mb-6">
-                <thead>
-                    <tr>
-                        <th class="px-4 py-2">Fecha</th>
-                        <th class="px-4 py-2">Tipo Alimento</th>
-                        <th class="px-4 py-2">Cantidad (kg)</th>
-                        <th class="px-4 py-2">Costo</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($lote->alimentaciones as $alimentacion)
-                        <tr>
-                            <td class="border px-4 py-2">{{ $alimentacion->fecha_alimentacion ? $alimentacion->fecha_alimentacion->format('d/m/Y') : '-' }}</td>
-                            <td class="border px-4 py-2">{{ $alimentacion->tipoAlimento->nombre ?? '-' }}</td>
-                            <td class="border px-4 py-2">{{ number_format($alimentacion->cantidad_kg, 2) }}</td>
-                            <td class="border px-4 py-2">${{ number_format($alimentacion->costo_total, 2) }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-            <h3 class="text-md font-bold mb-2">Detalle de Ventas</h3>
-            <table class="min-w-full bg-white dark:bg-gray-800 rounded shadow">
-                <thead>
-                    <tr>
-                        <th class="px-4 py-2">Fecha</th>
-                        <th class="px-4 py-2">Cantidad Vendida</th>
-                        <th class="px-4 py-2">Precio Unitario</th>
-                        <th class="px-4 py-2">Total Venta</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($lote->ventas as $venta)
-                        <tr>
-                            <td class="border px-4 py-2">{{ $venta->fecha_venta ? $venta->fecha_venta->format('d/m/Y') : '-' }}</td>
-                            <td class="border px-4 py-2">{{ $venta->cantidad_vendida }}</td>
-                            <td class="border px-4 py-2">${{ number_format($venta->precio_unitario, 2) }}</td>
-                            <td class="border px-4 py-2">${{ number_format($venta->total_venta, 2) }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
-@endsection
-@extends('layouts.app')
-
 @section('title', 'Reporte de Ganancias - ' . $lote->codigo)
 
 @section('content')
@@ -70,7 +11,7 @@
                 <h1 class="text-2xl font-bold text-gray-800">
                     📈 Reporte de Ganancias
                 </h1>
-                <h2 class="text-xl text-gray-600">Lote: {{ $lote->codigo }}</h2>
+                <h2 class="text-xl text-gray-600">Lote: {{ $lote->codigo_lote ?? $lote->codigo }}</h2>
                 <p class="text-gray-500">Tanque: {{ $lote->unidadProduccion->nombre ?? 'N/A' }}</p>
             </div>
             <div class="text-right">
