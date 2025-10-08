@@ -18,6 +18,10 @@ class ReporteGananciasController extends Controller
     {
         return $this->generarReporte($loteId);
     }
+
+    /**
+     * Mostrar listado general con resumen de ganancias por lote
+     */
     public function index(Request $request)
     {
         $unidades = UnidadProduccion::all();
@@ -26,27 +30,36 @@ class ReporteGananciasController extends Controller
         $grafica = null;
         $loteResumen = null;
 
-        $query = Lote::with(['unidadProduccion', 'alimentaciones', 'ventas', 'mantenimientos', 'limpiezas'])->orderBy('created_at', 'desc');
+        $query = Lote::with(['unidadProduccion', 'alimentaciones', 'ventas', 'mantenimientos', 'limpiezas'])
+            ->orderBy('created_at', 'desc');
+
         if ($request->filled('unidad')) {
             $query->where('unidad_produccion_id', $request->input('unidad'));
         }
+
         $lotes = $query->get();
 
         if ($request->filled('lote_id')) {
             $loteResumen = $lotes->where('id', $request->input('lote_id'))->first();
+
             if ($loteResumen) {
                 $costoAlimentacion = $loteResumen->alimentaciones->sum('costo_total');
-                $costoProtocolos = ($loteResumen->mantenimientos->sum('costo_total') ?? 0) + ($loteResumen->limpiezas->sum('costo_total') ?? 0);
+                $costoProtocolos = ($loteResumen->mantenimientos->sum('costo_total') ?? 0)
+                                 + ($loteResumen->limpiezas->sum('costo_total') ?? 0);
                 $totalVenta = $loteResumen->ventas->sum('total_venta');
                 $totalCostos = $costoAlimentacion + $costoProtocolos + ($loteResumen->precio_compra ?? 0);
+
                 $ganancia = $totalVenta - $totalCostos;
                 $margen = $totalVenta > 0 ? ($ganancia / $totalVenta) * 100 : 0;
+
                 $vendido = $totalVenta > 0;
                 $estimado = null;
-                if(!$vendido && $loteResumen->ventas->count() > 0) {
+
+                if (!$vendido && $loteResumen->ventas->count() > 0) {
                     $promedio = $loteResumen->ventas->avg('precio_unitario');
                     $estimado = $promedio * ($loteResumen->cantidad_total ?? 0);
                 }
+
                 $resumen = [
                     'costoAlimentacion' => $costoAlimentacion,
                     'costoProtocolos' => $costoProtocolos,
@@ -57,8 +70,9 @@ class ReporteGananciasController extends Controller
                     'vendido' => $vendido,
                     'estimado' => $estimado
                 ];
+
                 $grafica = [
-                    'labels' => ['Alimentación', 'Protocolos', 'Total Costos', 'Venta', 'Ganancia'],
+                    'labels' => ['Alimentación', 'Protocolos', 'Costos Totales', 'Venta', 'Ganancia'],
                     'data' => [
                         $costoAlimentacion,
                         $costoProtocolos,
@@ -73,21 +87,20 @@ class ReporteGananciasController extends Controller
         return view('reportes.ganancias.index', compact('lotes', 'unidades', 'resumen', 'grafica', 'loteResumen'));
     }
 
+    /**
+     * Generar el reporte detallado del lote
+     */
     public function generarReporte($loteId)
     {
         $lote = Lote::with(['unidadProduccion', 'ventas', 'alimentaciones.inventarioItem', 'seguimientos'])
             ->findOrFail($loteId);
 
-        // 1. Precio de compra inicial del lote (alevines)
         $precioCompraLote = $lote->precio_compra ?? 0;
-
-        // 2. Costos de alimentación
         $totalAlimentacion = $lote->alimentaciones->sum('costo_total');
 
-        // 3. Costos de mantenimiento y limpieza del tanque
         $fechaInicio = $lote->fecha_siembra ?? $lote->created_at;
         $fechaFin = $lote->fecha_cosecha ?? now();
-        
+
         $totalMantenimientos = MantenimientoUnidad::where('unidad_produccion_id', $lote->unidad_produccion_id)
             ->whereBetween('fecha', [$fechaInicio, $fechaFin])
             ->sum('costo_total');
@@ -96,15 +109,11 @@ class ReporteGananciasController extends Controller
             ->whereBetween('fecha', [$fechaInicio, $fechaFin])
             ->sum('costo_total');
 
-        // 4. Total de ventas del lote
         $totalVentas = $lote->ventas->sum('total_venta');
-
-        // 5. Cálculos finales
         $totalCostos = $precioCompraLote + $totalAlimentacion + $totalMantenimientos + $totalLimpiezas;
         $gananciaReal = $totalVentas - $totalCostos;
         $margenGanancia = $totalVentas > 0 ? ($gananciaReal / $totalVentas) * 100 : 0;
 
-        // Desglose detallado
         $desglose = [
             'precio_compra_lote' => $precioCompraLote,
             'total_alimentacion' => $totalAlimentacion,
@@ -116,8 +125,7 @@ class ReporteGananciasController extends Controller
             'margen_ganancia' => $margenGanancia
         ];
 
-        // Obtener detalles de alimentación por fecha
-        $alimentacionDetalle = $lote->alimentaciones->map(function($alimentacion) {
+        $alimentacionDetalle = $lote->alimentaciones->map(function ($alimentacion) {
             return [
                 'fecha' => $alimentacion->fecha,
                 'cantidad' => $alimentacion->cantidad,
@@ -126,11 +134,10 @@ class ReporteGananciasController extends Controller
             ];
         });
 
-        // Obtener detalles de mantenimientos
         $mantenimientoDetalle = MantenimientoUnidad::where('unidad_produccion_id', $lote->unidad_produccion_id)
             ->whereBetween('fecha', [$fechaInicio, $fechaFin])
             ->get()
-            ->map(function($mantenimiento) {
+            ->map(function ($mantenimiento) {
                 return [
                     'fecha' => $mantenimiento->fecha,
                     'tipo' => $mantenimiento->tipo_mantenimiento,
@@ -139,11 +146,10 @@ class ReporteGananciasController extends Controller
                 ];
             });
 
-        // Obtener detalles de limpiezas
         $limpiezaDetalle = Limpieza::where('unidad_produccion_id', $lote->unidad_produccion_id)
             ->whereBetween('fecha', [$fechaInicio, $fechaFin])
             ->get()
-            ->map(function($limpieza) {
+            ->map(function ($limpieza) {
                 return [
                     'fecha' => $limpieza->fecha,
                     'tipo' => $limpieza->tipo_limpieza,
@@ -152,8 +158,7 @@ class ReporteGananciasController extends Controller
                 ];
             });
 
-        // Obtener detalles de ventas
-        $ventasDetalle = $lote->ventas->map(function($venta) {
+        $ventasDetalle = $lote->ventas->map(function ($venta) {
             return [
                 'fecha' => $venta->fecha_venta,
                 'codigo' => $venta->codigo_venta,
@@ -166,7 +171,12 @@ class ReporteGananciasController extends Controller
         });
 
         return view('reportes.ganancias.reporte', compact(
-            'lote', 'desglose', 'alimentacionDetalle', 'mantenimientoDetalle', 'limpiezaDetalle', 'ventasDetalle'
+            'lote',
+            'desglose',
+            'alimentacionDetalle',
+            'mantenimientoDetalle',
+            'limpiezaDetalle',
+            'ventasDetalle'
         ));
     }
 }

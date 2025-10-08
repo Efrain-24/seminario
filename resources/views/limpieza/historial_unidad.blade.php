@@ -1,5 +1,11 @@
 @extends('layouts.app')
 @section('content')
+
+<!-- Notificaciones -->
+<x-notification type="success" :message="session('success')" />
+<x-notification type="error" :message="session('error')" />
+<x-notification type="warning" :message="session('warning')" />
+
 <div class="max-w-5xl mx-auto py-8">
     <h2 class="text-2xl font-bold mb-6">Historial de Limpiezas - Unidad: {{ $unidad->codigo }}</h2>
     <div class="bg-white shadow rounded-lg p-6">

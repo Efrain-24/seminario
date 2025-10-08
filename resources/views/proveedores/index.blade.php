@@ -1,5 +1,13 @@
 <x-app-layout>
-    <x-slot name="header">
+    <x-sl        </div>
+    </x-slot>
+    
+    <!-- Notificaciones -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+    <x-notification type="warning" :message="session('warning')" />
+
+    <div class="py-12">ame="header">
         <div class="flex justify-between items-center">
             <div class="flex items-center">
                 <a href="{{ route('compras.panel') }}" class="mr-4 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">

@@ -22,6 +22,11 @@
         </div>
     </x-slot>
 
+    <!-- Notificaciones -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+    <x-notification type="warning" :message="session('warning')" />
+
     <div class="py-8 max-w-7xl mx-auto px-4">
         @if (session('success'))
             <div class="mb-6 rounded-lg p-4 bg-green-50 border border-green-200 dark:bg-green-900/30 dark:border-green-700">

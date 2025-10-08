@@ -36,7 +36,7 @@
                                         Lote <span class="text-red-500">*</span>
                                     </label>
                                     <select name="lote_id" id="lote_id" required
-                                            class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('lote_id') border-red-500 @enderror">
+                                            class="block w-full dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm {{ $errors->has('lote_id') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500' }}">
                                         <option value="">Selecciona un lote</option>
                                         @foreach($lotes as $lote)
                                             <option value="{{ $lote->id }}" {{ old('lote_id') == $lote->id ? 'selected' : '' }}>
@@ -54,7 +54,7 @@
                                         Bodega <span class="text-red-500">*</span>
                                     </label>
                                     <select name="bodega_id" id="bodega_id" required onchange="actualizarAlimentosPorBodega()"
-                                            class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('bodega_id') border-red-500 @enderror">
+                                            class="block w-full dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm {{ $errors->has('bodega_id') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500' }}">
                                         <option value="">Selecciona una bodega</option>
                                         @foreach($bodegas as $bodega)
                                             <option value="{{ $bodega->id }}" {{ old('bodega_id') == $bodega->id ? 'selected' : '' }}>
@@ -73,7 +73,7 @@
                                         Alimento del Inventario <span class="text-red-500">*</span>
                                     </label>
                                     <select name="inventario_item_id" id="inventario_item_id" required
-                                            class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('inventario_item_id') border-red-500 @enderror">
+                                            class="block w-full dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm {{ $errors->has('inventario_item_id') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500' }}">
                                         <option value="">Primero selecciona una bodega</option>
                                     </select>
                                     @error('inventario_item_id')
@@ -88,7 +88,7 @@
                                     <input type="date" name="fecha_alimentacion" id="fecha_alimentacion" 
                                            value="{{ old('fecha_alimentacion', now()->format('Y-m-d')) }}" 
                                            max="{{ now()->format('Y-m-d') }}" required
-                                           class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('fecha_alimentacion') border-red-500 @enderror">
+                                           class="block w-full dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm {{ $errors->has('fecha_alimentacion') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500' }}">
                                     @error('fecha_alimentacion')
                                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                     @enderror
@@ -101,7 +101,7 @@
                                     </label>
                                     <input type="time" name="hora_alimentacion" id="hora_alimentacion" 
                                            value="{{ old('hora_alimentacion', now()->format('H:i')) }}" required
-                                           class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('hora_alimentacion') border-red-500 @enderror">
+                                           class="block w-full dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm {{ $errors->has('hora_alimentacion') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500' }}">
                                     @error('hora_alimentacion')
                                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                     @enderror
@@ -122,7 +122,7 @@
                                     </label>
                                     <input type="number" name="cantidad_kg" id="cantidad_kg" step="0.01" min="0.01" 
                                            value="{{ old('cantidad_kg') }}" required
-                                           class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('cantidad_kg') border-red-500 @enderror"
+                                           class="block w-full dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm {{ $errors->has('cantidad_kg') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500' }}"
                                            placeholder="Ej: 5.5">
                                     @error('cantidad_kg')
                                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -140,7 +140,7 @@
                                         Método <span class="text-red-500">*</span>
                                     </label>
                                     <select name="metodo_alimentacion" id="metodo_alimentacion" required
-                                            class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('metodo_alimentacion') border-red-500 @enderror">
+                                            class="block w-full dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm {{ $errors->has('metodo_alimentacion') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500' }}">
                                         @foreach(App\Models\Alimentacion::getMetodosAlimentacion() as $key => $label)
                                             <option value="{{ $key }}" {{ old('metodo_alimentacion', 'manual') == $key ? 'selected' : '' }}>
                                                 {{ $label }}
@@ -165,7 +165,7 @@
                                         Estado de los Peces
                                     </label>
                                     <select name="estado_peces" id="estado_peces"
-                                            class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('estado_peces') border-red-500 @enderror">
+                                            class="block w-full dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm {{ $errors->has('estado_peces') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500' }}">
                                         <option value="">No especificado</option>
                                         @foreach(App\Models\Alimentacion::getEstadosPeces() as $key => $label)
                                             <option value="{{ $key }}" {{ old('estado_peces') == $key ? 'selected' : '' }}>
@@ -185,7 +185,7 @@
                                     </label>
                                     <input type="number" name="porcentaje_consumo" id="porcentaje_consumo" min="0" max="100" 
                                            value="{{ old('porcentaje_consumo') }}"
-                                           class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('porcentaje_consumo') border-red-500 @enderror">
+                                           class="block w-full dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm {{ $errors->has('porcentaje_consumo') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500' }}">
                                     @error('porcentaje_consumo')
                                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                     @enderror
@@ -203,7 +203,7 @@
                                     Observaciones
                                 </label>
                                 <textarea name="observaciones" id="observaciones" rows="4" 
-                                          class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('observaciones') border-red-500 @enderror"
+                                          class="block w-full dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm {{ $errors->has('observaciones') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500' }}"
                                           placeholder="Observaciones sobre el comportamiento de los peces, condiciones ambientales, incidencias, etc.">{{ old('observaciones') }}</textarea>
                                 @error('observaciones')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>

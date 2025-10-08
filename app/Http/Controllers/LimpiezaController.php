@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\UnidadProduccion;
 use App\Models\Bodega;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class LimpiezaController extends Controller
 {
@@ -16,7 +17,7 @@ class LimpiezaController extends Controller
      */
     public function eliminarMantenimiento($id)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         if (!$user || $user->role !== 'gerente') {
             return redirect()->route('limpieza.index')->with('error', 'No tienes permisos para eliminar mantenimientos.');
         }
@@ -44,7 +45,7 @@ class LimpiezaController extends Controller
             $limpieza->save();
             // Registrar en bitácora
             \App\Models\Bitacora::create([
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'accion' => 'completado limpieza',
                 'detalles' => "modulo: Limpieza | documento: Limpieza #{$limpieza->id} | estado: completado | fecha: " . now()->format('Y-m-d H:i:s'),
             ]);
@@ -67,7 +68,7 @@ class LimpiezaController extends Controller
             $mantenimiento->save();
             // Registrar en bitácora
             \App\Models\Bitacora::create([
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'accion' => 'completado mantenimiento',
                 'detalles' => "modulo: Mantenimiento | documento: Mantenimiento #{$mantenimiento->id} | estado: completado | fecha: " . now()->format('Y-m-d H:i:s'),
             ]);
@@ -279,7 +280,7 @@ class LimpiezaController extends Controller
         }
 
         Limpieza::create($data);
-        return redirect()->route('limpieza.index');
+        return redirect()->route('limpieza.index')->with('success', 'Registro de limpieza creado exitosamente.');
     }
 
     public function show(Limpieza $limpieza)

@@ -4,6 +4,12 @@
             Crear Nueva Versión: {{ $protocoloSanidad->nombre }} (v{{ $protocoloSanidad->version }})
         </h2>
     </x-slot>
+
+    <!-- Notificaciones -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+    <x-notification type="warning" :message="session('warning')" />
+
     <div class="py-8 max-w-2xl mx-auto px-4">
         <!-- Información de la versión actual -->
         <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6">

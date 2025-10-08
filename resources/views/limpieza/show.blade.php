@@ -2,6 +2,12 @@
     <x-slot name="header">
         <h2 class="text-xl font-semibold leading-tight text-gray-900 dark:text-gray-100">Detalle del Registro de Limpieza</h2>
     </x-slot>
+
+    <!-- Notificaciones -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+    <x-notification type="warning" :message="session('warning')" />
+
     <div class="py-8 max-w-2xl mx-auto px-4">
         <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
             <div class="space-y-4">
@@ -41,9 +47,9 @@
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Estado de Ejecución</label>
                     <div class="w-full rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-2">
                         <span class="inline-flex px-3 py-1 text-sm rounded-full font-medium
-                            @if($limpieza->estado === 'completado') bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200
-                            @elseif($limpieza->estado === 'en_progreso') bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200
-                            @else bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 @endif">
+                            {{ $limpieza->estado === 'completado' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 
+                               ($limpieza->estado === 'en_progreso' ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200' : 
+                                'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300') }}">
                             @if($limpieza->estado === 'no_ejecutado') No Ejecutado
                             @elseif($limpieza->estado === 'en_progreso') En Progreso
                             @else Completado @endif

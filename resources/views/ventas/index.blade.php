@@ -3,6 +3,12 @@
 @section('title', 'Gestión de Ventas')
 
 @section('content')
+
+<!-- Notificaciones -->
+<x-notification type="success" :message="session('success')" />
+<x-notification type="error" :message="session('error')" />
+<x-notification type="warning" :message="session('warning')" />
+
 <div class="container mx-auto px-6 py-8">
     <div class="flex justify-between items-center mb-8">
         <div>

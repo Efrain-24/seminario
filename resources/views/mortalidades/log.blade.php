@@ -1,6 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
+
+<!-- Notificaciones -->
+<x-notification type="success" :message="session('success')" />
+<x-notification type="error" :message="session('error')" />
+<x-notification type="warning" :message="session('warning')" />
+
 <div class="max-w-4xl mx-auto py-8 px-4">
     <h2 class="text-2xl font-bold mb-4">Log de Mortalidad del Lote: {{ $lote->nombre ?? $lote->codigo_lote }}</h2>
     <div class="mb-4">

@@ -2,6 +2,12 @@
     <x-slot name="header">
         <h2 class="text-xl font-semibold leading-tight text-gray-900 dark:text-gray-100">Nuevo Protocolo de Sanidad</h2>
     </x-slot>
+    
+    <!-- Notificaciones -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+    <x-notification type="warning" :message="session('warning')" />
+    
     <div class="py-8 max-w-4xl mx-auto px-4">
         <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
             <form action="{{ route('protocolo-sanidad.store') }}" method="POST" class="space-y-6">
@@ -22,6 +28,7 @@
                             Fecha de Implementación <span class="text-red-500">*</span>
                         </label>
                         <input type="date" id="fecha_implementacion" name="fecha_implementacion" 
+                               value="{{ old('fecha_implementacion', now()->format('Y-m-d')) }}"
                                class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
                     </div>
                 </div>

@@ -3,6 +3,12 @@
 @section('title', 'Nueva Venta')
 
 @section('content')
+
+<!-- Notificaciones -->
+<x-notification type="success" :message="session('success')" />
+<x-notification type="error" :message="session('error')" />
+<x-notification type="warning" :message="session('warning')" />
+
 <div class="container" style="max-width: 800px; margin: 0 auto;">
     <form action="{{ route('ventas.store') }}" method="POST" id="form-venta">
         @csrf

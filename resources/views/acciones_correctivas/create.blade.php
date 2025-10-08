@@ -2,6 +2,12 @@
     <x-slot name="header">
         <h2 class="text-xl font-semibold leading-tight text-gray-900 dark:text-gray-100">Registrar Acción Correctiva</h2>
     </x-slot>
+
+    <!-- Notificaciones -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+    <x-notification type="warning" :message="session('warning')" />
+
     <div class="py-8 max-w-2xl mx-auto px-4">
         <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
             <form action="{{ route('acciones_correctivas.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
@@ -36,7 +42,7 @@
                 </div>
                 <div>
                     <label for="fecha_prevista" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Fecha Prevista</label>
-                    <input type="date" name="fecha_prevista" id="fecha_prevista" class="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-2" value="{{ old('fecha_prevista') }}" required>
+                    <input type="date" name="fecha_prevista" id="fecha_prevista" class="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-2" value="{{ old('fecha_prevista', now()->format('Y-m-d')) }}" required>
                     @error('fecha_prevista')
                         <div class="text-red-600 dark:text-red-400 text-sm">{{ $message }}</div>
                     @enderror

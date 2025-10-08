@@ -1,5 +1,11 @@
 @extends('layouts.app')
 @section('content')
+
+<!-- Notificaciones -->
+<x-notification type="success" :message="session('success')" />
+<x-notification type="error" :message="session('error')" />
+<x-notification type="warning" :message="session('warning')" />
+
 <div class="container mx-auto py-8">
     <h2 class="text-2xl font-bold mb-4">Protocolos asignados a la unidad: {{ $unidad->codigo }}</h2>
     @if($protocolos->count() === 0)

@@ -5,6 +5,11 @@
         </h2>
     </x-slot>
 
+    <!-- Notificaciones -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+    <x-notification type="warning" :message="session('warning')" />
+
     <div class="py-8 max-w-7xl mx-auto px-4">
         @if (session('error'))
             <div class="mb-4 rounded p-3 bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200">
@@ -65,7 +70,7 @@
                     class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 text-gray-900 dark:text-gray-100" 
                     id="fecha_cosecha" 
                     name="fecha_cosecha" 
-                    value="{{ old('fecha_cosecha', isset($trazabilidad) ? $trazabilidad->fecha_cosecha->format('Y-m-d') : '') }}"
+                    value="{{ old('fecha_cosecha', isset($trazabilidad) ? $trazabilidad->fecha_cosecha->format('Y-m-d') : now()->format('Y-m-d')) }}"
                     required>
                         </div>
 

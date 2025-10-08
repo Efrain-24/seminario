@@ -1,6 +1,12 @@
 @extends('layouts.app')
 @section('title','Entradas de Inventario')
 @section('content')
+
+<!-- Notificaciones -->
+<x-notification type="success" :message="session('success')" />
+<x-notification type="error" :message="session('error')" />
+<x-notification type="warning" :message="session('warning')" />
+
 <div class="container mx-auto max-w-6xl">
     <div class="flex justify-between items-center mb-4">
         <h1 class="text-2xl font-bold">Entradas</h1>

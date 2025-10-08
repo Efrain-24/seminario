@@ -1,4 +1,11 @@
-<x-app-layout>
+<x-    </x-slot>
+
+    <!-- Notificaciones -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+    <x-notification type="warning" :message="session('warning')" />
+
+    <div class="py-12">-layout>
     <x-slot name="header">
     <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Editar Lote: {{ $lote->codigo_lote }} (ID: {{ $lote->id }})</h2>
     </x-slot>
