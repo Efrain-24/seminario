@@ -21,10 +21,7 @@
             </div>
             <div class="flex items-center space-x-2 text-sm">
                 <span class="px-3 py-1 rounded-full text-white
-                    @if($tipo === 'entrada') bg-emerald-500
-                    @elseif($tipo === 'salida') bg-rose-500
-                    @else bg-indigo-500
-                    @endif">
+                    {{ $tipo === 'entrada' ? 'bg-emerald-500' : ($tipo === 'salida' ? 'bg-rose-500' : 'bg-indigo-500') }}">
                     {{ ucfirst($tipo) }}
                 </span>
             </div>
@@ -332,10 +329,7 @@
                     
                     <button type="submit"
                         class="inline-flex items-center px-6 py-2 rounded-lg shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2
-                        @if($tipo === 'entrada') bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500
-                        @elseif($tipo === 'salida') bg-rose-600 hover:bg-rose-700 focus:ring-rose-500
-                        @else bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500
-                        @endif">
+                        {{ $tipo === 'entrada' ? 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500' : ($tipo === 'salida' ? 'bg-rose-600 hover:bg-rose-700 focus:ring-rose-500' : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500') }}">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
