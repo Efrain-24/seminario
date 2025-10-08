@@ -12,6 +12,11 @@
         </div>
     </x-slot>
 
+    <!-- Notificaciones -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+    <x-notification type="warning" :message="session('warning')" />
+
     <div class="py-8 max-w-4xl mx-auto px-4">
         @if($notificaciones->count() > 0)
             <!-- Información del sistema automático -->

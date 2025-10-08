@@ -4,6 +4,12 @@
 @section('title', 'Factura de Venta - ' . $venta->codigo_venta)
 
 @section('content')
+
+<!-- Notificaciones -->
+<x-notification type="success" :message="session('success')" />
+<x-notification type="error" :message="session('error')" />
+<x-notification type="warning" :message="session('warning')" />
+
 <div class="container" style="max-width: 800px; margin: 0 auto;">
     <!-- Encabezado de la factura -->
     <div class="flex justify-between items-center mb-8">

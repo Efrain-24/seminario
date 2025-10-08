@@ -280,7 +280,7 @@ class LimpiezaController extends Controller
         }
 
         Limpieza::create($data);
-        return redirect()->route('limpieza.index');
+        return redirect()->route('limpieza.index')->with('success', 'Registro de limpieza creado exitosamente.');
     }
 
     public function show(Limpieza $limpieza)

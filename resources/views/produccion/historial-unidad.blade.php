@@ -14,6 +14,11 @@
         </div>
     </x-slot>
 
+    <!-- Notificaciones -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+    <x-notification type="warning" :message="session('warning')" />
+
     <div class="py-8 max-w-7xl mx-auto px-4 space-y-6">
         <!-- Filtros -->
         <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">

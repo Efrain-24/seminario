@@ -14,12 +14,12 @@
         </div>
     </x-slot>
 
+    <!-- Notificaciones -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+    <x-notification type="warning" :message="session('warning')" />
+
     <div class="py-8 max-w-7xl mx-auto px-4 space-y-6">
-        @if (session('success'))
-            <div class="mb-4 rounded p-3 bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200">
-                {{ session('success') }}
-            </div>
-        @endif
 
         {{-- Acciones --}}
         <div class="flex flex-col sm:flex-row gap-3 sm:items-end sm:justify-between">

@@ -1,6 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
+
+<!-- Notificaciones -->
+<x-notification type="success" :message="session('success')" />
+<x-notification type="error" :message="session('error')" />
+<x-notification type="warning" :message="session('warning')" />
+
 <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">

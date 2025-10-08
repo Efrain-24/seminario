@@ -3,7 +3,14 @@
 @section('title', 'Reporte de Ganancias - ' . $lote->codigo)
 
 @section('content')
-<div class="container mx-auto px-4 py-6">
+@section('content')
+
+<!-- Notificaciones -->
+<x-notification type="success" :message="session('success')" />
+<x-notification type="error" :message="session('error')" />
+<x-notification type="warning" :message="session('warning')" />
+
+<div class="container mx-auto py-8">
     <!-- Encabezado del reporte -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
         <div class="flex justify-between items-start mb-4">

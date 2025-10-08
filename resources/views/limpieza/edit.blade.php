@@ -2,6 +2,12 @@
     <x-slot name="header">
         <h2 class="text-xl font-semibold leading-tight text-gray-900 dark:text-gray-100">Editar Registro de Limpieza</h2>
     </x-slot>
+
+    <!-- Notificaciones -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+    <x-notification type="warning" :message="session('warning')" />
+
     <div class="py-8 max-w-2xl mx-auto px-4">
         <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
             <form action="{{ route('limpieza.update', $limpieza) }}" method="POST" class="space-y-4">

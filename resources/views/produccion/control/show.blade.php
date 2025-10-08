@@ -3,9 +3,14 @@
         <h2 class="text-xl font-semibold leading-tight text-gray-900 dark:text-gray-100">
             Lote {{ $lote->codigo_lote }} — Predicción de Producción
         </h2>
-    </x-slot>
+        </x-slot>
 
-    <div class="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
+    <!-- Notificaciones -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+    <x-notification type="warning" :message="session('warning')" />
+
+    <div class="py-12">
 
         {{-- Toolbar: selector de estanque + volver --}}
         <div class="flex flex-col md:flex-row items-center justify-between gap-3">

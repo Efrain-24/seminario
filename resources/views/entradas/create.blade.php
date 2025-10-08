@@ -1,6 +1,12 @@
 @extends('layouts.app')
 @section('title','Nueva Entrada de Inventario')
 @section('content')
+
+<!-- Notificaciones -->
+<x-notification type="success" :message="session('success')" />
+<x-notification type="error" :message="session('error')" />
+<x-notification type="warning" :message="session('warning')" />
+
 <div class="container mx-auto max-w-5xl">
     <h1 class="text-2xl font-bold mb-4">Entrada de Inventario</h1>
     <form method="POST" action="{{ route('entradas.store') }}" id="form-entrada">

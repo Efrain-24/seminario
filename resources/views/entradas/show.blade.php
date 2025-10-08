@@ -1,6 +1,12 @@
 @extends('layouts.app')
 @section('title','Entrada #'.$entrada->id)
 @section('content')
+
+<!-- Notificaciones -->
+<x-notification type="success" :message="session('success')" />
+<x-notification type="error" :message="session('error')" />
+<x-notification type="warning" :message="session('warning')" />
+
 <div class="container mx-auto max-w-4xl">
     <div class="flex justify-between items-start mb-6">
         <div>

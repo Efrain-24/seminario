@@ -1,6 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
+
+<!-- Notificaciones -->
+<x-notification type="success" :message="session('success')" />
+<x-notification type="error" :message="session('error')" />
+<x-notification type="warning" :message="session('warning')" />
+
 <div class="container mx-auto py-8">
     <h2 class="text-2xl font-bold mb-6">Editar Lote</h2>
     <form action="{{ route('lotes.update', $lote) }}" method="POST">

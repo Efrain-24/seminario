@@ -3,14 +3,17 @@
 @section('title', 'Clientes')
 
 @section('content')
+
+<!-- Notificaciones -->
+<x-notification type="success" :message="session('success')" />
+<x-notification type="error" :message="session('error')" />
+<x-notification type="warning" :message="session('warning')" />
+
 <div class="max-w-4xl mx-auto py-8">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold">Clientes</h2>
         <a href="{{ route('clientes.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold">Nuevo Cliente</a>
     </div>
-    @if(session('success'))
-        <div class="mb-4 p-3 bg-green-100 text-green-800 rounded">{{ session('success') }}</div>
-    @endif
     <div class="bg-white shadow rounded-lg overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">

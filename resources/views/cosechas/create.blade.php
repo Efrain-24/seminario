@@ -3,58 +3,15 @@
 @section('title', 'Nueva Cosecha Parcial')
 
 @section('content')
+
+<!-- Notificaciones -->
+<x-notification type="success" :message="session('success')" />
+<x-notification type="error" :message="session('error')" />
+<x-notification type="warning" :message="session('warning')" />
+
 <!-- Background con gradiente -->
 <div class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
     <div class="container mx-auto px-6 py-12">
-
-        <!-- Mensajes de estado mejorados -->
-        @if(session('success'))
-            <div class="mb-8 animate-fade-in">
-                <div class="bg-gradient-to-r from-green-400 to-green-600 text-white p-4 rounded-xl shadow-lg border-l-4 border-green-600">
-                    <div class="flex items-center">
-                        <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span class="font-semibold">¡Éxito!</span>
-                        <span class="ml-2">{{ session('success') }}</span>
-                    </div>
-                </div>
-            </div>
-        @endif
-        
-        @if(session('error'))
-            <div class="mb-8 animate-fade-in">
-                <div class="bg-gradient-to-r from-red-400 to-red-600 text-white p-4 rounded-xl shadow-lg border-l-4 border-red-600">
-                    <div class="flex items-center">
-                        <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span class="font-semibold">Error:</span>
-                        <span class="ml-2">{{ session('error') }}</span>
-                    </div>
-                </div>
-            </div>
-        @endif
-        
-        @if($errors->any())
-            <div class="mb-8 animate-fade-in">
-                <div class="bg-gradient-to-r from-red-400 to-red-600 text-white p-6 rounded-xl shadow-lg border-l-4 border-red-600">
-                    <div class="flex items-start">
-                        <svg class="w-6 h-6 mr-3 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <div>
-                            <h3 class="font-semibold mb-2">Errores de validación:</h3>
-                            <ul class="list-disc list-inside space-y-1">
-                                @foreach($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        @endif
 
         <!-- Formulario principal con diseño hermoso -->
         <div class="max-w-4xl mx-auto">

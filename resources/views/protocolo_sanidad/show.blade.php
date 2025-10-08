@@ -12,6 +12,12 @@
             </div>
         </div>
     </x-slot>
+
+    <!-- Notificaciones -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+    <x-notification type="warning" :message="session('warning')" />
+
     <div class="py-8 max-w-2xl mx-auto px-4">
         <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
             <div class="space-y-4">

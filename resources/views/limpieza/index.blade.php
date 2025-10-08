@@ -11,18 +11,13 @@
             </div>
         </div>
     </x-slot>
+    
+    <!-- Notificaciones -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+    <x-notification type="warning" :message="session('warning')" />
+    
     <div class="py-8 max-w-7xl mx-auto px-4">
-        @if (session('success'))
-            <div class="mb-4 rounded p-3 bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200">
-                {{ session('success') }}
-            </div>
-        @endif
-        
-        @if (session('error'))
-            <div class="mb-4 rounded p-3 bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200">
-                {{ session('error') }}
-            </div>
-        @endif
         <!-- Botón para abrir filtros y filtros rápidos -->
         <div class="flex justify-between items-center mb-4">
             <div class="flex gap-3">

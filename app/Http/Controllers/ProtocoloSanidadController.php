@@ -163,13 +163,15 @@ class ProtocoloSanidadController extends Controller
         $data['actividades'] = array_filter($request->actividades ?? []);
 
         $protocoloSanidad->update($data);
-        return redirect()->route('protocolo-sanidad.index');
+        return redirect()->route('protocolo-sanidad.index')
+                        ->with('success', 'Protocolo de sanidad actualizado exitosamente.');
     }
 
     public function destroy(ProtocoloSanidad $protocoloSanidad)
     {
         $protocoloSanidad->delete();
-        return redirect()->route('protocolo-sanidad.index');
+        return redirect()->route('protocolo-sanidad.index')
+                        ->with('success', 'Protocolo de sanidad eliminado exitosamente.');
     }
 
     // Método para crear nueva versión de un protocolo

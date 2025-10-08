@@ -5,6 +5,11 @@
         </h2>
     </x-slot>
 
+    <!-- Notificaciones -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+    <x-notification type="warning" :message="session('warning')" />
+
     <div class="py-8 max-w-7xl mx-auto px-4">
         @if (session('error'))
             <div class="mb-4 rounded p-3 bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200">

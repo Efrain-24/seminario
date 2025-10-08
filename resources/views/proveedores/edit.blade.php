@@ -1,5 +1,13 @@
 <x-app-layout>
-    <x-slot name="header">
+    <x-slot name=        </div>
+    </x-slot>
+    
+    <!-- Notificaciones -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+    <x-notification type="warning" :message="session('warning')" />
+
+    <div class="py-12">der">
         <div class="flex justify-between items-center">
             <div class="flex items-center">
                 <a href="{{ route('proveedores.index') }}" class="mr-4 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">

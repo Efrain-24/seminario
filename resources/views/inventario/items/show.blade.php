@@ -1,6 +1,14 @@
 <x-app-layout>
     @push('scripts')
-    <script>
+    <scr        </div>
+    </x-slot>
+
+    <!-- Notificaciones -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+    <x-notification type="warning" :message="session('warning')" />
+
+    <div class="py-8 max-w-7xl mx-auto px-4">
     document.addEventListener('DOMContentLoaded', function() {
         const params = new URLSearchParams(window.location.search);
         if(params.get('accion') === 'entrada') {
