@@ -36,7 +36,7 @@
                 </div>
                 <div>
                     <label for="fecha_prevista" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Fecha Prevista</label>
-                    <input type="date" name="fecha_prevista" id="fecha_prevista" class="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-2" value="{{ old('fecha_prevista') }}" required>
+                    <input type="date" name="fecha_prevista" id="fecha_prevista" class="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-2" value="{{ old('fecha_prevista', now()->format('Y-m-d')) }}" required>
                     @error('fecha_prevista')
                         <div class="text-red-600 dark:text-red-400 text-sm">{{ $message }}</div>
                     @enderror

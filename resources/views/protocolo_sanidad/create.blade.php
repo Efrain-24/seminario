@@ -22,6 +22,7 @@
                             Fecha de Implementación <span class="text-red-500">*</span>
                         </label>
                         <input type="date" id="fecha_implementacion" name="fecha_implementacion" 
+                               value="{{ old('fecha_implementacion', now()->format('Y-m-d')) }}"
                                class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
                     </div>
                 </div>

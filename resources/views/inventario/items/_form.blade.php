@@ -171,7 +171,7 @@
                 Fecha del costo
             </label>
             <input type="date" name="fecha_ultimo_costo" id="fecha_ultimo_costo"
-                value="{{ old('fecha_ultimo_costo', $it->fecha_ultimo_costo ?? '') }}"
+                value="{{ old('fecha_ultimo_costo', $it->fecha_ultimo_costo ?? now()->format('Y-m-d')) }}"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
             @error('fecha_ultimo_costo')
                 <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>

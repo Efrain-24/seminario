@@ -8,7 +8,7 @@
                 @csrf
                 <div>
                     <label for="fecha" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Fecha</label>
-                    <input type="date" name="fecha" class="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-2" required>
+                    <input type="date" name="fecha" value="{{ old('fecha', now()->format('Y-m-d')) }}" class="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-2" required>
                 </div>
                 <div>
                     <label for="area" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Área</label>
