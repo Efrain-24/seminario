@@ -17,7 +17,7 @@
                     Nombre o Razón Social <span class="text-red-500">*</span>
                 </label>
                 <input type="text" 
-                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 @error('nombre') border-red-300 focus:border-red-500 focus:ring-red-500 @enderror" 
+                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 {{ $errors->has('nombre') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500' }}" 
                        id="nombre" name="nombre" value="{{ old('nombre', $proveedor->nombre ?? '') }}" 
                        placeholder="Nombre completo del proveedor" required maxlength="150">
                 @error('nombre')
@@ -30,7 +30,7 @@
                     NIT
                 </label>
                 <input type="text" 
-                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 @error('nit') border-red-300 focus:border-red-500 focus:ring-red-500 @enderror" 
+                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 {{ $errors->has('nit') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500' }}" 
                        id="nit" name="nit" value="{{ old('nit', $proveedor->nit ?? '') }}" 
                        placeholder="Número de NIT" maxlength="20">
                 @error('nit')
@@ -42,7 +42,7 @@
                 <label for="tipo" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Tipo de Proveedor <span class="text-red-500">*</span>
                 </label>
-                <select class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 @error('tipo') border-red-300 focus:border-red-500 focus:ring-red-500 @enderror" 
+                <select class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 {{ $errors->has('tipo') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500' }}" 
                         id="tipo" name="tipo" required>
                     <option value="">Seleccionar tipo...</option>
                     <option value="empresa" {{ old('tipo', $proveedor->tipo ?? '') == 'empresa' ? 'selected' : '' }}>
@@ -64,7 +64,7 @@
                 <label for="categoria" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Categoría Principal <span class="text-red-500">*</span>
                 </label>
-                <select class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 @error('categoria') border-red-300 focus:border-red-500 focus:ring-red-500 @enderror" 
+                <select class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 {{ $errors->has('categoria') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500' }}" 
                         id="categoria" name="categoria" required>
                     <option value="">Seleccionar categoría...</option>
                     <option value="alimentos" {{ old('categoria', $proveedor->categoria ?? '') == 'alimentos' ? 'selected' : '' }}>
@@ -92,7 +92,7 @@
                 <label for="estado" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Estado <span class="text-red-500">*</span>
                 </label>
-                <select class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 @error('estado') border-red-300 focus:border-red-500 focus:ring-red-500 @enderror" 
+                <select class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 {{ $errors->has('estado') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500' }}" 
                         id="estado" name="estado" required>
                     <option value="activo" {{ old('estado', $proveedor->estado ?? 'activo') == 'activo' ? 'selected' : '' }}>
                         Activo
@@ -129,7 +129,7 @@
                     Teléfono Principal <span class="text-red-500">*</span>
                 </label>
                 <input type="tel" 
-                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 @error('telefono_principal') border-red-300 focus:border-red-500 focus:ring-red-500 @enderror" 
+                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 {{ $errors->has('telefono_principal') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500' }}" 
                        id="telefono_principal" name="telefono_principal" value="{{ old('telefono_principal', $proveedor->telefono_principal ?? '') }}" 
                        placeholder="Ej: 2234-5678" required maxlength="20">
                 @error('telefono_principal')
@@ -142,7 +142,7 @@
                     Teléfono Secundario
                 </label>
                 <input type="tel" 
-                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 @error('telefono_secundario') border-red-300 focus:border-red-500 focus:ring-red-500 @enderror" 
+                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 {{ $errors->has('telefono_secundario') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500' }}" 
                        id="telefono_secundario" name="telefono_secundario" value="{{ old('telefono_secundario', $proveedor->telefono_secundario ?? '') }}" 
                        placeholder="Ej: 5678-9012" maxlength="20">
                 @error('telefono_secundario')
@@ -155,7 +155,7 @@
                     Email
                 </label>
                 <input type="email" 
-                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 @error('email') border-red-300 focus:border-red-500 focus:ring-red-500 @enderror" 
+                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 {{ $errors->has('email') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500' }}" 
                        id="email" name="email" value="{{ old('email', $proveedor->email ?? '') }}" 
                        placeholder="ejemplo@correo.com" maxlength="100">
                 @error('email')
@@ -168,7 +168,7 @@
                     Dirección
                 </label>
                 <input type="text" 
-                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 @error('direccion') border-red-300 focus:border-red-500 focus:ring-red-500 @enderror" 
+                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 {{ $errors->has('direccion') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500' }}" 
                        id="direccion" name="direccion" value="{{ old('direccion', $proveedor->direccion ?? '') }}" 
                        placeholder="Dirección completa" maxlength="255">
                 @error('direccion')
@@ -181,7 +181,7 @@
                     Sitio Web
                 </label>
                 <input type="url" 
-                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 @error('sitio_web') border-red-300 focus:border-red-500 focus:ring-red-500 @enderror" 
+                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 {{ $errors->has('sitio_web') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500' }}" 
                        id="sitio_web" name="sitio_web" value="{{ old('sitio_web', $proveedor->sitio_web ?? '') }}" 
                        placeholder="https://www.ejemplo.com" maxlength="255">
                 @error('sitio_web')
@@ -208,7 +208,7 @@
                 <label for="moneda_preferida" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Moneda Preferida
                 </label>
-                <select class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 @error('moneda_preferida') border-red-300 focus:border-red-500 focus:ring-red-500 @enderror" 
+                <select class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 {{ $errors->has('moneda_preferida') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500' }}" 
                         id="moneda_preferida" name="moneda_preferida">
                     <option value="GTQ" {{ old('moneda_preferida', $proveedor->moneda_preferida ?? 'GTQ') == 'GTQ' ? 'selected' : '' }}>
                         GTQ (Quetzales)
@@ -226,7 +226,7 @@
                 <label for="forma_pago_preferida" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Forma de Pago Preferida
                 </label>
-                <select class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 @error('forma_pago_preferida') border-red-300 focus:border-red-500 focus:ring-red-500 @enderror" 
+                <select class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 {{ $errors->has('forma_pago_preferida') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500' }}" 
                         id="forma_pago_preferida" name="forma_pago_preferida">
                     <option value="contado" {{ old('forma_pago_preferida', $proveedor->forma_pago_preferida ?? 'contado') == 'contado' ? 'selected' : '' }}>
                         Contado
@@ -248,7 +248,7 @@
                     Días de Crédito
                 </label>
                 <input type="number" 
-                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 @error('dias_credito') border-red-300 focus:border-red-500 focus:ring-red-500 @enderror" 
+                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 {{ $errors->has('dias_credito') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500' }}" 
                        id="dias_credito" name="dias_credito" value="{{ old('dias_credito', $proveedor->dias_credito ?? 0) }}" 
                        min="0" max="365" placeholder="0">
                 @error('dias_credito')
@@ -261,7 +261,7 @@
                     Límite de Crédito
                 </label>
                 <input type="number" 
-                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 @error('limite_credito') border-red-300 focus:border-red-500 focus:ring-red-500 @enderror" 
+                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 {{ $errors->has('limite_credito') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500' }}" 
                        id="limite_credito" name="limite_credito" value="{{ old('limite_credito', $proveedor->limite_credito ?? '') }}" 
                        min="0" step="0.01" placeholder="0.00">
                 @error('limite_credito')
@@ -288,7 +288,7 @@
                 <label for="especialidades" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Especialidades o Productos Principales
                 </label>
-                <textarea class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 @error('especialidades') border-red-300 focus:border-red-500 focus:ring-red-500 @enderror" 
+                <textarea class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 {{ $errors->has('especialidades') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500' }}" 
                           id="especialidades" name="especialidades" rows="4" 
                           placeholder="Describe los productos o servicios principales que ofrece este proveedor...">{{ old('especialidades', $proveedor->especialidades ?? '') }}</textarea>
                 @error('especialidades')
@@ -300,7 +300,7 @@
                 <label for="notas" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Notas y Observaciones
                 </label>
-                <textarea class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 @error('notas') border-red-300 focus:border-red-500 focus:ring-red-500 @enderror" 
+                <textarea class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 {{ $errors->has('notas') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500' }}" 
                           id="notas" name="notas" rows="4" 
                           placeholder="Cualquier información adicional relevante sobre el proveedor...">{{ old('notas', $proveedor->notas ?? '') }}</textarea>
                 @error('notas')
