@@ -19,6 +19,42 @@
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Nombre</label>
                     <div class="w-full rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-2">{{ $protocoloSanidad->nombre }}</div>
                 </div>
+                @if(isset($unidad))
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Tanque/Unidad</label>
+                    <div class="w-full rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-2">
+                        {{ $unidad->nombre ?? $unidad->codigo }}
+                    </div>
+                </div>
+                @endif
+                @if(isset($mantenimientos) && $mantenimientos->count() > 0)
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Mantenimientos Cíclicos Programados/Realizados para este Tanque</label>
+                    <div class="border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 p-4">
+                        @php
+                            $mantenimientosPorFecha = $mantenimientos->groupBy(function($m) { return $m->fecha_mantenimiento->format('d/m/Y'); });
+                        @endphp
+                        @foreach($mantenimientosPorFecha as $fecha => $items)
+                            <div class="mb-4">
+                                <div class="font-semibold text-blue-800 dark:text-blue-200 mb-2">{{ $fecha }}</div>
+                                <ul class="space-y-2">
+                                    @foreach($items as $mantenimiento)
+                                        <li class="flex items-center justify-between">
+                                            <div>
+                                                <span class="font-medium text-blue-700 dark:text-blue-300">{{ $mantenimiento->descripcion_trabajo }}</span>
+                                                <span class="ml-2 px-2 py-1 rounded text-xs font-medium {{ $mantenimiento->estado_mantenimiento === 'completado' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                                    {{ ucfirst($mantenimiento->estado_mantenimiento) }}
+                                                </span>
+                                            </div>
+                                            <a href="{{ route('mantenimiento-unidad.show', $mantenimiento) }}" class="text-blue-600 dark:text-blue-400 hover:underline text-sm">Ver Detalle</a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Versión</label>
@@ -85,12 +121,15 @@
                 @endif
 
                 <!-- Actividades del Protocolo -->
-                @if($protocoloSanidad->actividades && count($protocoloSanidad->actividades) > 0)
+                @php
+                    $actsNorm = $protocoloSanidad->actividades_normalizadas;
+                @endphp
+                @if($actsNorm && count($actsNorm) > 0)
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Actividades del Protocolo</label>
                         <div class="border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 p-4">
                             <ul class="space-y-2">
-                                @foreach($protocoloSanidad->actividades as $index => $actividad)
+                                @foreach($actsNorm as $index => $actividad)
                                     <li class="flex items-start gap-2">
                                         <span class="text-blue-600 dark:text-blue-400 font-medium">{{ $index + 1 }}.</span>
                                         <span class="text-gray-900 dark:text-gray-100">{{ $actividad }}</span>

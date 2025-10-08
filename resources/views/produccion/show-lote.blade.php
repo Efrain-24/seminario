@@ -26,6 +26,13 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            {{-- Mensajes flash --}}
+            @if(session('success'))
+                <div class="mb-6 bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded">
+                    {{ session('success') }}
+                </div>
+            @endif
+
             <!-- Información General del Lote -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6">
@@ -289,12 +296,12 @@
                             </a>
                         @endif
                         
-                        <button class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 inline-flex items-center">
+                        <a href="{{ route('produccion.lotes.edit', $lote) }}" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 inline-flex items-center">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
                             📝 Editar Información
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>

@@ -57,6 +57,40 @@
                                 </select>
                                 <x-input-error :messages="$errors->get('estado')" class="mt-2" />
                             </div>
+                            <!-- Ocultar módulos (solo para admin) -->
+@if(Auth::user() && Auth::user()->isAdmin())
+    <hr class="my-6 border-gray-300 dark:border-gray-600">
+    <div class="mb-6">
+        <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2">Módulos visibles para este usuario</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Selecciona los módulos que el usuario podrá ver en el sistema:</p>
+        @php
+            $modulos = [
+                'unidades' => 'Unidades',
+                'produccion' => 'Producción',
+                'inventarios' => 'Inventarios',
+                'usuarios' => 'Usuarios',
+                'roles' => 'Roles',
+                'acciones_correctivas' => 'Acciones Correctivas',
+                'protocolos' => 'Protocolos',
+                'limpieza' => 'Limpieza',
+                'ventas' => 'Ventas',
+                'compras' => 'Compras',
+                'proveedores' => 'Proveedores',
+                'bitacora' => 'Bitácora',
+            ];
+            $userModules = $user->modules ? $user->modules->pluck('module')->toArray() : [];
+        @endphp
+        <div class="grid grid-cols-2 gap-2 mt-2">
+            @foreach($modulos as $key => $label)
+                <label class="inline-flex items-center">
+                    <input type="checkbox" name="modules[]" value="{{ $key }}" class="form-checkbox h-5 w-5 text-indigo-600" {{ in_array($key, old('modules', $userModules)) ? 'checked' : '' }}>
+                    <span class="ml-2">{{ $label }}</span>
+                </label>
+            @endforeach
+        </div>
+        <x-input-error :messages="$errors->get('modules')" class="mt-2" />
+    </div>
+@endif
                         <div class="flex items-center justify-end mt-4">
                             <a href="{{ route('users.index') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 mr-2">
                                 Cancelar

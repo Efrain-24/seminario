@@ -179,6 +179,13 @@
                                             <p class="text-sm text-blue-700 dark:text-blue-300">{{ $seguimiento->observaciones }}</p>
                                         </div>
                                     @endif
+
+                                    <!-- Botón Eliminar -->
+                                    <form method="POST" action="{{ route('seguimientos.destroy', $seguimiento->id) }}" onsubmit="return confirm('¿Seguro que deseas eliminar este seguimiento?');" style="display:inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-medium">Eliminar</button>
+                                    </form>
                                 </div>
                             @endforeach
                         </div>

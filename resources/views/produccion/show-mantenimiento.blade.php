@@ -45,6 +45,23 @@
                             <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
                                 {{ ucfirst($mantenimiento->tipo_mantenimiento) }}
                             </h3>
+                            <div class="mt-2">
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Estado:</span>
+                                <span class="inline-block ml-2">
+                                    @php
+                                        $estados = [
+                                            'asignado' => 'Asignado',
+                                            'proceso' => 'En proceso',
+                                            'terminado' => 'Terminado',
+                                            'inconcluso' => 'Inconcluso',
+                                        ];
+                                        $estadoActual = $estados[$mantenimiento->estado] ?? ucfirst($mantenimiento->estado);
+                                    @endphp
+                                    <span class="bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 px-3 py-1 rounded-full text-sm font-semibold">
+                                        {{ $estadoActual }}
+                                    </span>
+                                </span>
+                            </div>
                             <p class="text-gray-600 dark:text-gray-400 mt-1">
                                 Creado el {{ $mantenimiento->created_at->format('d/m/Y \a \l\a\s H:i') }}
                             </p>
@@ -170,6 +187,57 @@
 
             <!-- Seguimiento y Resultados -->
             @if($mantenimiento->estado_mantenimiento === 'en_proceso' || $mantenimiento->estado_mantenimiento === 'completado')
+            <!-- Actividades Ejecutadas (similar a limpieza) -->
+            @php
+                // Si el mantenimiento tiene actividades guardadas como array, mostrar el progreso
+                $actividades = $mantenimiento->actividades ?? [];
+                $actividadesEjecutadas = $mantenimiento->actividades_ejecutadas ?? [];
+                $total = is_array($actividades) ? count($actividades) : 0;
+                $completadas = is_array($actividadesEjecutadas) ? count(array_filter($actividadesEjecutadas, function($a) { return $a['estado'] === 'completada'; })) : 0;
+            @endphp
+            @if($total > 0)
+            <div class="mb-6">
+                <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-3">Actividades Ejecutadas</h4>
+                <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                    <div class="mb-2 font-medium text-green-700 dark:text-green-300 flex items-center justify-between">
+                        <span>Progreso: {{ $completadas }}/{{ $total }} actividades completadas</span>
+                        <span class="ml-2 text-green-700 dark:text-green-300 font-bold">{{ $total > 0 ? number_format(($completadas/$total)*100, 0) : 0 }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-600 mb-4">
+                        <div class="bg-green-600 h-2.5 rounded-full" style="width: {{ $total > 0 ? ($completadas/$total)*100 : 0 }}%"></div>
+                    </div>
+                    <table class="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300">Actividad</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300">Estado</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300">Observaciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($actividades as $i => $actividad)
+                                <tr>
+                                    <td class="px-4 py-2 text-gray-900 dark:text-gray-100">{{ $actividad['nombre'] ?? $actividad }}</td>
+                                    <td class="px-4 py-2">
+                                        @if(isset($actividadesEjecutadas[$i]) && $actividadesEjecutadas[$i]['estado'] === 'completada')
+                                            <span class="inline-flex items-center px-3 py-1 text-sm rounded-full font-medium bg-green-100 text-green-800">
+                                                <svg class="w-4 h-4 mr-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+                                                Completada
+                                            </span>
+                                        @else
+                                            <span class="inline-flex px-3 py-1 text-sm rounded-full font-medium bg-gray-100 text-gray-800">Pendiente</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $actividadesEjecutadas[$i]['observaciones'] ?? '' }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            @endif
+            @endif
+            @if($mantenimiento->estado_mantenimiento === 'en_proceso' || $mantenimiento->estado_mantenimiento === 'completado')
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Seguimiento y Resultados</h3>
@@ -278,6 +346,23 @@
             </div>
             @endif
 
+            @if(auth()->user()->role === 'admin' || auth()->user()->role === 'gerente')
+            <!-- Eliminar Mantenimiento -->
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Eliminar Mantenimiento</h3>
+                    
+                    <form method="POST" action="{{ route('produccion.mantenimientos.eliminar', $mantenimiento->id) }}" onsubmit="return confirm('¿Seguro que deseas eliminar este mantenimiento?');" class="inline">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md">
+                            Eliminar Mantenimiento
+                        </button>
+                    </form>
+                </div>
+            </div>
+            @endif
+
         </div>
     </div>
 
@@ -333,6 +418,25 @@
                                 class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded">
                             Completar Mantenimiento
                         </button>
+                    </div>
+                    <!-- Opciones de eliminación -->
+                    <div class="mt-8">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Eliminar Mantenimiento</h3>
+                        <div class="flex flex-col md:flex-row md:space-x-4 space-y-2 md:space-y-0">
+                            <form method="POST" action="{{ route('produccion.mantenimientos.eliminar', $mantenimiento) }}" onsubmit="return confirm('¿Seguro que deseas eliminar solo este mantenimiento?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded">Eliminar solo este mantenimiento</button>
+                            </form>
+                            @if($mantenimiento->repeat_type && $mantenimiento->repeat_type !== 'none')
+                            <form method="POST" action="{{ route('produccion.mantenimientos.eliminarCiclo', $mantenimiento) }}" onsubmit="return confirm('¿Seguro que deseas eliminar todos los mantenimientos relacionados de este ciclo?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-6 rounded">Eliminar todos los relacionados</button>
+                            </form>
+                            @endif
+                        </div>
+                    </div>
                     </div>
                 </form>
             </div>

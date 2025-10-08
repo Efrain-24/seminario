@@ -36,28 +36,46 @@ class VentaController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'cosecha_parcial_id' => 'required|exists:cosechas_parciales,id',
-            'cliente' => 'required|string|max:255',
-            'telefono_cliente' => 'nullable|string|max:20',
-            'email_cliente' => 'nullable|email|max:255',
+            'cliente_id' => 'required|exists:clientes,id',
             'fecha_venta' => 'required|date',
-            'cantidad_kg' => 'required|numeric|min:0.01',
-            'precio_kg' => 'required|numeric|min:0.01',
-            'metodo_pago' => 'required|in:efectivo,transferencia,cheque,credito',
-            'observaciones' => 'nullable|string|max:1000'
+            'articulos' => 'required|array|min:1',
+            'articulos.*.id' => 'required|exists:inventario_items,id',
+            'articulos.*.precio_unitario' => 'required|numeric|min:0',
+            'articulos.*.cantidad' => 'required|numeric|min:0.01',
+            'total' => 'required|numeric|min:0.01',
         ]);
 
-        // Calcular totales
-        $total = $validated['cantidad_kg'] * $validated['precio_kg'];
-        $tipoCambio = TipoCambio::latest()->first();
-        $totalUsd = $tipoCambio ? $total / $tipoCambio->venta : $total / 8.0;
+        // Obtener datos del cliente
+        $cliente = \App\Models\Cliente::findOrFail($validated['cliente_id']);
 
-        $validated['total'] = $total;
-        $validated['tipo_cambio'] = $tipoCambio ? $tipoCambio->venta : 8.0;
-        $validated['total_usd'] = $totalUsd;
-        $validated['estado'] = 'pendiente';
+        // Generar número de factura automático
+        $ultimo = \App\Models\Venta::orderByDesc('id')->first();
+        $codigo_venta = 'F' . str_pad(($ultimo ? $ultimo->id + 1 : 1), 6, '0', STR_PAD_LEFT);
 
-        $venta = Venta::create($validated);
+        // Crear la venta
+        $venta = \App\Models\Venta::create([
+            'codigo_venta' => $codigo_venta,
+            'cliente' => $cliente->nombre,
+            'cliente_codigo' => $cliente->documento,
+            'cliente_direccion' => $cliente->direccion,
+            'telefono_cliente' => $cliente->telefono,
+            'email_cliente' => $cliente->email,
+            'fecha_venta' => $validated['fecha_venta'],
+            'total' => $validated['total'],
+            'estado' => 'pendiente',
+        ]);
+
+        // Guardar los detalles de la venta
+        foreach ($validated['articulos'] as $art) {
+            $item = \App\Models\InventarioItem::find($art['id']);
+            $venta->detalles()->create([
+                'articulo_id' => $item->id,
+                'nombre_articulo' => $item->nombre,
+                'precio_unitario' => $art['precio_unitario'],
+                'cantidad' => $art['cantidad'],
+                'total' => $art['precio_unitario'] * $art['cantidad'],
+            ]);
+        }
 
         return redirect()->route('ventas.show', $venta)
             ->with('success', 'Venta registrada exitosamente');

@@ -87,12 +87,11 @@ class AlimentacionController extends Controller
     public function create()
     {
         $lotes = Lote::where('estado', 'activo')->with('unidadProduccion')->get();
-        $bodegas = Bodega::orderBy('nombre')->get();
-        
-        // USAR DIRECTAMENTE LOS ITEMS DE TU INVENTARIO - NO LOS TIPOS DE ALIMENTO
-        $alimentosInventario = InventarioItem::where('tipo', 'alimento')
-            ->whereHas('existencias', function($query) {
-                $query->where('stock_actual', '>', 0);
+        $bodegas = \App\Models\Bodega::orderBy('nombre')->get();
+        // Solo mostrar alimentos que tienen existencias en cualquier bodega
+        $alimentosInventario = \App\Models\InventarioItem::where('tipo', 'alimento')
+            ->whereHas('existencias', function($q) {
+                $q->where('stock_actual', '>', 0);
             })
             ->with('existencias.bodega')
             ->orderBy('nombre')
@@ -116,6 +115,12 @@ class AlimentacionController extends Controller
             foreach ($existencias as $existencia) {
                 $item = $existencia->item;
                 
+                // Buscar el último costo_unitario de la entrada de compra para este item
+                $entradaDetalle = \App\Models\EntradaCompraDetalle::where('item_id', $item->id)
+                    ->orderByDesc('created_at')
+                    ->first();
+                $costo_unitario = $entradaDetalle ? $entradaDetalle->costo_unitario : ($item->costo_unitario ? round($item->costo_unitario, 2) : 0);
+                
                 $existenciasPorBodega[$bodega->id][] = [
                     'inventario_item_id' => $item->id, // Usar el ID del item de inventario
                     'nombre_completo' => $item->nombre,
@@ -124,9 +129,8 @@ class AlimentacionController extends Controller
                     'cantidad_disponible' => round($existencia->stock_actual, 2),
                     'unidad' => $item->unidad_base,
                     'stock_minimo' => round($item->stock_minimo, 2),
-                    'costo_unitario' => $item->costo_unitario ? round($item->costo_unitario, 2) : 0,
-                    'moneda' => $item->moneda ?: 'GTQ',
-                    'tiene_costo' => !is_null($item->costo_unitario)
+                    'costo_unitario' => $costo_unitario,
+                    'tiene_costo' => !is_null($costo_unitario)
                 ];
             }
         }
@@ -171,9 +175,18 @@ class AlimentacionController extends Controller
         }
 
         // Calcular costo total basado en el costo del inventario
-        if ($inventarioItem->costo_unitario) {
-            $validated['costo_total'] = $validated['cantidad_kg'] * $inventarioItem->costo_unitario;
+        // Si la unidad base es lb, usar la cantidad tal cual. Si es kg, convertir a kg.
+        $cantidad = $validated['cantidad_kg'];
+        if ($inventarioItem->unidad_base === 'kg') {
+            // Si el usuario ingresa en libras, convertir a kg (1 kg = 2.20462 lb)
+            $cantidad = $cantidad / 2.20462;
         }
+        // Buscar el último costo_unitario de la entrada de compra
+        $entradaDetalle = \App\Models\EntradaCompraDetalle::where('item_id', $inventarioItem->id)
+            ->orderByDesc('created_at')
+            ->first();
+        $costo_unitario = $entradaDetalle ? $entradaDetalle->costo_unitario : ($inventarioItem->costo_unitario ? round($inventarioItem->costo_unitario, 2) : 0);
+        $validated['costo_total'] = $cantidad * $costo_unitario;
 
         // Combinar fecha y hora
         $fechaHora = Carbon::createFromFormat('Y-m-d H:i', $validated['fecha_alimentacion'] . ' ' . $validated['hora_alimentacion']);

@@ -88,7 +88,7 @@ return new class extends Migration
             $table->index('fecha_ultima_compra');
             $table->index('calificacion');
             $table->index(['departamento', 'municipio']);
-            $table->fullText(['nombre', 'especialidades']);
+            // $table->fullText(['nombre', 'especialidades']); // No soportado en SQLite
             
             // Foreign keys
             $table->foreign('registrado_por')->references('id')->on('users')->nullOnDelete();

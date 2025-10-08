@@ -2,17 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Lote;
 use App\Models\UnidadProduccion;
-use App\Models\Seguimiento;
-use App\Models\Traslado;
 use App\Models\MantenimientoUnidad;
+use App\Models\Traslado;
+use App\Models\Seguimiento;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log; // logging
 use Illuminate\Support\Facades\Auth;
-
-
 
 class ProduccionController extends Controller
 {
@@ -39,11 +37,16 @@ class ProduccionController extends Controller
         $validated = $request->validate([
             'especie' => 'required|string',
             'cantidad_inicial' => 'required|integer|min:1',
-            'peso_promedio_inicial' => 'nullable|numeric|min:0',
+            // Peso en kg con tres decimales: 0.011 a 0.99
+            'peso_promedio_inicial' => 'nullable|numeric|min:0.011|max:0.99',
             'talla_promedio_inicial' => 'nullable|numeric|min:0',
             'fecha_inicio' => 'required|date',
             'unidad_produccion_id' => 'nullable|exists:unidad_produccions,id',
             'observaciones' => 'nullable|string'
+        ], [
+            'peso_promedio_inicial.numeric' => 'Permite ingreso promedio de rango 0.011 a 0.99 kg.',
+            'peso_promedio_inicial.min' => 'Permite ingreso promedio de rango 0.011 a 0.99 kg.',
+            'peso_promedio_inicial.max' => 'Permite ingreso promedio de rango 0.011 a 0.99 kg.'
         ]);
 
         // Generar código automáticamente
@@ -52,13 +55,65 @@ class ProduccionController extends Controller
 
         Lote::create($validated);
 
-        return redirect()->route('produccion.lotes')->with('success', 'Lote creado exitosamente con código: ' . $validated['codigo_lote']);
+    return redirect()->route('produccion.lotes')->with('success', 'Lote creado exitosamente con código: ' . $validated['codigo_lote']);
     }
 
     public function showLote(Lote $lote)
     {
         $lote->load('unidadProduccion');
         return view('produccion.show-lote', compact('lote'));
+    }
+
+    /**
+     * Mostrar formulario de edición de un lote
+     */
+    public function editLote(Lote $lote)
+    {
+        $unidades = UnidadProduccion::activas()->get();
+        return view('produccion.lotes.edit', compact('lote', 'unidades'));
+    }
+
+    /**
+     * Actualizar la información del lote
+     */
+    public function updateLote(Request $request, Lote $lote)
+    {
+        try {
+            $validated = $request->validate([
+                'especie' => 'required|string',
+                'cantidad_inicial' => 'sometimes|integer|min:1',
+                // kg entre 0.011 y 0.99
+                'peso_promedio_inicial' => 'nullable|numeric|min:0.011|max:0.99',
+                'talla_promedio_inicial' => 'nullable|numeric|min:0',
+                'fecha_inicio' => 'required|date',
+                'unidad_produccion_id' => 'nullable|exists:unidad_produccions,id',
+                'observaciones' => 'nullable|string'
+            ], [
+                'peso_promedio_inicial.numeric' => 'Permite ingreso promedio de rango 0.011 a 0.99 kg.',
+                'peso_promedio_inicial.min' => 'Permite ingreso promedio de rango 0.011 a 0.99 kg.',
+                'peso_promedio_inicial.max' => 'Permite ingreso promedio de rango 0.011 a 0.99 kg.'
+            ]);
+
+            // Asegurar que no intenten modificar el código
+            unset($validated['codigo_lote']);
+
+            // Mantener cantidad_inicial si no la envían
+            if (!array_key_exists('cantidad_inicial', $validated)) {
+                $validated['cantidad_inicial'] = $lote->cantidad_inicial;
+            }
+
+            // Ya viene en kg, no se convierte
+            $lote->update($validated);
+
+            return redirect()->route('produccion.lotes.show', $lote)->with('success', 'Lote actualizado correctamente.');
+        } catch (\Throwable $e) {
+            Log::error('Error al actualizar lote', [
+                'lote_id' => $lote->id,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return back()->withInput()->with('error', 'Ocurrió un error al actualizar el lote: ' . $e->getMessage());
+        }
     }
 
     // === GESTIÓN DE UNIDADES MOVIDA A UnidadProduccionController ===
@@ -105,7 +160,9 @@ class ProduccionController extends Controller
             'pendientes' => MantenimientoUnidad::where('estado_mantenimiento', 'programado')->count(),
             'en_proceso' => MantenimientoUnidad::where('estado_mantenimiento', 'en_proceso')->count(),
             'completados' => MantenimientoUnidad::where('estado_mantenimiento', 'completado')->count(),
-            'este_mes' => MantenimientoUnidad::whereMonth('fecha_mantenimiento', now()->month)->count()
+            'este_mes' => MantenimientoUnidad::whereMonth('fecha_mantenimiento', now()->month)->count(),
+            // Suma de costo total de protocolos completados en quetzales
+            'costo_total' => MantenimientoUnidad::where('estado_mantenimiento', 'completado')->sum('costo_mantenimiento'),
         ];
         
         $unidades = UnidadProduccion::all();
@@ -149,34 +206,45 @@ class ProduccionController extends Controller
         $repeatType = $request->input('repeat_type', 'none');
         $repeatCount = (int)($request->input('repeat_count', 1));
         $fechas = [];
-        $inicio = \Carbon\Carbon::parse($validated['fecha_mantenimiento']);
+        // Usar el rango del ciclo para calcular las fechas
+        $inicioCiclo = $request->input('fecha_inicio_ciclico') ? \Carbon\Carbon::parse($request->input('fecha_inicio_ciclico')) : \Carbon\Carbon::parse($validated['fecha_mantenimiento']);
+        $finCiclo = $request->input('fecha_fin_ciclico') ? \Carbon\Carbon::parse($request->input('fecha_fin_ciclico')) : $inicioCiclo->copy();
         if ($repeatType === 'interval') {
             $every = max(1, (int)$request->input('repeat_every', 1));
             $unit = $request->input('repeat_unit', 'days');
-            for ($i = 0; $i < $repeatCount; $i++) {
-                $fechas[] = $inicio->copy()->add($unit, $every * $i);
+            $fechaActual = $inicioCiclo->copy();
+            while ($fechaActual->lte($finCiclo)) {
+                $fechas[] = $fechaActual->copy();
+                $fechaActual->add($unit, $every);
             }
         } elseif ($repeatType === 'n_months') {
             $n = max(2, (int)$request->input('repeat_n_months', 2));
-            for ($i = 0; $i < $repeatCount; $i++) {
-                $fechas[] = $inicio->copy()->addMonths($n * $i);
+            $fechaActual = $inicioCiclo->copy();
+            while ($fechaActual->lte($finCiclo)) {
+                $fechas[] = $fechaActual->copy();
+                $fechaActual->addMonths($n);
             }
         } elseif ($repeatType === 'advanced') {
             $week = (int)$request->input('advanced_week', 1);
             $weekday = (int)$request->input('advanced_weekday', 1); // 1=Lunes ... 7=Domingo
-            $date = $inicio->copy();
-            for ($i = 0; $i < $repeatCount; $i++) {
-                $mes = $date->copy()->addMonths($i)->month;
-                $anio = $date->copy()->addMonths($i)->year;
+            $fechaActual = $inicioCiclo->copy();
+            while ($fechaActual->lte($finCiclo)) {
+                $mes = $fechaActual->month;
+                $anio = $fechaActual->year;
                 $firstDay = \Carbon\Carbon::create($anio, $mes, 1);
                 $target = $firstDay->copy()->next($weekday);
                 if ($week > 1) {
                     $target->addWeeks($week - 1);
                 }
-                $fechas[] = $target;
+                if ($target->gte($inicioCiclo) && $target->lte($finCiclo)) {
+                    $fechas[] = $target->copy();
+                }
+                $fechaActual->addMonth();
             }
         } else {
-            $fechas[] = $inicio;
+            if ($inicioCiclo->lte($finCiclo)) {
+                $fechas[] = $inicioCiclo->copy();
+            }
         }
 
         $mantenimientos = [];
@@ -336,7 +404,10 @@ class ProduccionController extends Controller
         }
 
         $totalHoras = $mantenimientosCompletos->sum(function($mantenimiento) {
-            return $mantenimiento->fecha_inicio->diffInHours($mantenimiento->fecha_fin);
+            if ($mantenimiento->fecha_inicio && $mantenimiento->fecha_fin) {
+                return $mantenimiento->fecha_inicio->diffInHours($mantenimiento->fecha_fin);
+            }
+            return 0;
         });
 
         return round($totalHoras / $mantenimientosCompletos->count(), 1);
@@ -395,13 +466,17 @@ class ProduccionController extends Controller
             'observaciones' => 'nullable|string|max:1000'
         ]);
 
+        $mortalidad = $request->mortalidad ?? 0;
+        $cantidad_actual = $request->cantidad_actual !== null ? $request->cantidad_actual : $lote->cantidad_actual;
+        // Descontar mortalidad del lote
+        $nueva_cantidad = max(0, $cantidad_actual - $mortalidad);
         $seguimiento = Seguimiento::create([
             'lote_id' => $lote->id,
             'user_id' => Auth::id(),
             'fecha_seguimiento' => $request->fecha_seguimiento,
             'tipo_seguimiento' => $request->tipo_seguimiento,
-            'cantidad_actual' => $request->cantidad_actual,
-            'mortalidad' => $request->mortalidad ?? 0,
+            'cantidad_actual' => $nueva_cantidad,
+            'mortalidad' => $mortalidad,
             'peso_promedio' => $request->peso_promedio,
             'talla_promedio' => $request->talla_promedio,
             'temperatura_agua' => $request->temperatura_agua,
@@ -410,10 +485,13 @@ class ProduccionController extends Controller
             'observaciones' => $request->observaciones
         ]);
 
-        // Actualizar cantidad actual del lote si se proporciona
-        if ($request->cantidad_actual !== null) {
-            $lote->update(['cantidad_actual' => $request->cantidad_actual]);
-        }
+        // Actualizar cantidad_actual y total_peso en el lote
+        $peso_promedio = $request->peso_promedio ?? $lote->peso_promedio_inicial;
+        $total_peso = round($nueva_cantidad * $peso_promedio, 2);
+        $lote->update([
+            'cantidad_actual' => $nueva_cantidad,
+            'total_peso' => $total_peso
+        ]);
 
         return redirect()->route('produccion.seguimiento.lotes')
                         ->with('success', 'Seguimiento registrado exitosamente.');
@@ -722,5 +800,60 @@ class ProduccionController extends Controller
             'unidad' => $unidad,
             'eventos' => $eventosPaginados
         ]);
+    }
+
+    // Eliminar mantenimiento
+    public function eliminarMantenimiento($mantenimiento)
+    {
+        $mantenimiento = \App\Models\MantenimientoUnidad::findOrFail($mantenimiento);
+        $user = Auth::user();
+        if ($user->role !== 'admin' && $user->role !== 'gerente') {
+            return redirect()->back()->with('error', 'No tienes permiso para eliminar mantenimientos.');
+        }
+        // Si el mantenimiento es parte de un ciclo, eliminar todos los del ciclo
+        $ciclicos = \App\Models\MantenimientoUnidad::where('unidad_produccion_id', $mantenimiento->unidad_produccion_id)
+            ->where('tipo_mantenimiento', $mantenimiento->tipo_mantenimiento)
+            ->where('descripcion_trabajo', $mantenimiento->descripcion_trabajo)
+            ->where('user_id', $mantenimiento->user_id)
+            ->where('prioridad', $mantenimiento->prioridad)
+            ->where('estado_mantenimiento', $mantenimiento->estado_mantenimiento)
+            ->whereDate('fecha_mantenimiento', '>=', $mantenimiento->fecha_mantenimiento)
+            ->get();
+        if ($ciclicos->count() > 1) {
+            foreach ($ciclicos as $c) {
+                $c->delete();
+            }
+            return redirect()->route('produccion.mantenimientos.historial', $mantenimiento->unidad_produccion_id)
+                ->with('success', 'Todos los mantenimientos cíclicos relacionados han sido eliminados.');
+        } else {
+            $mantenimiento->delete();
+            return redirect()->route('produccion.mantenimientos.historial', $mantenimiento->unidad_produccion_id)
+                ->with('success', 'Mantenimiento eliminado correctamente.');
+        }
+    }
+    /**
+     * Eliminar todos los mantenimientos relacionados de un ciclo
+     */
+    public function eliminarCiclo(Request $request, MantenimientoUnidad $mantenimiento)
+    {
+        // Solo admin/gerente pueden eliminar
+        $user = Auth::user();
+        if (!($user->role === 'admin' || $user->role === 'gerente')) {
+            return redirect()->back()->with('error', 'No tienes permisos para eliminar mantenimientos cíclicos.');
+        }
+        // Buscar todos los mantenimientos del ciclo
+        $ciclo = MantenimientoUnidad::where('unidad_produccion_id', $mantenimiento->unidad_produccion_id)
+            ->where('tipo_mantenimiento', $mantenimiento->tipo_mantenimiento)
+            ->where('repeat_type', $mantenimiento->repeat_type)
+            ->where('repeat_every', $mantenimiento->repeat_every)
+            ->where('repeat_unit', $mantenimiento->repeat_unit)
+            ->where('descripcion_trabajo', $mantenimiento->descripcion_trabajo)
+            ->get();
+        $count = $ciclo->count();
+        foreach ($ciclo as $m) {
+            $m->delete();
+        }
+        return redirect()->route('produccion.mantenimientos', $mantenimiento->unidadProduccion)
+            ->with('success', "Se eliminaron $count mantenimientos relacionados del ciclo.");
     }
 }

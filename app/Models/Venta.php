@@ -47,6 +47,13 @@ class Venta extends Model
         return $this->hasOneThrough(Lote::class, CosechaParcial::class, 'id', 'id', 'cosecha_parcial_id', 'lote_id');
     }
 
+
+    // Relación con detalles de venta
+    public function detalles()
+    {
+        return $this->hasMany(DetalleVenta::class);
+    }
+
     // Scopes
     public function scopePendientes($query)
     {

@@ -126,11 +126,18 @@
                         </div>
 
                         <!-- Ciclo de mantenimiento -->
-                        <div class="mt-6 max-w-2xl mx-auto">
-                            <label class="flex items-center text-base font-medium text-gray-700 dark:text-gray-300">
+                        <div class="mt-6 max-w-2xl mx-auto flex items-center space-x-4">
+                            <label class="flex items-center text-base font-medium text-gray-700 dark:text-gray-300 mb-0">
                                 <input type="checkbox" id="ciclico" name="ciclico" onchange="toggleCiclico()" class="mr-2 accent-orange-600">
                                 ¿Cíclico?
                             </label>
+                            <div id="fecha_mantenimiento_box" class="flex-1">
+                                <label for="fecha_mantenimiento" class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">Fecha del mantenimiento *</label>
+                                <input type="date" name="fecha_mantenimiento" id="fecha_mantenimiento" required
+                                       value="{{ old('fecha_mantenimiento', now()->addDays(1)->format('Y-m-d')) }}"
+                                       min="{{ now()->format('Y-m-d') }}"
+                                       class="block w-full border-gray-300 dark:border-gray-600 dark:bg-white dark:text-gray-900 rounded-md shadow-sm focus:border-orange-500 focus:ring-orange-500 px-3 py-2 text-base">
+                            </div>
                         </div>
                         <div id="ciclico_options" class="hidden mt-4 max-w-2xl mx-auto">
                             <!-- Campos ocultos para lógica backend -->
@@ -143,12 +150,12 @@
                             <div class="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha de inicio *</label>
-                                        <input type="date" name="fecha_inicio" id="fecha_inicio" class="w-full border-gray-300 dark:border-gray-600 rounded-md" onchange="actualizarPatronMensual()" />
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha de inicio del ciclo *</label>
+                                        <input type="date" name="fecha_inicio_ciclico" id="fecha_inicio_ciclico" class="w-full border-gray-300 dark:border-gray-600 rounded-md" onchange="actualizarPatronMensual()" />
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha de fin *</label>
-                                        <input type="date" name="fecha_fin" id="fecha_fin" class="w-full border-gray-300 dark:border-gray-600 rounded-md" />
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha de fin del ciclo *</label>
+                                        <input type="date" name="fecha_fin_ciclico" id="fecha_fin_ciclico" class="w-full border-gray-300 dark:border-gray-600 rounded-md" />
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Repetir cada</label>
@@ -210,26 +217,22 @@
                             if(document.getElementById('ciclico').checked) {
                                 // Determinar tipo de repetición
                                 const intervaloTipo = document.getElementById('intervalo_tipo').value;
-                                const intervaloValor = document.getElementById('intervalo_valor').value;
-                                const fechaInicio = document.getElementById('fecha_inicio').value;
-                                const fechaFin = document.getElementById('fecha_fin').value;
+                                const intervaloValor = parseInt(document.getElementById('intervalo_valor').value);
+                                const fechaInicio = document.getElementById('fecha_mantenimiento').value;
                                 let repeatType = 'interval';
                                 let repeatEvery = intervaloValor;
                                 let repeatUnit = 'days';
-                                let repeatCount = 24;
-                                // Calcular cantidad de repeticiones según fechas
-                                if(fechaInicio && fechaFin) {
-                                    const d1 = new Date(fechaInicio);
-                                    const d2 = new Date(fechaFin);
+                                let repeatCount = 1;
+                                // Calcular cantidad de repeticiones según la fecha de inicio y el tipo
+                                if(fechaInicio) {
                                     if(intervaloTipo === 'semanas') {
-                                        repeatCount = Math.floor((d2 - d1) / (1000*60*60*24*7) / intervaloValor) + 1;
+                                        repeatCount = 12;
                                     } else if(intervaloTipo === 'meses') {
-                                        repeatCount = (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth());
-                                        repeatCount = Math.floor(repeatCount / intervaloValor) + 1;
+                                        repeatCount = 12;
                                     } else if(intervaloTipo === 'anios') {
-                                        repeatCount = Math.floor((d2.getFullYear() - d1.getFullYear()) / intervaloValor) + 1;
+                                        repeatCount = 3;
                                     } else {
-                                        repeatCount = Math.floor((d2 - d1) / (1000*60*60*24) / intervaloValor) + 1;
+                                        repeatCount = 12;
                                     }
                                 }
                                 // Mapear unidad
@@ -251,6 +254,14 @@
                                 document.getElementById('repeat_every').value = repeatEvery;
                                 document.getElementById('repeat_unit').value = repeatUnit;
                                 document.getElementById('repeat_count').value = repeatCount;
+                            } else {
+                                // Si no es cíclico, limpiar los campos ocultos
+                                document.getElementById('repeat_type').value = '';
+                                document.getElementById('repeat_every').value = '';
+                                document.getElementById('repeat_unit').value = '';
+                                document.getElementById('repeat_count').value = '';
+                                document.getElementById('advanced_week').value = '';
+                                document.getElementById('advanced_weekday').value = '';
                             }
                         });
                         function togglePatronMensual() {
@@ -294,16 +305,7 @@
                         });
                         </script>
                         </div>
-                        <!-- Fecha Programada (solo si no es cíclico) -->
-                        <div id="fecha_programada_box" class="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 max-w-2xl mx-auto">
-                            <label for="fecha_mantenimiento" class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
-                                Fecha Programada *
-                            </label>
-                            <input type="date" name="fecha_mantenimiento" id="fecha_mantenimiento" required
-                                   value="{{ old('fecha_mantenimiento', now()->addDays(1)->format('Y-m-d')) }}"
-                                   min="{{ now()->format('Y-m-d') }}"
-                                   class="block w-full border-gray-300 dark:border-gray-600 dark:bg-white dark:text-gray-900 rounded-md shadow-sm focus:border-orange-500 focus:ring-orange-500 px-3 py-2 text-base">
-                        </div>
+                        <!--
 
                         <!-- Descripción -->
                         <div class="max-w-2xl mx-auto">
@@ -352,6 +354,192 @@
                             </div>
                         </div>
 
+                        <!-- Artículos / Insumos -->
+                        <div class="max-w-2xl mx-auto mt-4">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Agregar insumos</label>
+                            <div class="flex items-center space-x-2 mb-2">
+                                <input type="text" id="buscador_insumo_factura" class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm" placeholder="Buscar insumo..." onkeyup="buscarInsumoFactura()">
+                                <button type="button" onclick="agregarInsumoFactura()" class="bg-orange-600 hover:bg-orange-700 text-white font-bold px-4 py-2 rounded">Agregar</button>
+                            </div>
+                            <div id="resultados_insumo_factura" class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg max-h-40 overflow-y-auto mb-2"></div>
+                            <table class="min-w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg">
+                                <thead>
+                                    <tr>
+                                        <th class="px-4 py-2">Artículo</th>
+                                        <th class="px-4 py-2">Unidad</th>
+                                        <th class="px-4 py-2">Cantidad</th>
+                                        <th class="px-4 py-2">Costo Unitario</th>
+                                        <th class="px-4 py-2">Total</th>
+                                        <th class="px-4 py-2">Eliminar</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="insumos_factura_seleccionados">
+                                </tbody>
+                            </table>
+                        </div>
+                        <script>
+                        var todosInsumosFactura = [
+                            @foreach(App\Models\InventarioItem::all() as $insumo)
+                                {id: {{ $insumo->id }}, nombre: "{{ $insumo->nombre }}", unidad: "{{ $insumo->unidad }}", costo_unitario: {{ $insumo->costo_unitario }}},
+                            @endforeach
+                        ];
+                        var insumosFacturaSeleccionados = [];
+                        function buscarInsumoFactura() {
+                            var query = document.getElementById('buscador_insumo_factura').value.toLowerCase();
+                            var resultados = todosInsumosFactura.filter(i => i.nombre.toLowerCase().includes(query) && !insumosFacturaSeleccionados.some(sel => sel.id === i.id));
+                            var html = '';
+                            resultados.forEach(i => {
+                                html += `<div class='px-2 py-1 cursor-pointer hover:bg-orange-100 dark:hover:bg-orange-900' onclick='seleccionarInsumoFactura(${i.id})'>${i.nombre} (${i.unidad})</div>`;
+                            });
+                            document.getElementById('resultados_insumo_factura').innerHTML = html;
+                        }
+                        var insumoFacturaSeleccionadoId = null;
+                        function seleccionarInsumoFactura(id) {
+                            insumoFacturaSeleccionadoId = id;
+                            document.getElementById('buscador_insumo_factura').value = todosInsumosFactura.find(i => i.id === id).nombre;
+                            document.getElementById('resultados_insumo_factura').innerHTML = '';
+                        }
+                        function agregarInsumoFactura() {
+                            var id = insumoFacturaSeleccionadoId;
+                            if(id === null) return;
+                            var insumo = todosInsumosFactura.find(i => i.id === id);
+                            if(insumo && !insumosFacturaSeleccionados.some(i => i.id === id)) {
+                                insumosFacturaSeleccionados.push({...insumo, cantidad: 1});
+                                renderInsumosFacturaSeleccionados();
+                                document.getElementById('buscador_insumo_factura').value = '';
+                                insumoFacturaSeleccionadoId = null;
+                            }
+                        }
+                        function cambiarCantidadFactura(idx, val) {
+                            insumosFacturaSeleccionados[idx].cantidad = parseInt(val) || 1;
+                            renderInsumosFacturaSeleccionados();
+                        }
+                        function eliminarInsumoFactura(idx) {
+                            insumosFacturaSeleccionados.splice(idx, 1);
+                            renderInsumosFacturaSeleccionados();
+                        }
+                        function renderInsumosFacturaSeleccionados() {
+                            var html = '';
+                            insumosFacturaSeleccionados.forEach((i, idx) => {
+                                var costoUnitario = i.costo_unitario ? parseFloat(i.costo_unitario) : 0;
+                                var cantidad = parseInt(i.cantidad) || 1;
+                                var total = costoUnitario * cantidad;
+                                html += `<tr>
+                                    <td class='px-4 py-2'><input type='hidden' name='insumos[]' value='${i.id}'>${i.nombre}</td>
+                                    <td class='px-4 py-2'>${i.unidad}</td>
+                                    <td class='px-4 py-2'>
+                                        <input type='number' name='cantidades[]' value='${cantidad}' min='1' class='w-16 border-gray-300 rounded' onchange='cambiarCantidadFactura(${idx}, this.value)'>
+                                    </td>
+                                    <td class='px-4 py-2'>Q${costoUnitario.toFixed(2)}</td>
+                                    <td class='px-4 py-2'>Q${total.toFixed(2)}</td>
+                                    <td class='px-4 py-2 text-center'>
+                                        <button type='button' onclick='eliminarInsumoFactura(${idx})' class='text-red-600 hover:text-red-800'>Eliminar</button>
+                                    </td>
+                                </tr>`;
+                            });
+                            document.getElementById('insumos_factura_seleccionados').innerHTML = html;
+                            calcularCostoTotal();
+                        }
+                        document.addEventListener('DOMContentLoaded', function() {
+                            buscarInsumoFactura();
+                            renderInsumosFacturaSeleccionados();
+                        });
+                        </script>
+
+                        <!-- Costo total del protocolo de mantenimiento -->
+                        <div class="max-w-2xl mx-auto mt-4">
+                            <label for="costo_total" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Costo total del protocolo de mantenimiento
+                            </label>
+                            <input type="number" name="costo_total" id="costo_total" step="0.01" min="0" class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm" placeholder="Se calcula automáticamente" readonly>
+                        </div>
+                        <script>
+                        // Calcular costo total automáticamente según insumos y cantidades
+                        function obtenerCostoUnitario(id) {
+                            var insumo = todosInsumosFactura.find(i => i.id === id);
+                            return insumo && insumo.costo_unitario ? parseFloat(insumo.costo_unitario) : 0;
+                        }
+                        function calcularCostoTotal() {
+                            var total = 0;
+                            insumosFacturaSeleccionados.forEach(i => {
+                                var costo = obtenerCostoUnitario(i.id);
+                                total += costo * (parseInt(i.cantidad) || 1);
+                            });
+                            document.getElementById('costo_total').value = total.toFixed(2);
+                        }
+                        // Actualiza el costo cada vez que cambian los insumos o cantidades
+                        function renderInsumosFacturaSeleccionados() {
+                            var html = '';
+                            insumosFacturaSeleccionados.forEach((i, idx) => {
+                                var costoUnitario = i.costo_unitario ? parseFloat(i.costo_unitario) : 0;
+                                var cantidad = parseInt(i.cantidad) || 1;
+                                var total = costoUnitario * cantidad;
+                                html += `<tr>
+                                    <td class='px-4 py-2'><input type='hidden' name='insumos[]' value='${i.id}'>${i.nombre}</td>
+                                    <td class='px-4 py-2'>${i.unidad}</td>
+                                    <td class='px-4 py-2'>
+                                        <input type='number' name='cantidades[]' value='${cantidad}' min='1' class='w-16 border-gray-300 rounded' onchange='cambiarCantidadFactura(${idx}, this.value);calcularCostoTotal();'>
+                                    </td>
+                                    <td class='px-4 py-2'>Q${costoUnitario.toFixed(2)}</td>
+                                    <td class='px-4 py-2'>Q${total.toFixed(2)}</td>
+                                    <td class='px-4 py-2 text-center'>
+                                        <button type='button' onclick='eliminarInsumoFactura(${idx});calcularCostoTotal();' class='text-red-600 hover:text-red-800'>Eliminar</button>
+                                    </td>
+                                </tr>`;
+                            });
+                            document.getElementById('insumos_factura_seleccionados').innerHTML = html;
+                            calcularCostoTotal();
+                        }
+                        document.addEventListener('DOMContentLoaded', function() {
+                            buscarInsumoFactura();
+                            renderInsumosFacturaSeleccionados();
+                        });
+                        </script>
+
+                        <!-- Actividades a completar por el técnico -->
+                        <div class="max-w-2xl mx-auto mt-6">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Actividades para el técnico</label>
+                            <table class="min-w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg mb-2">
+                                <thead>
+                                    <tr>
+                                        <th class="px-4 py-2">Actividad</th>
+                                        <th class="px-4 py-2">Eliminar</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="actividades_table">
+                                </tbody>
+                            </table>
+                            <div class="flex items-center space-x-2">
+                                <input type="text" id="nueva_actividad" class="border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 w-full" placeholder="Agregar actividad...">
+                                <button type="button" onclick="agregarActividad()" class="bg-orange-600 hover:bg-orange-700 text-white font-bold px-4 py-2 rounded">Agregar</button>
+                            </div>
+                        </div>
+                        <script>
+                        var actividades = [];
+                        function agregarActividad() {
+                            var val = document.getElementById('nueva_actividad').value.trim();
+                            if(val) {
+                                actividades.push(val);
+                                renderActividades();
+                                document.getElementById('nueva_actividad').value = '';
+                            }
+                        }
+                        function eliminarActividad(idx) {
+                            actividades.splice(idx, 1);
+                            renderActividades();
+                        }
+                        function renderActividades() {
+                            var html = '';
+                            actividades.forEach((a, idx) => {
+                                html += `<tr><td class='px-4 py-2'><input type='hidden' name='actividades[]' value='${a}'>${a}</td><td class='px-4 py-2 text-center'><button type='button' onclick='eliminarActividad(${idx})' class='text-red-600 hover:text-red-800'>Eliminar</button></td></tr>`;
+                            });
+                            document.getElementById('actividades_table').innerHTML = html;
+                        }
+                        document.addEventListener('DOMContentLoaded', function() {
+                            renderActividades();
+                        });
+                        </script>
+
                         <!-- Botones de acción -->
                         <div class="flex items-center justify-end space-x-4 pt-4 max-w-2xl mx-auto">
                             <a href="{{ $unidad ? route('produccion.mantenimientos', $unidad) : route('produccion.mantenimientos') }}" 
@@ -367,7 +555,7 @@
                         function toggleCiclico() {
                             const checked = document.getElementById('ciclico').checked;
                             document.getElementById('ciclico_options').classList.toggle('hidden', !checked);
-                            document.getElementById('fecha_programada_box').classList.toggle('hidden', checked);
+                            document.getElementById('fecha_mantenimiento_box').classList.toggle('hidden', checked);
                         }
                         function toggleIntervalo() {
                             const tipo = document.getElementById('intervalo_tipo').value;
@@ -389,7 +577,7 @@
                 <div class="flex">
                     <div class="flex-shrink-0">
                         <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zm-4 4a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
                         </svg>
                     </div>
                     <div class="ml-3">

@@ -103,6 +103,24 @@
                             const data = await response.json();
 
                             if (data.actividades && data.actividades.length > 0) {
+                                // Front-end normalización extra: si solo viene una y parece contener varias, dividir aquí también
+                                if (data.actividades.length === 1 && typeof data.actividades[0] === 'string') {
+                                    let raw = data.actividades[0];
+                                    // Separar por saltos, ; |
+                                    let prelim = raw.split(/[\r\n;|]+/).filter(a=>a.trim()!== '');
+                                    if (prelim.length === 1) {
+                                        // Intentar por numeraciones 1) 2. 3-
+                                        const numSplit = raw.split(/\s*\d+\s*[).:-]\s+/).filter(a=>a.trim()!=='');
+                                        if (numSplit.length > 1) {
+                                            prelim = numSplit;
+                                        }
+                                    }
+                                    if (prelim.length === 1 && prelim[0].includes(',')) {
+                                        const comaParts = prelim[0].split(',').map(p=>p.trim()).filter(p=>p!=='');
+                                        if (comaParts.length > 1) prelim = comaParts;
+                                    }
+                                    data.actividades = prelim.map(a=>a.trim()).filter(a=>a.length>0);
+                                }
                                 actividadesContainer.innerHTML = `
                                     <div class="overflow-x-auto">
                                         <table class="min-w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg">

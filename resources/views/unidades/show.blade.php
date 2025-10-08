@@ -30,12 +30,12 @@
                 <form method="POST" action="{{ route('unidades.toggle-estado', $unidad) }}" class="inline">
                     @csrf
                     @method('PATCH')
-                    <button type="submit" 
-                            class="bg-{{ $unidad->estado === 'activa' ? 'red' : 'green' }}-600 hover:bg-{{ $unidad->estado === 'activa' ? 'red' : 'green' }}-700 text-white font-bold py-1.5 px-4 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105 inline-flex items-center text-xs">
+            <button type="submit" 
+                class="bg-{{ $unidad->estado === 'activo' ? 'red' : 'green' }}-600 hover:bg-{{ $unidad->estado === 'activo' ? 'red' : 'green' }}-700 text-white font-bold py-1.5 px-4 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105 inline-flex items-center text-xs">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
-                        {{ $unidad->estado === 'activa' ? 'Inhabilitar' : 'Habilitar' }}
+                        {{ $unidad->estado === 'activo' ? 'Inhabilitar' : 'Habilitar' }}
                     </button>
                 </form>
             </div>
@@ -86,7 +86,7 @@
                                 </div>
                             </div>
                             <div>
-                                @if($unidad->estado === 'activa')
+                                @if($unidad->estado === 'activo')
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 shadow">
                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" /></svg>
                                         Activa
@@ -96,10 +96,10 @@
                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3" /></svg>
                                         En Mantenimiento
                                     </span>
-                                @elseif($unidad->estado === 'inactiva')
+                                @elseif($unidad->estado === 'inactivo')
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 shadow">
                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 12l6 6 6-6" /></svg>
-                                        Inactiva
+                                        Inactivo
                                     </span>
                                 @else
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200 shadow">

@@ -6,9 +6,49 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Log;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
+    /**
+     * Devuelve los módulos permitidos para el usuario según la configuración personalizada
+     */
+    public function getAllowedModules(): array
+    {
+        // Si es admin, mostrar siempre los 9 módulos principales
+        if ($this->isAdmin()) {
+            return [
+                'unidades',
+                'produccion',
+                'inventarios',
+                'usuarios_roles',
+                'acciones_correctivas',
+                'protocolos_limpieza',
+                'ventas',
+                'compras_proveedores',
+                'reportes',
+            ];
+        }
+        // Si el usuario tiene módulos personalizados, usar esos
+        $modules = $this->modules()->pluck('module')->toArray();
+        if (!empty($modules)) {
+            return $modules;
+        }
+        // Si no tiene configuración personalizada, usar los módulos del rol (definidos por el admin)
+        $role = $this->roleModel;
+        if ($role && $role->modules()->count() > 0) {
+            return $role->modules()->pluck('module')->toArray();
+        }
+        // Si el rol tampoco tiene configuración, no mostrar nada
+        return [];
+    }
+    /**
+     * Relación con los módulos visibles para el usuario
+     */
+    public function modules()
+    {
+        return $this->hasMany(UserModule::class);
+    }
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
@@ -148,19 +188,104 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function hasPermission(string $permission): bool
     {
-        // Admin tiene acceso a todo automáticamente
+        // Admin tiene acceso total
         if ($this->isAdmin()) {
             return true;
         }
-        
-        // Get the user's role from database
-        $role = \App\Models\Role::where('name', $this->role)->where('is_active', true)->first();
-        
+
+        // Obtener rol activo
+        $role = \App\Models\Role::where('name', $this->role)
+            ->where('is_active', true)
+            ->first();
         if (!$role) {
             return false;
         }
-        
-        return in_array($permission, $role->permissions ?? []);
+
+        // Lista de permisos reales almacenados
+        $storedPermissions = $role->getPermissionsArray();
+        // Normalizar permisos almacenados (lower + trim)
+        $normalizedStored = collect($storedPermissions)
+            ->map(fn($p) => strtolower(trim($p)))
+            ->filter()
+            ->values()
+            ->all();
+
+        // Mapeo de alias (inconsistencias en rutas vs definición)
+        $aliasMap = [
+            // Usuarios
+            'users.view' => 'ver_usuarios',
+            'users.create' => 'crear_usuarios',
+            'users.edit' => 'editar_usuarios',
+            'users.delete' => 'eliminar_usuarios',
+            // Roles
+            'roles.view' => 'ver_roles',
+            'roles.create' => 'crear_roles',
+            'roles.edit' => 'editar_roles',
+            'roles.delete' => 'eliminar_roles',
+        ];
+
+        // Si el permiso viene con notación de punto y existe alias, convertir
+        if (isset($aliasMap[$permission])) {
+            $permission = $aliasMap[$permission];
+        }
+
+        // Intentar normalizaciones simples (singular/plural básico)
+        $candidatos = [$permission];
+
+        // Ej: crear_lote(s)
+        if (str_ends_with($permission, 'lote')) {
+            $candidatos[] = $permission . 's';
+        } elseif (str_ends_with($permission, 'lotes')) {
+            $candidatos[] = substr($permission, 0, -1); // quitar la s
+        }
+
+        // También si viniera como modulo.accion (ej: lotes.create) transformarlo
+        if (str_contains($permission, '.')) {
+            [$mod, $act] = explode('.', $permission, 2);
+            $traduccion = match($act) {
+                'view' => 'ver',
+                'create' => 'crear',
+                'edit' => 'editar',
+                'delete' => 'eliminar',
+                default => null,
+            };
+            if ($traduccion) {
+                $candidatos[] = $traduccion . '_' . $mod; // ej: crear_lotes
+            }
+        }
+
+        // Evaluar
+        $acciones = ['ver','crear','editar','eliminar'];
+        // Detectar patrón accion_modulo y generar modulo.accion
+        foreach ($candidatos as $cand) {
+            foreach ($acciones as $acc) {
+                if (str_starts_with($cand, $acc.'_')) {
+                    $mod = substr($cand, strlen($acc)+1); // resto después de accion_
+                    if ($mod !== '') {
+                        $candidatos[] = $mod.'.'.$acc; // ej: lotes.create
+                    }
+                }
+            }
+        }
+
+        $found = false;
+        foreach (array_unique($candidatos) as $cand) {
+            $lc = strtolower(trim($cand));
+            if (in_array($cand, $storedPermissions, true) || in_array($lc, $normalizedStored, true)) {
+                $found = true; break;
+            }
+        }
+        if (!$found) {
+            Log::info('HAS_PERMISSION_FALLA', [
+                'user_id' => $this->id,
+                'role' => $this->role,
+                'permission_input' => $permission,
+                'candidatos' => $candidatos,
+                'stored' => $storedPermissions,
+                'normalized_stored' => $normalizedStored,
+            ]);
+        }
+        return $found;
     }
 
     /**

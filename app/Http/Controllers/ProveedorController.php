@@ -6,9 +6,28 @@ use App\Models\Proveedor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class ProveedorController extends Controller
 {
+    /**
+     * Búsqueda rápida AJAX de proveedores por nombre o NIT
+     */
+    public function search(Request $request)
+    {
+        $q = trim($request->get('q',''));
+        if (strlen($q) < 2) {
+            return response()->json([]);
+        }
+        $proveedores = Proveedor::where(function($query) use ($q) {
+                $query->where('nombre','LIKE',"%{$q}%")
+                      ->orWhere('nit','LIKE',"%{$q}%");
+            })
+            ->orderBy('nombre')
+            ->limit(20)
+            ->get(['id','nombre','nit','categoria','estado']);
+        return response()->json($proveedores);
+    }
     /**
      * Display a listing of the resource.
      */
@@ -371,7 +390,7 @@ class ProveedorController extends Controller
             // Si se proporciona un motivo, agregarlo a las notas
             if (!empty($data['motivo'])) {
                 $fecha = now()->format('d/m/Y H:i');
-                $usuario = auth()->user()->name ?? 'Sistema';
+                $usuario = Auth::user()->name ?? 'Sistema';
                 $notaNueva = "[{$fecha}] {$usuario}: Cambio de estado de '{$estadoAnterior}' a '{$data['estado']}'. Motivo: {$data['motivo']}";
                 
                 $notasActuales = $proveedor->notas ? $proveedor->notas . "\n\n" : '';
@@ -420,7 +439,7 @@ class ProveedorController extends Controller
             // Agregar comentarios a las notas si se proporcionan
             if (!empty($data['comentarios'])) {
                 $fecha = now()->format('d/m/Y H:i');
-                $usuario = auth()->user()->name ?? 'Sistema';
+                $usuario = Auth::user()->name ?? 'Sistema';
                 $notaNueva = "[{$fecha}] Evaluación de {$usuario} (★{$data['calificacion']}/5): {$data['comentarios']}";
                 
                 $notasActuales = $proveedor->notas ? $proveedor->notas . "\n\n" : '';

@@ -105,7 +105,7 @@
                                 @enderror
                             </div>
 
-                            <!-- Peso Promedio Inicial -->
+                            <!-- Peso Promedio Inicial (KG) -->
                             <div>
                                 <label for="peso_promedio_inicial" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Peso Promedio Inicial (kg)
@@ -113,7 +113,8 @@
                                 <input type="number" step="0.001" name="peso_promedio_inicial" id="peso_promedio_inicial" 
                                        value="{{ old('peso_promedio_inicial') }}"
                                        class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
-                                       placeholder="0.000" min="0">
+                                       placeholder="0.011" min="0.011" max="0.99">
+                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Rango permitido: 0.011 a 0.99 kg (no enteros). Se almacena tal cual.</p>
                                 @error('peso_promedio_inicial')
                                     <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror

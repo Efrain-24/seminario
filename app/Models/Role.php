@@ -7,6 +7,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Role extends Model
 {
+    /**
+     * Relación con los módulos visibles para el rol
+     */
+    public function modules()
+    {
+        return $this->hasMany(\App\Models\RoleModule::class);
+    }
     use HasFactory;
 
     protected $fillable = [

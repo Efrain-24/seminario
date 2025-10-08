@@ -28,6 +28,16 @@
                         @endforeach
                     </select>
                 </div>
+                <div>
+                    <label for="unidad_produccion_id" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Unidad de Producción (opcional)</label>
+                    <select name="unidad_produccion_id" class="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-2">
+                        <option value="">-- Sin asociar --</option>
+                        @foreach($unidades as $u)
+                            <option value="{{ $u->id }}" @if($protocoloSanidad->unidad_produccion_id == $u->id) selected @endif>{{ $u->codigo }} - {{ ucfirst(str_replace('_',' ', $u->tipo)) }}</option>
+                        @endforeach
+                    </select>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Aparecerá listado en los registros de limpieza de esta unidad.</p>
+                </div>
 
                 <!-- Sección de Actividades del Checklist -->
                 <div>

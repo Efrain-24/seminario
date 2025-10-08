@@ -10,6 +10,30 @@ use Illuminate\View\View;
 class RoleController extends Controller
 {
     /**
+     * Mostrar formulario para ocultar módulos de aplicación por rol
+     */
+    public function ocultarModulos(Role $role)
+    {
+        // Obtener módulos actuales del rol
+        $roleModules = $role->modules()->pluck('module')->toArray();
+        return view('roles.ocultar-modulos', compact('role', 'roleModules'));
+    }
+
+    /**
+     * Actualizar módulos visibles para el rol
+     */
+    public function actualizarModulos(Request $request, Role $role)
+    {
+        $modules = $request->input('modules', []);
+        // Limpiar módulos actuales
+        $role->modules()->delete();
+        // Insertar nuevos módulos
+        foreach ($modules as $module) {
+            $role->modules()->create(['module' => $module]);
+        }
+        return redirect()->route('roles.show', $role)->with('success', 'Módulos actualizados correctamente.');
+    }
+    /**
      * Display a listing of the roles.
      */
     public function index(): View

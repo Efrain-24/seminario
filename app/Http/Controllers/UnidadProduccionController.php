@@ -165,10 +165,12 @@ class UnidadProduccionController extends Controller
      */
     public function toggleEstado(UnidadProduccion $unidad)
     {
-        $nuevoEstado = $unidad->estado == 'activa' ? 'inactiva' : 'activa';
+        // Ajuste: los valores válidos según la migración son 'activo', 'mantenimiento', 'inactivo'
+        // Se corrige la lógica que antes usaba 'activa/inactiva'
+        $nuevoEstado = $unidad->estado === 'activo' ? 'inactivo' : 'activo';
         $unidad->update(['estado' => $nuevoEstado]);
 
-        $mensaje = $nuevoEstado == 'activa' ? 'habilitada' : 'inhabilitada';
+        $mensaje = $nuevoEstado === 'activo' ? 'habilitada' : 'inhabilitada';
         
         return redirect()->back()
                         ->with('success', "Unidad {$mensaje} exitosamente.");

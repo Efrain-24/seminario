@@ -95,15 +95,33 @@
                         <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                             <div class="text-sm text-gray-600 dark:text-gray-400 mb-1">Tipo de Alimento</div>
                             <div class="font-semibold text-gray-900 dark:text-gray-100">
-                                {{ $alimentacion->tipoAlimento->nombre_completo }}
+                                @if($alimentacion->tipoAlimento)
+                                    {{ $alimentacion->tipoAlimento->nombre_completo }}
+                                @elseif($alimentacion->inventarioItem)
+                                    {{ $alimentacion->inventarioItem->nombre }}
+                                @else
+                                    <span class="text-gray-400">Sin producto</span>
+                                @endif
                             </div>
                             <div class="text-xs text-gray-500 dark:text-gray-400">
-                                {{ ucfirst($alimentacion->tipoAlimento->categoria) }}
+                                @if($alimentacion->tipoAlimento)
+                                    {{ ucfirst($alimentacion->tipoAlimento->categoria) }}
+                                @elseif($alimentacion->inventarioItem && $alimentacion->inventarioItem->categoria)
+                                    {{ ucfirst($alimentacion->inventarioItem->categoria) }}
+                                @else
+                                    <span class="text-gray-400">Sin categoría</span>
+                                @endif
                             </div>
-                            @if($alimentacion->tipoAlimento->costo_por_kg)
+                            @if($alimentacion->tipoAlimento && $alimentacion->tipoAlimento->costo_por_kg)
                                 <div class="text-xs text-gray-500 dark:text-gray-400">
                                     Q{{ $alimentacion->tipoAlimento->costo_por_kg }}/lbs
                                 </div>
+                            @elseif($alimentacion->inventarioItem && $alimentacion->inventarioItem->costo_unitario)
+                                <div class="text-xs text-gray-500 dark:text-gray-400">
+                                    Q{{ $alimentacion->inventarioItem->costo_unitario }}/{{ $alimentacion->inventarioItem->unidad_base }}
+                                </div>
+                            @else
+                                <div class="text-xs text-gray-400">Sin costo registrado</div>
                             @endif
                         </div>
 
@@ -220,39 +238,55 @@
             @endif
 
             <!-- Información Nutricional del Alimento -->
-            @if($alimentacion->tipoAlimento->proteina_porcentaje || $alimentacion->tipoAlimento->grasa_porcentaje || $alimentacion->tipoAlimento->fibra_porcentaje)
+            @if(($alimentacion->tipoAlimento && ($alimentacion->tipoAlimento->proteina_porcentaje || $alimentacion->tipoAlimento->grasa_porcentaje || $alimentacion->tipoAlimento->fibra_porcentaje)) ||
+                ($alimentacion->inventarioItem && ($alimentacion->inventarioItem->proteina_porcentaje || $alimentacion->inventarioItem->grasa_porcentaje || $alimentacion->inventarioItem->fibra_porcentaje)))
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
                         <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Información Nutricional del Alimento</h4>
-                        
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            @if($alimentacion->tipoAlimento->proteina_porcentaje)
+                            @if(($alimentacion->tipoAlimento && $alimentacion->tipoAlimento->proteina_porcentaje) || ($alimentacion->inventarioItem && $alimentacion->inventarioItem->proteina_porcentaje))
                                 <div class="text-center">
                                     <div class="bg-red-100 dark:bg-red-900 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
                                         <span class="text-red-600 dark:text-red-400 font-bold">P</span>
                                     </div>
-                                    <div class="font-semibold text-gray-900 dark:text-gray-100">{{ $alimentacion->tipoAlimento->proteina_porcentaje }}%</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">Proteína</div>
+                                    <div class="font-semibold text-gray-900 dark:text-gray-100">Proteína</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                                        @if($alimentacion->tipoAlimento && $alimentacion->tipoAlimento->proteina_porcentaje)
+                                            {{ $alimentacion->tipoAlimento->proteina_porcentaje }}%
+                                        @else
+                                            {{ $alimentacion->inventarioItem->proteina_porcentaje ?? 'N/A' }}%
+                                        @endif
+                                    </div>
                                 </div>
                             @endif
-
-                            @if($alimentacion->tipoAlimento->grasa_porcentaje)
+                            @if(($alimentacion->tipoAlimento && $alimentacion->tipoAlimento->grasa_porcentaje) || ($alimentacion->inventarioItem && $alimentacion->inventarioItem->grasa_porcentaje))
                                 <div class="text-center">
                                     <div class="bg-yellow-100 dark:bg-yellow-900 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
                                         <span class="text-yellow-600 dark:text-yellow-400 font-bold">G</span>
                                     </div>
-                                    <div class="font-semibold text-gray-900 dark:text-gray-100">{{ $alimentacion->tipoAlimento->grasa_porcentaje }}%</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">Grasa</div>
+                                    <div class="font-semibold text-gray-900 dark:text-gray-100">Grasa</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                                        @if($alimentacion->tipoAlimento && $alimentacion->tipoAlimento->grasa_porcentaje)
+                                            {{ $alimentacion->tipoAlimento->grasa_porcentaje }}%
+                                        @else
+                                            {{ $alimentacion->inventarioItem->grasa_porcentaje ?? 'N/A' }}%
+                                        @endif
+                                    </div>
                                 </div>
                             @endif
-
-                            @if($alimentacion->tipoAlimento->fibra_porcentaje)
+                            @if(($alimentacion->tipoAlimento && $alimentacion->tipoAlimento->fibra_porcentaje) || ($alimentacion->inventarioItem && $alimentacion->inventarioItem->fibra_porcentaje))
                                 <div class="text-center">
                                     <div class="bg-green-100 dark:bg-green-900 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
                                         <span class="text-green-600 dark:text-green-400 font-bold">F</span>
                                     </div>
-                                    <div class="font-semibold text-gray-900 dark:text-gray-100">{{ $alimentacion->tipoAlimento->fibra_porcentaje }}%</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">Fibra</div>
+                                    <div class="font-semibold text-gray-900 dark:text-gray-100">Fibra</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                                        @if($alimentacion->tipoAlimento && $alimentacion->tipoAlimento->fibra_porcentaje)
+                                            {{ $alimentacion->tipoAlimento->fibra_porcentaje }}%
+                                        @else
+                                            {{ $alimentacion->inventarioItem->fibra_porcentaje ?? 'N/A' }}%
+                                        @endif
+                                    </div>
                                 </div>
                             @endif
                         </div>

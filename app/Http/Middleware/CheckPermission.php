@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class CheckPermission
 {
@@ -26,6 +27,14 @@ class CheckPermission
         
         // Verificar si el usuario tiene el permiso requerido
         if (!$user->hasPermission($permission)) {
+            Log::warning('PERMISO DENEGADO', [
+                'user_id' => $user->id,
+                'user_role' => $user->role,
+                'permission_requerido' => $permission,
+                'permisos_rol' => $user->roleModel ? $user->roleModel->getPermissionsArray() : null,
+                'ruta' => $request->path(),
+                'method' => $request->method(),
+            ]);
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 

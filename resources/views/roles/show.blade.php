@@ -14,6 +14,14 @@
                         </svg>
                         Editar Rol
                     </a>
+                    <a href="{{ route('roles.ocultar-modulos', $role) }}" 
+                       style="background-color: #f59e42 !important; color: white !important;"
+                       class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4.477-10-10 0-1.657.403-3.221 1.125-4.575M15 9h.01M19.938 19.938A10.05 10.05 0 0021 12c0-5.523-4.477-10-10-10S1 6.477 1 12c0 2.21.715 4.25 1.938 5.938M9 15h.01" />
+                        </svg>
+                        Ocultar módulos de aplicación
+                    </a>
                 @endif
                 
                 @if(auth()->user()->hasPermission('roles.delete'))

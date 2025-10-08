@@ -105,6 +105,7 @@
                                     @error('hora_alimentacion')
                                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                     @enderror
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1" id="hora_am_pm"></p>
                                 </div>
                             </div>
                         </div>
@@ -341,6 +342,7 @@
                         costoValorSpan.textContent = `${moneda} ${costoTotal.toFixed(2)}`;
                         costoEstimadoDiv.style.display = 'block';
                     } else {
+                        costoValorSpan.textContent = '';
                         costoEstimadoDiv.style.display = 'none';
                     }
                 } else {
@@ -365,6 +367,23 @@
                 validarCantidad();
                 calcularCostoEstimado();
             });
+
+            // Mostrar AM/PM en la hora
+            const horaInput = document.getElementById('hora_alimentacion');
+            const horaAmPm = document.getElementById('hora_am_pm');
+            function mostrarAmPm() {
+                if (horaInput.value) {
+                    let [h, m] = horaInput.value.split(':');
+                    h = parseInt(h);
+                    let ampm = h >= 12 ? 'PM' : 'AM';
+                    let hora12 = h % 12 || 12;
+                    horaAmPm.textContent = `Hora seleccionada: ${hora12}:${m} ${ampm}`;
+                } else {
+                    horaAmPm.textContent = '';
+                }
+            }
+            horaInput.addEventListener('input', mostrarAmPm);
+            mostrarAmPm();
         });
     </script>
 </x-app-layout>

@@ -46,7 +46,7 @@ class ProtocoloSanidadController extends Controller
             $query->where('version', $request->version);
         }
 
-        $protocolos = $query->orderBy('nombre')->orderByDesc('version')->get();
+            $protocolos = $query->get();
         
         // Obtener datos para los selectores de filtros
         $responsables = ProtocoloSanidad::distinct()->pluck('responsable')->filter()->sort();
@@ -58,12 +58,11 @@ class ProtocoloSanidadController extends Controller
     public function create()
     {
         $usuarios = User::active()->get();
-        // Obtener solo insumos (no alimentos) del inventario
+        $unidades = \App\Models\UnidadProduccion::orderBy('codigo')->get(['id','codigo','tipo']);
         $insumos = \App\Models\InventarioItem::where('tipo', 'insumo')
             ->with('existencias.bodega')
             ->get();
-            
-        return view('protocolo_sanidad.create', compact('usuarios', 'insumos'));
+        return view('protocolo_sanidad.create', compact('usuarios', 'insumos','unidades'));
     }
 
     public function store(Request $request)
@@ -74,6 +73,7 @@ class ProtocoloSanidadController extends Controller
             'responsable' => 'required',
             'actividades' => 'nullable|array',
             'actividades.*' => 'required|string|max:255',
+            'unidad_produccion_id' => 'nullable|exists:unidad_produccions,id',
             // Validación para insumos
             'insumos' => 'nullable|array',
             'insumos.*.inventario_item_id' => 'required_with:insumos|exists:inventario_items,id',
@@ -82,7 +82,7 @@ class ProtocoloSanidadController extends Controller
             'insumos.*.notas' => 'nullable|string|max:500',
         ]);
 
-        $data = $request->only(['nombre', 'fecha_implementacion', 'responsable']);
+    $data = $request->only(['nombre', 'fecha_implementacion', 'responsable','unidad_produccion_id']);
         $data['actividades'] = array_filter($request->actividades ?? []);
 
         // Crear el protocolo
@@ -129,13 +129,23 @@ class ProtocoloSanidadController extends Controller
     public function show(ProtocoloSanidad $protocoloSanidad)
     {
         $protocoloSanidad->load('insumos.inventarioItem');
-        return view('protocolo_sanidad.show', compact('protocoloSanidad'));
+        // Obtener la unidad asociada
+        $unidad = $protocoloSanidad->unidadProduccion;
+        $mantenimientos = collect();
+        if ($unidad) {
+            // Obtener todos los mantenimientos asociados a la unidad
+            $mantenimientos = $unidad->mantenimientos()
+                ->orderByDesc('fecha_mantenimiento')
+                ->get();
+        }
+        return view('protocolo_sanidad.show', compact('protocoloSanidad', 'mantenimientos', 'unidad'));
     }
 
     public function edit(ProtocoloSanidad $protocoloSanidad)
     {
         $usuarios = User::active()->get();
-        return view('protocolo_sanidad.edit', compact('protocoloSanidad', 'usuarios'));
+        $unidades = \App\Models\UnidadProduccion::orderBy('codigo')->get(['id','codigo','tipo']);
+        return view('protocolo_sanidad.edit', compact('protocoloSanidad', 'usuarios','unidades'));
     }
 
     public function update(Request $request, ProtocoloSanidad $protocoloSanidad)
@@ -146,9 +156,10 @@ class ProtocoloSanidadController extends Controller
             'responsable' => 'required',
             'actividades' => 'nullable|array',
             'actividades.*' => 'required|string|max:255',
+            'unidad_produccion_id' => 'nullable|exists:unidad_produccions,id',
         ]);
 
-        $data = $request->only(['nombre', 'fecha_implementacion', 'responsable']);
+        $data = $request->only(['nombre', 'fecha_implementacion', 'responsable','unidad_produccion_id']);
         $data['actividades'] = array_filter($request->actividades ?? []);
 
         $protocoloSanidad->update($data);

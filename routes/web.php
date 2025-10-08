@@ -1,4 +1,6 @@
 <?php
+
+
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
@@ -24,10 +26,26 @@ use App\Http\Controllers\TrazabilidadCosechaController;
 use App\Http\Controllers\LoteController;
 use App\Http\Controllers\VentaController;
 use App\Http\Controllers\ProveedorController;
+use App\Http\Controllers\BitacoraController;
+use App\Http\Controllers\ClienteController; // añadido
+use App\Http\Controllers\EntradaCompraController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+
+// CRUD de Clientes
+Route::middleware(['auth'])->group(function () {
+    Route::get('clientes/buscar', [ClienteController::class, 'search'])->name('clientes.search'); // ruta ajax
+    Route::resource('clientes', App\Http\Controllers\ClienteController::class);
+});
+// Historial de limpiezas por unidad
+Route::get('/limpieza/historial-unidad/{codigo}', [App\Http\Controllers\LimpiezaController::class, 'historialUnidad'])->name('limpieza.historial_unidad');
+
+
+// Ocultar módulos de aplicación por rol
+Route::get('/roles/{role}/ocultar-modulos', [RoleController::class, 'ocultarModulos'])->name('roles.ocultar-modulos');
+Route::put('/roles/{role}/ocultar-modulos', [RoleController::class, 'actualizarModulos'])->name('roles.ocultar-modulos.update');
 
 Route::get('/produccion/unidades/{unidad}/mortalidad-log', [MortalidadController::class, 'logPorUnidad'])->name('produccion.unidades.mortalidad_log');
 Route::get('produccion/lotes/{lote}/mortalidad-log', [\App\Http\Controllers\MortalidadLogController::class, 'show'])->name('produccion.lotes.mortalidad_log')->middleware('auth');
@@ -64,6 +82,8 @@ Route::middleware(['auth', 'verified', 'redirect.temp.password'])->group(functio
         return view('unidades.panel');
     })->name('unidades.panel');
     
+        Route::get('/unidades/{codigo}/protocolos', [ProtocoloSanidadController::class, 'protocolosPorUnidad'])->name('unidades.protocolos');
+
     Route::get('/produccion/panel', function () {
         return view('produccion.panel');
     })->name('produccion.panel');
@@ -116,6 +136,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::middleware(['auth', 'redirect.temp.password'])->group(function () {
+    Route::delete('mantenimientos/eliminar/{id}', [App\Http\Controllers\LimpiezaController::class, 'eliminarMantenimiento'])->name('mantenimientos.eliminar');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -148,24 +169,30 @@ Route::middleware(['auth', 'redirect.temp.password'])->group(function () {
 
 Route::middleware(['auth', 'redirect.temp.password'])->prefix('produccion')->name('produccion.')->group(function () {
     Route::get('/', [ProduccionController::class, 'index'])->name('index');
+        // Ruta para eliminar mantenimiento
+        Route::delete('/mantenimiento/{mantenimiento}/eliminar', [ProduccionController::class, 'eliminarMantenimiento'])->name('mantenimientos.eliminar');
+        Route::delete('/mantenimiento/{mantenimiento}/eliminar-ciclo', [ProduccionController::class, 'eliminarCiclo'])->name('mantenimientos.eliminarCiclo');
 
     // Rutas de Lotes
-    Route::get('/lotes', [ProduccionController::class, 'gestionLotes'])->name('lotes')->middleware('permission:ver_lotes');
-    Route::get('/lotes/create', [ProduccionController::class, 'createLote'])->name('lotes.create')->middleware('permission:crear_lotes');
-    Route::post('/lotes', [ProduccionController::class, 'storeLote'])->name('lotes.store')->middleware('permission:crear_lotes');
-    Route::get('/lotes/{lote}', [ProduccionController::class, 'showLote'])->name('lotes.show')->middleware('permission:ver_lotes');
+    Route::get('/lotes', [ProduccionController::class, 'gestionLotes'])->name('lotes')->middleware('permission:lotes.view');
+    Route::get('/lotes/create', [ProduccionController::class, 'createLote'])->name('lotes.create')->middleware('permission:lotes.create');
+    Route::post('/lotes', [ProduccionController::class, 'storeLote'])->name('lotes.store')->middleware('permission:lotes.create');
+    Route::get('/lotes/{lote}', [ProduccionController::class, 'showLote'])->name('lotes.show')->middleware('permission:lotes.view');
+    Route::get('/lotes/{lote}/edit', [ProduccionController::class, 'editLote'])->name('lotes.edit')->middleware('permission:lotes.edit');
+    Route::put('/lotes/{lote}', [ProduccionController::class, 'updateLote'])->name('lotes.update')->middleware('permission:lotes.edit');
+    Route::delete('/lotes/{lote}', [ProduccionController::class, 'destroyLote'])->name('lotes.destroy')->middleware('permission:lotes.delete');
 
     // Rutas de Unidades - Ahora usando UnidadProduccionController
-    Route::get('/unidades', [UnidadProduccionController::class, 'index'])->name('unidades')->middleware('permission:ver_unidades');
-    Route::get('/unidades/create', [UnidadProduccionController::class, 'create'])->name('unidades.create')->middleware('permission:crear_unidades');
-    Route::post('/unidades', [UnidadProduccionController::class, 'store'])->name('unidades.store')->middleware('permission:crear_unidades');
-    Route::get('/unidades/{unidad}', [UnidadProduccionController::class, 'show'])->name('unidades.show')->middleware('permission:ver_unidades');
-    Route::get('/unidades/{unidad}/edit', [UnidadProduccionController::class, 'edit'])->name('unidades.edit')->middleware('permission:editar_unidades');
-    Route::put('/unidades/{unidad}', [UnidadProduccionController::class, 'update'])->name('unidades.update')->middleware('permission:editar_unidades');
-    Route::patch('/unidades/{unidad}/toggle-estado', [UnidadProduccionController::class, 'toggleEstado'])->name('unidades.toggle-estado')->middleware('permission:eliminar_unidades');
-    Route::delete('/unidades/{unidad}', [UnidadProduccionController::class, 'destroy'])->name('unidades.destroy')->middleware('permission:eliminar_unidades');
+    Route::get('/unidades', [UnidadProduccionController::class, 'index'])->name('unidades.index')->middleware('permission:unidades.view');
+    Route::get('/unidades/create', [UnidadProduccionController::class, 'create'])->name('unidades.create')->middleware('permission:unidades.create');
+    Route::post('/unidades', [UnidadProduccionController::class, 'store'])->name('unidades.store')->middleware('permission:unidades.create');
+    Route::get('/unidades/{unidad}', [UnidadProduccionController::class, 'show'])->name('unidades.show')->middleware('permission:unidades.view');
+    Route::get('/unidades/{unidad}/edit', [UnidadProduccionController::class, 'edit'])->name('unidades.edit')->middleware('permission:unidades.edit');
+    Route::put('/unidades/{unidad}', [UnidadProduccionController::class, 'update'])->name('unidades.update')->middleware('permission:unidades.edit');
+    Route::patch('/unidades/{unidad}/toggle-estado', [UnidadProduccionController::class, 'toggleEstado'])->name('unidades.toggle-estado')->middleware('permission:unidades.delete');
+    Route::delete('/unidades/{unidad}', [UnidadProduccionController::class, 'destroy'])->name('unidades.destroy')->middleware('permission:unidades.delete');
     Route::get('/unidades/generate-code/{tipo}', [UnidadProduccionController::class, 'generateCodigo'])->name('unidades.generate-code');
-    Route::get('/unidades/{unidad}/historial', [UnidadProduccionController::class, 'historial'])->name('unidades.historial')->middleware('permission:ver_unidades');
+    Route::get('/unidades/{unidad}/historial', [UnidadProduccionController::class, 'historial'])->name('unidades.historial')->middleware('permission:unidades.view');
 
     // Otras rutas
     Route::get('/traslados', [ProduccionController::class, 'gestionTraslados'])->name('traslados');
@@ -326,12 +353,16 @@ Route::middleware(['auth', 'redirect.temp.password'])->group(function () {
     Route::patch('protocolo-sanidad/{protocoloSanidad}/marcar-obsoleto', [ProtocoloSanidadController::class, 'marcarObsoleto'])->name('protocolo-sanidad.marcar-obsoleto');
     Route::post('protocolo-sanidad/{protocoloSanidad}/ejecutar', [ProtocoloSanidadController::class, 'ejecutar'])->name('protocolo-sanidad.ejecutar');
     Route::resource('limpieza', LimpiezaController::class);
+    Route::post('limpieza/completar', [LimpiezaController::class, 'completar'])->name('limpieza.completar');
     Route::get('limpieza/protocolo/{protocolo}/actividades', [LimpiezaController::class, 'getProtocoloActividades'])->name('limpieza.protocolo.actividades');
 });
 
 // Rutas de Unidades de Producción (independientes)
 Route::middleware(['auth'])->group(function () {
-    Route::resource('unidades', UnidadProduccionController::class);
+    // Importante: forzamos el nombre del parámetro a 'unidad' (Laravel singulariza 'unidades' -> 'unidade' por defecto)
+    // para que coincida con las vistas que usan route('unidades.show', ['unidad' => $unidad->id])
+    Route::resource('unidades', UnidadProduccionController::class)
+        ->parameters(['unidades' => 'unidad']);
     Route::patch('unidades/{unidad}/toggle-estado', [UnidadProduccionController::class, 'toggleEstado'])->name('unidades.toggle-estado');
     Route::get('unidades/generate-code/{tipo}', [UnidadProduccionController::class, 'generateCodigo'])->name('unidades.generate-code');
     Route::get('unidades/{unidad}/historial', [UnidadProduccionController::class, 'historial'])->name('unidades.historial');
@@ -352,8 +383,131 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('proveedores', ProveedorController::class)->parameters([
         'proveedores' => 'proveedor'
     ]);
+    Route::get('proveedores-buscar', [ProveedorController::class,'search'])->name('proveedores.search');
     Route::patch('proveedores/{proveedor}/cambiar-estado', [ProveedorController::class, 'cambiarEstado'])->name('proveedores.cambiar-estado');
     Route::patch('proveedores/{proveedor}/evaluar', [ProveedorController::class, 'evaluar'])->name('proveedores.evaluar');
+
+    // Entradas (antes "órdenes de compra")
+    Route::resource('entradas', EntradaCompraController::class)->only(['index','create','store','show']);
 });
 
+// Grupo de rutas para el módulo Bitácora
+Route::middleware(['auth'])->prefix('bitacora')->name('bitacora.')->group(function () {
+    Route::get('/', [BitacoraController::class, 'index'])->name('index');
+    // Aquí puedes agregar más rutas del módulo si lo necesitas
+});
 
+// Rutas para eliminar seguimientos
+Route::delete('/seguimientos/{seguimiento}', [App\Http\Controllers\SeguimientoController::class, 'destroy'])->name('seguimientos.destroy');
+
+// Rutas de Reportes
+Route::middleware(['auth', 'redirect.temp.password'])->prefix('reportes')->name('reportes.')->group(function () {
+    // Reportes de Ganancias (usando funciones temporalmente)
+    Route::get('/ganancias', function () {
+        $unidades = \App\Models\UnidadProduccion::all();
+        $lotes = \App\Models\Lote::with(['unidadProduccion'])->orderBy('created_at', 'desc')->get();
+        return view('reportes.ganancias.index', compact('unidades', 'lotes'));
+    })->name('ganancias');
+    
+    Route::get('/ganancias/{lote}', function (\App\Models\Lote $lote) {
+        // Cargar relaciones necesarias
+        $lote->load(['alimentaciones.tipoAlimento', 'ventas', 'unidadProduccion']);
+        
+        // Calcular costos detallados
+        $totalAlimentacion = $lote->alimentaciones->sum('costo_total');
+        
+        // Obtener mantenimientos de la unidad de producción (filtrar por fechas relevantes del lote si es necesario)
+        $mantenimientos = collect();
+        if ($lote->unidadProduccion) {
+            $mantenimientos = \App\Models\MantenimientoUnidad::where('unidad_produccion_id', $lote->unidad_produccion_id)
+                ->where('estado_mantenimiento', 'completado')
+                ->get();
+        }
+        $totalMantenimientos = $mantenimientos->sum('costo_mantenimiento') ?? 0;
+        
+        // Obtener limpiezas (filtrar por fechas relevantes del lote si es necesario)
+        $limpiezas = collect();
+        // Nota: Las limpiezas pueden no estar directamente relacionadas con lotes
+        $totalLimpiezas = 0; // Por ahora, dejar en 0 hasta definir la relación correcta
+        
+        $precioCompraLote = $lote->precio_compra ?? 0;
+        
+        $totalCostos = $precioCompraLote + $totalAlimentacion + $totalMantenimientos + $totalLimpiezas;
+        $totalVentas = $lote->ventas->sum('total_venta');
+        $gananciaReal = $totalVentas - $totalCostos;
+        $margenGanancia = $totalVentas > 0 ? ($gananciaReal / $totalVentas) * 100 : 0;
+        
+        // Preparar desglose financiero
+        $desglose = [
+            'precio_compra_lote' => $precioCompraLote,
+            'total_alimentacion' => $totalAlimentacion,
+            'total_mantenimientos' => $totalMantenimientos,
+            'total_limpiezas' => $totalLimpiezas,
+            'total_costos' => $totalCostos,
+            'total_ventas' => $totalVentas,
+            'ganancia_real' => $gananciaReal,
+            'margen_ganancia' => $margenGanancia
+        ];
+        
+        // Preparar detalles para las tablas
+        $alimentacionDetalle = $lote->alimentaciones->map(function ($alimentacion) {
+            return [
+                'fecha' => $alimentacion->fecha_alimentacion ? $alimentacion->fecha_alimentacion->format('d/m/Y') : 'N/A',
+                'producto' => $alimentacion->tipoAlimento->nombre ?? 'N/A',
+                'cantidad' => $alimentacion->cantidad_kg ?? 0,
+                'costo' => $alimentacion->costo_total ?? 0
+            ];
+        });
+        
+        $mantenimientoDetalle = $mantenimientos->map(function ($mantenimiento) {
+            return [
+                'fecha' => $mantenimiento->fecha_mantenimiento ? $mantenimiento->fecha_mantenimiento->format('d/m/Y') : 'N/A',
+                'tipo' => $mantenimiento->tipo_mantenimiento ?? 'N/A',
+                'descripcion' => $mantenimiento->descripcion_trabajo ?? 'N/A',
+                'costo' => $mantenimiento->costo_mantenimiento ?? 0
+            ];
+        });
+        
+        $limpiezaDetalle = $limpiezas->map(function ($limpieza) {
+            return [
+                'fecha' => $limpieza->fecha ? $limpieza->fecha->format('d/m/Y') : 'N/A',
+                'tipo' => 'Limpieza',
+                'productos' => $limpieza->observaciones ?? 'N/A',
+                'costo' => 0 // Las limpiezas pueden no tener costo directo
+            ];
+        });
+        
+        $ventasDetalle = $lote->ventas->map(function ($venta) {
+            return [
+                'fecha' => $venta->fecha_venta,
+                'codigo' => $venta->codigo_venta ?? 'N/A',
+                'cliente' => $venta->cliente ?? 'N/A',
+                'peso_kg' => $venta->cantidad_vendida ?? 0,
+                'precio_kg' => $venta->precio_unitario ?? 0,
+                'total' => $venta->total_venta ?? 0,
+                'estado' => $venta->estado ?? 'completada'
+            ];
+        });
+        
+        return view('reportes.ganancias.reporte', compact(
+            'lote', 
+            'desglose', 
+            'alimentacionDetalle', 
+            'mantenimientoDetalle', 
+            'limpiezaDetalle', 
+            'ventasDetalle'
+        ));
+    })->name('ganancias.reporte');
+    
+    // Panel de Reportes
+    Route::get('/panel', function () {
+        return view('reportes.panel');
+    })->name('panel');
+    
+    // Reportes de Usuarios (futuro)
+    Route::get('/usuarios', function () {
+        return view('reportes.usuarios.index');
+    })->name('usuarios');
+});
+
+require __DIR__ . '/auth.php';

@@ -56,13 +56,16 @@
                 </div>
 
                 <!-- Actividades Ejecutadas -->
-                @if($limpieza->actividades_ejecutadas && count($limpieza->actividades_ejecutadas) > 0)
+                @php
+                    $actividadesNorm = $limpieza->actividades_normalizadas;
+                @endphp
+                @if($actividadesNorm && count($actividadesNorm) > 0)
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Actividades Ejecutadas</label>
                         <div class="border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 p-4 space-y-3">
                             @php
-                                $totalActividades = count($limpieza->actividades_ejecutadas);
-                                $actividadesCompletadas = collect($limpieza->actividades_ejecutadas)->where('completada', true)->count();
+                                $totalActividades = count($actividadesNorm);
+                                $actividadesCompletadas = collect($actividadesNorm)->where('completada', true)->count();
                             @endphp
                             
                             <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
@@ -89,7 +92,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach($limpieza->actividades_ejecutadas as $index => $actividad)
+                                        @foreach($actividadesNorm as $index => $actividad)
                                             <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
                                                 <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
                                                     {{ $actividad['descripcion'] ?? 'Actividad sin descripción' }}
@@ -123,6 +126,87 @@
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+                    </div>
+                @endif
+
+                @if(isset($protocolosUnidad) && $protocolosUnidad->count() > 0)
+                    <div class="mt-8">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Protocolos Asociados a la Unidad</label>
+                        <div class="border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 p-4">
+                            @foreach($protocolosUnidad as $prot)
+                                @php
+                                    $actsNorm = $prot->actividades_normalizadas ?? (is_array($prot->actividades) ? $prot->actividades : []);
+                                @endphp
+                                <div class="mb-6">
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <a href="{{ route('protocolo-sanidad.show', $prot) }}" class="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold">{{ $prot->nombre }}</a>
+                                        <span class="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300">v{{ $prot->version }}</span>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                            {{ $prot->estado === 'vigente' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                                               ($prot->estado === 'obsoleta' ? 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-300' :
+                                               'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200') }}">
+                                            {{ ucfirst($prot->estado) }}
+                                        </span>
+                                    </div>
+                                    @if($actsNorm && count($actsNorm) > 0)
+                                        <div class="overflow-x-auto mb-2">
+                                            <table class="min-w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg">
+                                                <thead class="bg-gray-50 dark:bg-gray-700">
+                                                    <tr>
+                                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-900 dark:text-gray-100 border-b border-gray-300 dark:border-gray-600">Actividad</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach($actsNorm as $idx => $actividad)
+                                                        <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                                            <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                                                                {{ is_array($actividad) ? ($actividad['descripcion'] ?? '') : $actividad }}
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    @else
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">Este protocolo no tiene actividades definidas.</div>
+                                    @endif
+
+                                    <div class="mt-2">
+                                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Histórico de registros de limpieza con este protocolo:</label>
+                                        @if(isset($limpiezasPorProtocolo[$prot->id]) && $limpiezasPorProtocolo[$prot->id]->count() > 0)
+                                            <table class="min-w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-xs">
+                                                <thead class="bg-gray-50 dark:bg-gray-700">
+                                                    <tr>
+                                                        <th class="px-2 py-2 text-left">Fecha</th>
+                                                        <th class="px-2 py-2 text-left">Responsable</th>
+                                                        <th class="px-2 py-2 text-left">Estado</th>
+                                                        <th class="px-2 py-2 text-left">Actividades</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach($limpiezasPorProtocolo[$prot->id] as $l)
+                                                        <tr class="border-b border-gray-200 dark:border-gray-700">
+                                                            <td class="px-2 py-2">{{ $l->fecha }}</td>
+                                                            <td class="px-2 py-2">{{ $l->responsable }}</td>
+                                                            <td class="px-2 py-2">{{ ucfirst($l->estado) }}</td>
+                                                            <td class="px-2 py-2">
+                                                                <ul class="list-decimal ml-4">
+                                                                    @foreach($l->actividades_normalizadas as $act)
+                                                                        <li>{{ is_array($act) ? ($act['descripcion'] ?? $act) : $act }}</li>
+                                                                    @endforeach
+                                                                </ul>
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        @else
+                                            <div class="text-gray-400 italic">No hay registros históricos para este protocolo en la unidad.</div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
                     </div>
                 @endif

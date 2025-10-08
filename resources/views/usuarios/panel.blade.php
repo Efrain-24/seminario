@@ -47,7 +47,6 @@
                                     </div>
                                     <h4 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Gestión de Usuarios</h4>
                                     <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Crear, editar y administrar usuarios del sistema</p>
-                                    
                                     <!-- Funciones disponibles -->
                                     <div class="mt-4 pt-4 border-t border-blue-200 dark:border-blue-700">
                                         <p class="text-xs text-blue-600 dark:text-blue-400 font-medium mb-2">Funciones disponibles:</p>
@@ -75,7 +74,6 @@
                                 </div>
                             </a>
                         </div>
-
                         <!-- Submódulo Gestión de Roles -->
                         <div class="group relative">
                             <a href="{{ route('roles.index') }}" class="block">
@@ -92,7 +90,6 @@
                                     </div>
                                     <h4 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Gestión de Roles</h4>
                                     <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Crear y administrar roles del sistema</p>
-                                    
                                     <!-- Funciones disponibles -->
                                     <div class="mt-4 pt-4 border-t border-green-200 dark:border-green-700">
                                         <p class="text-xs text-green-600 dark:text-green-400 font-medium mb-2">Funciones disponibles:</p>
@@ -115,6 +112,43 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                                 </svg>
                                                 Configurar
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <!-- Submódulo Bitácora -->
+                        <div class="group relative">
+                            <a href="{{ route('bitacora.index') }}" class="block">
+                                <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/30 dark:to-yellow-800/30 rounded-xl p-6 border border-yellow-200 dark:border-yellow-700 hover:shadow-lg transition-all duration-300 group-hover:scale-105">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 014-4h4m0 0V7a4 4 0 00-4-4H7a4 4 0 00-4 4v10a4 4 0 004 4h4"></path>
+                                            </svg>
+                                        </div>
+                                        <svg class="w-5 h-5 text-yellow-400 group-hover:text-yellow-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                        </svg>
+                                    </div>
+                                    <h4 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Bitácora</h4>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Ver y filtrar el registro de actividad de los usuarios</p>
+                                    <!-- Funciones disponibles -->
+                                    <div class="mt-4 pt-4 border-t border-yellow-200 dark:border-yellow-700">
+                                        <p class="text-xs text-yellow-600 dark:text-yellow-400 font-medium mb-2">Funciones disponibles:</p>
+                                        <div class="flex flex-wrap gap-2">
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
+                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                </svg>
+                                                Consultar
+                                            </span>
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
+                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                                                </svg>
+                                                Filtrar
                                             </span>
                                         </div>
                                     </div>
@@ -207,4 +241,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+</x-app-layout> 

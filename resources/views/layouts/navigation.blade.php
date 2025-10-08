@@ -1,3 +1,6 @@
+                    <x-nav-link :href="route('reportes.ganancias')" :active="request()->routeIs('reportes.*')">
+                        {{ __('Reportes') }}
+                    </x-nav-link>
 <nav x-data="{ open: false }" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -19,6 +22,13 @@
                     <x-nav-link :href="route('aplicaciones')" :active="request()->routeIs('aplicaciones')">
                         {{ __('Aplicaciones') }}
                     </x-nav-link>
+                    
+                    
+                    @if(Auth::user() && Auth::user()->isAdmin())
+                        <x-nav-link :href="route('bitacora.index')" :active="request()->routeIs('bitacora.*')">
+                            {{ __('Bitácora') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -86,6 +96,11 @@
             <x-responsive-nav-link :href="route('aplicaciones')" :active="request()->routeIs('aplicaciones')">
                 {{ __('Aplicaciones') }}
             </x-responsive-nav-link>
+            @if(Auth::user() && Auth::user()->isAdmin())
+                <x-responsive-nav-link :href="route('bitacora.index')" :active="request()->routeIs('bitacora.*')">
+                    {{ __('Bitácora') }}
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->

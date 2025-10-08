@@ -15,6 +15,7 @@ class ProtocoloSanidad extends Model
         'descripcion',
         'fecha_implementacion',
         'responsable',
+        'unidad_produccion_id',
         'actividades',
         'version',
         'estado',
@@ -43,6 +44,11 @@ class ProtocoloSanidad extends Model
     public function versiones()
     {
         return $this->hasMany(ProtocoloSanidad::class, 'protocolo_base_id');
+    }
+
+    public function unidadProduccion()
+    {
+        return $this->belongsTo(UnidadProduccion::class, 'unidad_produccion_id');
     }
 
     // Relación con los insumos del protocolo
@@ -108,6 +114,41 @@ class ProtocoloSanidad extends Model
     public function getCostoTotalInsumosAttribute()
     {
         return $this->insumos->sum('costo_estimado');
+    }
+
+    /**
+     * Accesor: actividades normalizadas para protocolos antiguos con una sola actividad larga.
+     */
+    public function getActividadesNormalizadasAttribute()
+    {
+        $acts = $this->actividades ?? [];
+        if (is_array($acts) && count($acts) === 1 && is_string($acts[0])) {
+            $raw = trim($acts[0]);
+            $hasDelimiters = preg_match('/[\r\n;|]/', $raw) || preg_match('/\d+\s*[).:-]\s+/', $raw) || strpos($raw, ',') !== false;
+            if ($hasDelimiters) {
+                $segments = preg_split('/[\r\n;|]+/', $raw);
+                if (count($segments) === 1) {
+                    if (preg_match('/\d+\s*[).:-]\s+/', $raw)) {
+                        $tmp = preg_split('/\s*\d+\s*[).:-]\s*/', $raw);
+                        $tmp = array_filter(array_map('trim', $tmp));
+                        if (count($tmp) > 1) {
+                            $segments = $tmp;
+                        }
+                    }
+                }
+                if (count($segments) === 1 && strpos($segments[0], ',') !== false) {
+                    $commaParts = array_map('trim', explode(',', $segments[0]));
+                    if (count($commaParts) > 1) {
+                        $segments = $commaParts;
+                    }
+                }
+                $segments = array_values(array_filter(array_map('trim', $segments), fn($s) => $s !== ''));
+                if (count($segments) > 1) {
+                    return $segments;
+                }
+            }
+        }
+        return $acts;
     }
 
     /**

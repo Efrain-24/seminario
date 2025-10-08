@@ -51,6 +51,18 @@
 
                 <!-- Actividades del Protocolo -->
                 <div class="border-t border-gray-200 dark:border-gray-600 pt-6">
+                    <div class="mb-6">
+                        <label for="unidad_produccion_id" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                            Unidad de Producción (opcional)
+                        </label>
+                        <select id="unidad_produccion_id" name="unidad_produccion_id" class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">-- Sin asociar --</option>
+                            @foreach($unidades as $u)
+                                <option value="{{ $u->id }}">{{ $u->codigo }} - {{ ucfirst(str_replace('_',' ', $u->tipo)) }}</option>
+                            @endforeach
+                        </select>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Si seleccionas una unidad, este protocolo aparecerá listado cuando veas un registro de limpieza de esa unidad.</p>
+                    </div>
                     <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Actividades del Protocolo</h3>
                     <div id="actividades-container" class="space-y-3">
                         <div class="flex gap-2 actividad-item">

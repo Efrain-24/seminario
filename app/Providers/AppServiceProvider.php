@@ -24,15 +24,28 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        \App\Models\Mortalidad::observe(\App\Observers\MortalidadObserver::class);
-        \App\Models\Lote::observe(\App\Observers\LoteObserver::class);
-        \App\Models\Enfermedad::observe(\App\Observers\EnfermedadObserver::class);
-        \App\Models\Alimentacion::observe(\App\Observers\AlimentacionObserver::class);
+    \App\Models\Mortalidad::observe([\App\Observers\MortalidadObserver::class, \App\Observers\BitacoraObserver::class]);
+    \App\Models\Lote::observe([\App\Observers\LoteObserver::class, \App\Observers\BitacoraObserver::class]);
+    \App\Models\Enfermedad::observe([\App\Observers\EnfermedadObserver::class, \App\Observers\BitacoraObserver::class]);
+    \App\Models\Alimentacion::observe([\App\Observers\AlimentacionObserver::class, \App\Observers\BitacoraObserver::class]);
 
-        // Registrar Observers para detección automática de problemas
-        \App\Models\InventarioMovimiento::observe(\App\Observers\InventarioMovimientoObserver::class);
-        \App\Models\Seguimiento::observe(\App\Observers\SeguimientoObserver::class);
-        \App\Models\InventarioLote::observe(\App\Observers\InventarioLoteObserver::class);
+    // Registrar BitacoraObserver para otros modelos principales
+    \App\Models\InventarioMovimiento::observe([\App\Observers\InventarioMovimientoObserver::class, \App\Observers\BitacoraObserver::class]);
+    \App\Models\Seguimiento::observe([\App\Observers\SeguimientoObserver::class, \App\Observers\BitacoraObserver::class]);
+    \App\Models\InventarioLote::observe([\App\Observers\InventarioLoteObserver::class, \App\Observers\BitacoraObserver::class]);
+    \App\Models\User::observe(\App\Observers\BitacoraObserver::class);
+    \App\Models\Venta::observe(\App\Observers\BitacoraObserver::class);
+    \App\Models\Proveedor::observe(\App\Observers\BitacoraObserver::class);
+    \App\Models\Notificacion::observe(\App\Observers\BitacoraObserver::class);
+    \App\Models\AccionCorrectiva::observe(\App\Observers\BitacoraObserver::class);
+    \App\Models\UnidadProduccion::observe(\App\Observers\BitacoraObserver::class);
+    // Añadidos
+    if (class_exists(\App\Models\Cliente::class)) {
+        \App\Models\Cliente::observe(\App\Observers\BitacoraObserver::class);
+    }
+    if (class_exists(\App\Models\DetalleVenta::class)) {
+        \App\Models\DetalleVenta::observe(\App\Observers\BitacoraObserver::class);
+    }
         
         // Registrar event listeners para notificaciones automáticas
         Event::listen(AlertaProduccionDetectada::class, CrearNotificacionProduccion::class);

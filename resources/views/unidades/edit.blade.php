@@ -5,7 +5,7 @@
                 {{ __('Editar Unidad de Producción') }}
                 <span class="text-base font-normal text-gray-600 dark:text-gray-400">- {{ $unidad->nombre }}</span>
             </h2>
-            <a href="{{ route('unidades.show', $unidad) }}" 
+            <a href="{{ route('unidades.show', ['unidad' => $unidad->id]) }}" 
                class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105 inline-flex items-center">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
@@ -23,7 +23,7 @@
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <form method="POST" action="{{ route('unidades.update', $unidad) }}" class="space-y-6">
+                    <form method="POST" action="{{ route('unidades.update', ['unidad' => $unidad->id]) }}" class="space-y-6">
                         @csrf
                         @method('PUT')
 
@@ -143,7 +143,7 @@
                         </div>
 
                         <div class="flex items-center justify-end space-x-4">
-                            <a href="{{ route('unidades.show', $unidad) }}" 
+                            <a href="{{ route('unidades.show', ['unidad' => $unidad->id]) }}" 
                                class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
                                 Cancelar
                             </a>

@@ -37,17 +37,25 @@
                 </select>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cliente</label>
-                <input type="text" name="cliente" value="{{ request('cliente') }}" 
-                       placeholder="Buscar por cliente..." 
-                       class="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">ID cliente</label>
+                <div class="relative">
+                    <input type="text" name="buscar_cliente" id="buscar_cliente" placeholder="Buscar cliente..." 
+                           class="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                    <div id="resultados_busqueda" class="absolute z-10 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg mt-1 w-full hidden">
+                        <!-- Resultados de búsqueda aparecerán aquí -->
+                    </div>
+                </div>
+                <button type="button" onclick="window.location.href='{{ route('clientes.create') }}'" 
+                        class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                    Crear Cliente
+                </button>
             </div>
             <div class="flex items-end">
                 <button type="submit" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">
                     Filtrar
                 </button>
             </div>
-        </form>
+        </form }
     </div>
 
     <!-- Tabla de Ventas -->
@@ -128,9 +136,6 @@
                                 <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                     Q{{ number_format($venta->total, 2) }}
                                 </div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">
-                                    ${{ number_format($venta->total_usd, 2) }} USD
-                                </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $venta->estado_badge }}">
@@ -194,9 +199,6 @@
                     @empty
                         <tr>
                             <td colspan="8" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                                </svg>
                                 <h3 class="mt-4 text-lg font-medium">No hay ventas registradas</h3>
                                 <p class="mt-2">Comienza registrando tu primera venta.</p>
                                 <div class="mt-6">
@@ -223,4 +225,31 @@
         @endif
     </div>
 </div>
+
+<script>
+    document.getElementById('buscar_cliente').addEventListener('input', function() {
+        const query = this.value;
+        const resultados = document.getElementById('resultados_busqueda');
+        if (query.length > 2) {
+            fetch(`{{ url('/clientes/buscar') }}?q=${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    resultados.innerHTML = '';
+                    resultados.classList.remove('hidden');
+                    data.forEach(cliente => {
+                        const div = document.createElement('div');
+                        div.textContent = `${cliente.nombre} (${cliente.id})`;
+                        div.classList.add('cursor-pointer', 'hover:bg-gray-200', 'dark:hover:bg-gray-600', 'p-2');
+                        div.addEventListener('click', () => {
+                            document.getElementById('buscar_cliente').value = cliente.nombre;
+                            resultados.classList.add('hidden');
+                        });
+                        resultados.appendChild(div);
+                    });
+                });
+        } else {
+            resultados.classList.add('hidden');
+        }
+    });
+</script>
 @endsection

@@ -93,12 +93,21 @@ class UserController extends Controller
             'estado' => ['required', 'in:activo,inactivo'],
         ]);
 
+
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
             'role' => $request->role,
             'estado' => $request->estado,
         ]);
+
+        // Guardar módulos visibles
+        $modules = $request->input('modules', []);
+        // Eliminar los módulos actuales y agregar los nuevos
+        $user->modules()->delete();
+        foreach ($modules as $module) {
+            $user->modules()->create(['module' => $module]);
+        }
 
         // Solo actualizar contraseña si se proporciona
         if ($request->filled('password')) {

@@ -156,8 +156,16 @@
                                                 <div class="text-gray-500 dark:text-gray-400">{{ $alimentacion->lote->unidadProduccion->nombre }}</div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                                <div class="font-medium">{{ $alimentacion->tipoAlimento->nombre }}</div>
-                                                @if($alimentacion->tipoAlimento->marca)
+                                                <div class="font-medium">
+                                                    @if($alimentacion->tipoAlimento)
+                                                        {{ $alimentacion->tipoAlimento->nombre }}
+                                                    @elseif($alimentacion->inventarioItem)
+                                                        {{ $alimentacion->inventarioItem->nombre }}
+                                                    @else
+                                                        <span class="text-gray-400">Sin producto</span>
+                                                    @endif
+                                                </div>
+                                                @if($alimentacion->tipoAlimento && $alimentacion->tipoAlimento->marca)
                                                     <div class="text-gray-500 dark:text-gray-400">{{ $alimentacion->tipoAlimento->marca }}</div>
                                                 @endif
                                             </td>
@@ -201,7 +209,7 @@
                             </svg>
                             <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No hay registros</h3>
                             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Comienza creando el primer registro de alimentación.</p>
-                            @can('alimentacion.create')
+                            @if(auth()->user()->can('alimentacion.create') || auth()->user()->role === 'gerente' || auth()->user()->role === 'tecnico')
                                 <div class="mt-6">
                                     <a href="{{ route('alimentacion.create') }}" 
                                        class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
@@ -211,7 +219,7 @@
                                         Nueva Alimentación
                                     </a>
                                 </div>
-                            @endcan
+                            @endif
                         </div>
                     @endif
                 </div>

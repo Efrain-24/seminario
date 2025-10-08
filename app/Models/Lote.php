@@ -9,6 +9,13 @@ class Lote extends Model
 {
     use HasFactory;
 
+    // Relación correcta con Alimentacion
+    public function alimentaciones()
+    {
+        return $this->hasMany(\App\Models\Alimentacion::class, 'lote_id');
+    }
+    use HasFactory;
+
     protected $fillable = [
         'codigo_lote',
         'especie',
@@ -38,6 +45,7 @@ class Lote extends Model
     {
         return $this->hasMany(Seguimiento::class);
     }
+
 
     public function traslados()
     {
@@ -191,5 +199,33 @@ class Lote extends Model
     public function enfermedades()
     {
         return $this->hasMany(\App\Models\Enfermedad::class);
+    }
+
+    public function cosechasParciales()
+    {
+        return $this->hasMany(\App\Models\CosechaParcial::class);
+    }
+
+    public function ventas()
+    {
+        return $this->hasMany(\App\Models\CosechaParcial::class)->where('destino', 'venta');
+    }
+
+    public function mantenimientos()
+    {
+        // Relación a través de la unidad de producción - obtener múltiples mantenimientos
+        return $this->hasManyThrough(
+            \App\Models\MantenimientoUnidad::class,
+            \App\Models\UnidadProduccion::class,
+            'id', // Clave foránea en unidad_produccions que relaciona con lotes
+            'unidad_produccion_id', // Clave foránea en mantenimiento_unidades
+            'unidad_produccion_id', // Clave local en lotes
+            'id' // Clave local en unidad_produccions
+        );
+    }
+
+    public function limpiezas()
+    {
+        return $this->hasMany(\App\Models\Limpieza::class);
     }
 }

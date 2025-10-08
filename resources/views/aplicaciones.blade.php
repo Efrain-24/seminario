@@ -39,7 +39,7 @@
                             'color' => 'from-green-500 to-emerald-600',
                             'available' => true,
                         ],
-                        'inventario' => [
+                        'inventarios' => [
                             'name' => 'Inventarios',
                             'description' => 'Gestión de inventarios y traslados',
                             'icon' => '<i data-lucide="boxes"></i>',
@@ -63,7 +63,7 @@
                             'color' => 'from-red-500 to-pink-600',
                             'available' => true,
                         ],
-                        'protocolos' => [
+                        'protocolos_limpieza' => [
                             'name' => 'Protocolos y Limpieza',
                             'description' => 'Protocolos de limpieza y procedimientos operativos',
                             'icon' => '<i data-lucide="clipboard-check"></i>',
@@ -79,7 +79,7 @@
                             'color' => 'from-emerald-500 to-teal-600',
                             'available' => true,
                         ],
-                        'compras' => [
+                        'compras_proveedores' => [
                             'name' => 'Compras y Proveedores',
                             'description' => 'Gestión de órdenes de compra, proveedores y recepciones',
                             'icon' => '<i data-lucide="shopping-cart"></i>',
@@ -87,9 +87,21 @@
                             'color' => 'from-cyan-500 to-blue-600',
                             'available' => true,
                         ],
+                        'reportes' => [
+                            'name' => 'Reportes',
+                            'description' => 'Reportes de ganancias, costos y análisis financiero',
+                            'icon' => '<i data-lucide="bar-chart-3"></i>',
+                            'route' => 'reportes.ganancias',
+                            'color' => 'from-violet-500 to-purple-600',
+                            'available' => true,
+                        ],
 
                     ];
-                    $userModules = $moduleDefinitions; // ahora todos disponibles
+                    $allowed = auth()->user()->getAllowedModules();
+                    $userModules = collect($moduleDefinitions)
+                        ->filter(function($v, $k) use ($allowed) {
+                            return in_array($k, $allowed);
+                        });
                 @endphp
 
                 @if (!empty($userModules))

@@ -20,7 +20,10 @@ class RedirectIfTemporaryPassword
         if (Auth::check()) {
             /** @var User $user */
             $user = Auth::user();
-            
+            // Permitir acceso total al usuario admin aunque tenga contraseña temporal
+            if ($user->isAdmin()) {
+                return $next($request);
+            }
             // Si el usuario tiene una contraseña temporal y no está en rutas excluidas
             if ($user->hasTemporaryPassword() && 
                 !$request->routeIs('password.change') && 

@@ -308,28 +308,46 @@
                 <a href="{{ route('limpieza.create') }}" class="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white">Nuevo Registro</a>
             </div>
         </div>
-        <div class="bg-white dark:bg-gray-800 shadow rounded overflow-hidden">
-            <table class="min-w-full text-sm text-gray-800 dark:text-gray-100">
-                <thead class="bg-gray-100 dark:bg-gray-700">
-                    <tr>
-                        <th class="px-4 py-2 text-left">Fecha</th>
-                        <th class="px-4 py-2 text-left">Área</th>
-                        <th class="px-4 py-2 text-left">Responsable</th>
-                        <th class="px-4 py-2 text-left">Protocolo</th>
-                        <th class="px-4 py-2 text-left">Estado</th>
-                        <th class="px-4 py-2 text-left">Progreso</th>
-                        <th class="px-4 py-2 text-right"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($limpiezas as $limpieza)
+        @php
+            $grouped = [
+                'Unidades de Producción' => $todos->filter(fn($l)=>str_starts_with($l->area,'Unidad:')),
+                'Bodegas' => $todos->filter(fn($l)=>str_starts_with($l->area,'Bodega:')),
+                'Otras Áreas' => $todos->filter(fn($l)=>!str_starts_with($l->area,'Unidad:') && !str_starts_with($l->area,'Bodega:')),
+            ];
+        @endphp
+        <div class="space-y-8">
+        @foreach($grouped as $titulo => $coleccion)
+            @if($coleccion->count() > 0)
+            <div class="bg-white dark:bg-gray-800 shadow rounded overflow-hidden">
+                <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-gray-50 dark:bg-gray-700">
+                    <h3 class="text-sm font-semibold tracking-wide text-gray-700 dark:text-gray-200 uppercase">{{ $titulo }} ({{ $coleccion->count() }})</h3>
+                </div>
+                <table class="min-w-full text-sm text-gray-800 dark:text-gray-100">
+                    <thead class="bg-gray-100 dark:bg-gray-700">
+                        <tr>
+                            <th class="px-4 py-2 text-left">Fecha</th>
+                            <th class="px-4 py-2 text-left">Área</th>
+                            <th class="px-4 py-2 text-left">Responsable</th>
+                            <th class="px-4 py-2 text-left">Protocolo</th>
+                            <th class="px-4 py-2 text-left">Estado</th>
+                            <th class="px-4 py-2 text-left">Progreso</th>
+                            <th class="px-4 py-2 text-right"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach($coleccion as $limpieza)
                         @php
-                            $totalActividades = $limpieza->actividades_ejecutadas ? count($limpieza->actividades_ejecutadas) : 0;
-                            $actividadesCompletadas = $limpieza->actividades_ejecutadas ? collect($limpieza->actividades_ejecutadas)->where('completada', true)->count() : 0;
+                            $norm = $limpieza->actividades_normalizadas;
+                            $totalActividades = $norm ? count($norm) : 0;
+                            $actividadesCompletadas = $norm ? collect($norm)->where('completada', true)->count() : 0;
                             $porcentaje = $totalActividades > 0 ? round(($actividadesCompletadas / $totalActividades) * 100) : 0;
+                            $esLimpieza = isset($limpieza->origen) ? $limpieza->origen !== 'mantenimiento' : true;
                         @endphp
-                        <tr class="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors" 
-                            onclick="window.location.href='{{ route('limpieza.show', $limpieza) }}'">
+                        <tr class="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                            @if($esLimpieza)
+                                onclick="window.location.href='{{ route('limpieza.show', $limpieza) }}'"
+                            @endif
+                        >
                             <td class="px-4 py-2">{{ $limpieza->fecha }}</td>
                             <td class="px-4 py-2">
                                 <div class="flex items-center gap-2">
@@ -338,16 +356,24 @@
                                             <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6z"></path>
                                             <path d="M14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
                                         </svg>
+                                        @php $codigoUnidad = trim(str_replace('Unidad:', '', $limpieza->area)); @endphp
+                                        <a href="{{ route('unidades.protocolos', ['codigo' => $codigoUnidad]) }}" class="text-blue-700 underline hover:text-blue-900 text-sm font-medium" title="Ver todos los protocolos de la unidad">
+                                            {{ $limpieza->area }}
+                                        </a>
+                                        <a href="{{ route('limpieza.historial_unidad', ['codigo' => $codigoUnidad]) }}" class="ml-2 text-indigo-700 underline hover:text-indigo-900 text-xs font-medium" title="Ver todas las limpiezas de la unidad">
+                                            (Ver limpiezas)
+                                        </a>
                                     @elseif(str_starts_with($limpieza->area, 'Bodega:'))
                                         <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6z" clip-rule="evenodd"></path>
                                         </svg>
+                                        <span class="text-sm">{{ $limpieza->area }}</span>
                                     @else
                                         <svg class="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
                                         </svg>
+                                        <span class="text-sm">{{ $limpieza->area }}</span>
                                     @endif
-                                    <span class="text-sm">{{ $limpieza->area }}</span>
                                 </div>
                             </td>
                             <td class="px-4 py-2">{{ $limpieza->responsable }}</td>
@@ -366,11 +392,63 @@
                                         </svg>
                                     @else
                                         <span class="px-2 py-1 text-xs rounded font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300">No Ejecutado</span>
+                                        @php
+                                            $registroId = null;
+                                            if (isset($limpieza->origen) && $limpieza->origen === 'mantenimiento' && isset($limpieza->mantenimiento_id)) {
+                                                $registroId = $limpieza->mantenimiento_id;
+                                            } elseif (isset($limpieza->id)) {
+                                                $registroId = $limpieza->id;
+                                            }
+                                        @endphp
+                                        @if($registroId)
+                                            <button type="button" class="ml-2 px-2 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-700 font-medium" onclick="confirmarCompletarLimpieza('{{ $limpieza->fecha }}', '{{ $limpieza->area }}', '{{ $limpieza->responsable }}', '{{ $limpieza->protocoloSanidad->nombre_completo ?? '' }}', '{{ $registroId }}')">
+                                                Completar
+                                            </button>
+                                        @endif
+                                            Completar
+                                        </button>
                                         <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20" title="Editable">
                                             <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
                                         </svg>
                                     @endif
                                 </div>
+        <!-- Modal de confirmación para completar limpieza -->
+        <div id="modalCompletarLimpieza" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+            <div class="relative top-40 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+                <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">¿Seguro que deseas completar este registro?</h3>
+                <div class="mb-4 text-sm text-gray-700 dark:text-gray-200">
+                    <div><b>Fecha:</b> <span id="compLimpFecha"></span></div>
+                    <div><b>Área:</b> <span id="compLimpArea"></span></div>
+                    <div><b>Responsable:</b> <span id="compLimpResp"></span></div>
+                    <div><b>Protocolo:</b> <span id="compLimpProt"></span></div>
+                </div>
+                <div class="mb-4 text-sm text-gray-600 dark:text-gray-300">Esta acción descontará inventario según lo planificado en el protocolo de limpieza.</div>
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="cerrarModalCompletarLimpieza()" class="px-4 py-2 rounded-lg bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium">Cancelar</button>
+                    <form id="formCompletarLimpieza" method="POST" action="{{ route('limpieza.completar') }}">
+                        @csrf
+                        <input type="hidden" name="limpieza_id" id="inputCompLimpId">
+                        <button type="submit" class="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium">Confirmar y Completar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function confirmarCompletarLimpieza(fecha, area, responsable, protocolo, id) {
+                document.getElementById('compLimpFecha').innerText = fecha;
+                document.getElementById('compLimpArea').innerText = area;
+                document.getElementById('compLimpResp').innerText = responsable;
+                document.getElementById('compLimpProt').innerText = protocolo;
+                document.getElementById('inputCompLimpId').value = id;
+                document.getElementById('modalCompletarLimpieza').classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+            function cerrarModalCompletarLimpieza() {
+                document.getElementById('modalCompletarLimpieza').classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
+        </script>
                             </td>
                             <td class="px-4 py-2">
                                 @if($totalActividades > 0)
@@ -390,15 +468,24 @@
                                 <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                 </svg>
+                                @if(auth()->user() && (auth()->user()->role === 'gerente' || auth()->user()->role === 'admin') && isset($limpieza->origen) && $limpieza->origen === 'mantenimiento' && !empty($limpieza->mantenimiento_id))
+                                    <form method="POST" action="{{ route('mantenimientos.eliminar', ['id' => $limpieza->mantenimiento_id]) }}" style="display:inline;" onsubmit="return confirm('¿Seguro que deseas eliminar este protocolo/mantenimiento? Esta acción no se puede deshacer.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="ml-2 px-2 py-1 text-xs rounded bg-red-600 text-white hover:bg-red-700 font-medium">Eliminar</button>
+                                    </form>
+                                @endif
                             </td>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">Sin registros</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    @endforeach
+                    </tbody>
+                </table>
+            </div>
+            @endif
+        @endforeach
         </div>
+        @if($limpiezas->count() === 0)
+            <div class="bg-white dark:bg-gray-800 shadow rounded p-8 text-center text-gray-500 dark:text-gray-400">Sin registros</div>
+        @endif
     </div>
 </x-app-layout>
