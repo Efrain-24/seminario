@@ -64,7 +64,7 @@
                         <button type="button" class="text-yellow-700 dark:text-yellow-300 hover:underline focus:outline-none" onclick="this.nextElementSibling.classList.toggle('hidden')">
                             Ver Detalles
                         </button>
-                        <div class="hidden mt-2 p-2 bg-yellow-50 dark:bg-yellow-900/40 rounded text-xs text-black !text-black shadow" style="color:#000 !important;">
+                        <div class="hidden mt-2 p-2 bg-yellow-50 dark:bg-yellow-900/40 rounded text-xs text-black shadow" style="color:#000 !important;">
                             @php
                                 $detalles = collect(explode('|', $registro->detalles))
                                     ->map(function($item) {
