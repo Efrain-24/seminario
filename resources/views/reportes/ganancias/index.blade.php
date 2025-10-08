@@ -18,6 +18,54 @@
             </form>
         </div>
 
+        @if($resumen && $loteResumen)
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6 mt-8">
+                <h3 class="text-lg font-bold mb-4">Resumen y Gráfica del Lote</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <p><strong>Gasto en Alimentación:</strong> Q{{ number_format($resumen['costoAlimentacion'], 2) }}</p>
+                        <p><strong>Gasto en Protocolos:</strong> Q{{ number_format($resumen['costoProtocolos'], 2) }}</p>
+                        <p><strong>Total de Venta:</strong> Q{{ number_format($resumen['totalVenta'], 2) }}</p>
+                        <p><strong>Total de Costos:</strong> Q{{ number_format($resumen['totalCostos'], 2) }}</p>
+                        <p><strong>Margen:</strong> {{ number_format($resumen['margen'], 2) }}%</p>
+                        <p><strong>Estado:</strong> @if($resumen['ganancia'] >= 0)<span class="text-green-600 font-bold">Ganancia</span>@else<span class="text-red-600 font-bold">Pérdida</span>@endif</p>
+                        @if(!$resumen['vendido'] && $resumen['estimado'])
+                            <p><strong>Venta Potencial:</strong> Q{{ number_format($resumen['estimado'], 2) }}</p>
+                        @endif
+                    </div>
+                    <div>
+                        <canvas id="loteChart" height="120"></canvas>
+                    </div>
+                </div>
+            </div>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script>
+                const ctx = document.getElementById('loteChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: {!! json_encode($grafica['labels']) !!},
+                        datasets: [{
+                            label: 'Monto (Q)',
+                            data: {!! json_encode($grafica['data']) !!},
+                            backgroundColor: [
+                                '#22d3ee', '#f59e42', '#a3a3a3', '#22c55e', '#f43f5e'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false },
+                            title: { display: false }
+                        },
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
+            </script>
+        @endif
         <div class="mt-8">
             <table class="min-w-full bg-white dark:bg-gray-800 rounded shadow">
                 <thead>
@@ -37,9 +85,9 @@
                             <td class="border px-4 py-2">{{ $lote->codigo_lote }}</td>
                             <td class="border px-4 py-2">{{ $lote->especie }}</td>
                             <td class="border px-4 py-2">{{ $lote->fecha_inicio ? $lote->fecha_inicio->format('d/m/Y') : '-' }}</td>
-                            <td class="border px-4 py-2">${{ number_format($lote->costo_total, 2) }}</td>
-                            <td class="border px-4 py-2">${{ number_format($lote->ventas_total, 2) }}</td>
-                            <td class="border px-4 py-2 font-bold">${{ number_format($lote->ganancia_real, 2) }}</td>
+                            <td class="border px-4 py-2">Q{{ number_format($lote->costo_total, 2) }}</td>
+                            <td class="border px-4 py-2">Q{{ number_format($lote->ventas_total, 2) }}</td>
+                            <td class="border px-4 py-2 font-bold">Q{{ number_format($lote->ganancia_real, 2) }}</td>
                             <td class="border px-4 py-2">
                                 <a href="{{ route('reportes.ganancias.reporte', $lote->id) }}" class="text-blue-600 hover:underline">Ver Detalle</a>
                             </td>

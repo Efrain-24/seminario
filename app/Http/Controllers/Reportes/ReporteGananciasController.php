@@ -6,59 +6,71 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\UnidadProduccion;
 use App\Models\Lote;
+use App\Models\Limpieza;
+use App\Models\MantenimientoUnidad;
 
 class ReporteGananciasController extends Controller
 {
+    /**
+     * Mostrar el detalle de ganancias de un lote (usado por la ruta reportes.ganancias.reporte)
+     */
+    public function reporte($loteId)
+    {
+        return $this->generarReporte($loteId);
+    }
     public function index(Request $request)
     {
         $unidades = UnidadProduccion::all();
-        $query = Lote::query();
+
+        $resumen = null;
+        $grafica = null;
+        $loteResumen = null;
+
+        $query = Lote::with(['unidadProduccion', 'alimentaciones', 'ventas', 'mantenimientos', 'limpiezas'])->orderBy('created_at', 'desc');
         if ($request->filled('unidad')) {
-            $query->where('unidad_produccion_id', $request->unidad);
+            $query->where('unidad_produccion_id', $request->input('unidad'));
         }
-        $lotes = $query->get()->map(function ($lote) {
-            $costoTotal = $lote->alimentaciones->sum('costo_total');
-            $ventasTotal = $lote->ventas->sum('total_venta');
-            $lote->costo_total = $costoTotal;
-            $lote->ventas_total = $ventasTotal;
-            $lote->ganancia_real = $ventasTotal - $costoTotal;
-            return $lote;
-        });
-        return view('reportes.ganancias.index', compact('unidades', 'lotes'));
-    }
+        $lotes = $query->get();
 
-    public function reporte(Lote $lote)
-    {
-        $lote->costo_total = $lote->alimentaciones->sum('costo_total');
-        $lote->ventas_total = $lote->ventas->sum('total_venta');
-        $lote->ganancia_real = $lote->ventas_total - $lote->costo_total;
-        return view('reportes.ganancias.reporte', compact('lote'));
-    }
-}<?php
-namespace App\Http\Controllers\Reportes;
-
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Lote;
-use App\Models\Venta;
-use App\Models\Limpieza;
-use App\Models\MantenimientoUnidad;
-use App\Models\Alimentacion;
-use App\Models\UnidadProduccion;
-
-class ReporteGananciasController extends Controller
-{
-    public function index(Request $request)
-    {
-        $tanques = UnidadProduccion::all();
-        
-        if ($request->has('lote_id')) {
-            return $this->generarReporte($request->lote_id);
+        if ($request->filled('lote_id')) {
+            $loteResumen = $lotes->where('id', $request->input('lote_id'))->first();
+            if ($loteResumen) {
+                $costoAlimentacion = $loteResumen->alimentaciones->sum('costo_total');
+                $costoProtocolos = ($loteResumen->mantenimientos->sum('costo_total') ?? 0) + ($loteResumen->limpiezas->sum('costo_total') ?? 0);
+                $totalVenta = $loteResumen->ventas->sum('total_venta');
+                $totalCostos = $costoAlimentacion + $costoProtocolos + ($loteResumen->precio_compra ?? 0);
+                $ganancia = $totalVenta - $totalCostos;
+                $margen = $totalVenta > 0 ? ($ganancia / $totalVenta) * 100 : 0;
+                $vendido = $totalVenta > 0;
+                $estimado = null;
+                if(!$vendido && $loteResumen->ventas->count() > 0) {
+                    $promedio = $loteResumen->ventas->avg('precio_unitario');
+                    $estimado = $promedio * ($loteResumen->cantidad_total ?? 0);
+                }
+                $resumen = [
+                    'costoAlimentacion' => $costoAlimentacion,
+                    'costoProtocolos' => $costoProtocolos,
+                    'totalVenta' => $totalVenta,
+                    'totalCostos' => $totalCostos,
+                    'ganancia' => $ganancia,
+                    'margen' => $margen,
+                    'vendido' => $vendido,
+                    'estimado' => $estimado
+                ];
+                $grafica = [
+                    'labels' => ['Alimentación', 'Protocolos', 'Total Costos', 'Venta', 'Ganancia'],
+                    'data' => [
+                        $costoAlimentacion,
+                        $costoProtocolos,
+                        $totalCostos,
+                        $totalVenta,
+                        $ganancia
+                    ]
+                ];
+            }
         }
 
-        $lotes = Lote::with(['unidadProduccion'])->orderBy('created_at', 'desc')->get();
-        
-        return view('reportes.ganancias.index', compact('lotes', 'tanques'));
+        return view('reportes.ganancias.index', compact('lotes', 'unidades', 'resumen', 'grafica', 'loteResumen'));
     }
 
     public function generarReporte($loteId)

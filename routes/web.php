@@ -1,4 +1,12 @@
+
 <?php
+use App\Http\Controllers\Reportes\ReporteGananciasController;
+
+// Rutas para reportes
+Route::middleware(['auth', 'redirect.temp.password'])->prefix('reportes')->name('reportes.')->group(function () {
+    Route::get('ganancias', [ReporteGananciasController::class, 'index'])->name('ganancias');
+    Route::get('ganancias/{lote}', [ReporteGananciasController::class, 'reporte'])->name('ganancias.reporte');
+});
 
 // Historial de limpiezas por unidad
 Route::get('/limpieza/historial-unidad/{codigo}', [App\Http\Controllers\LimpiezaController::class, 'historialUnidad'])->name('limpieza.historial_unidad');

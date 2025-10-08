@@ -9,6 +9,23 @@ class Lote extends Model
 {
     use HasFactory;
 
+    /**
+     * Relación: Mantenimientos de la unidad de producción asociada al lote
+     */
+    public function mantenimientos()
+    {
+        return $this->hasMany(\App\Models\MantenimientoUnidad::class, 'unidad_produccion_id', 'unidad_produccion_id');
+    }
+
+    /**
+     * Relación: Limpiezas de la unidad de producción asociada al lote
+     */
+    public function limpiezas()
+    {
+        return $this->hasMany(\App\Models\Limpieza::class, 'unidad_produccion_id', 'unidad_produccion_id');
+    }
+    use HasFactory;
+
     // Relación correcta con Alimentacion
     public function alimentaciones()
     {

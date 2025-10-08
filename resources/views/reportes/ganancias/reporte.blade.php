@@ -1,61 +1,167 @@
 @extends('layouts.app')
 
+@section('title', 'Reporte de Ganancias - ' . $lote->codigo)
+
 @section('content')
-    <div class="container mx-auto py-8">
-        <h1 class="text-2xl font-bold mb-6">Detalle de Ganancias del Lote</h1>
-        <div class="bg-white dark:bg-gray-800 shadow rounded p-6">
-            <h2 class="text-lg font-semibold mb-4">Tanque/Lote: {{ $lote->codigo_lote }}</h2>
-            <p><strong>Especie:</strong> {{ $lote->especie }}</p>
-            <p><strong>Fecha Inicio:</strong> {{ $lote->fecha_inicio ? $lote->fecha_inicio->format('d/m/Y') : '-' }}</p>
-            <p><strong>Costo Total:</strong> ${{ number_format($lote->costo_total, 2) }}</p>
-            <p><strong>Ventas:</strong> ${{ number_format($lote->ventas_total, 2) }}</p>
-            <p><strong>Ganancia Real:</strong> ${{ number_format($lote->ganancia_real, 2) }}</p>
+<div class="container mx-auto px-4 py-6">
+    <!-- Selector de lote/tanque -->
+    <form method="GET" action="{{ route('reportes.ganancias') }}" class="mb-6 bg-gray-50 p-4 rounded-lg flex flex-wrap gap-4 items-end">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Tanque/Lote</label>
+            <select name="lote_id" class="form-control">
+                <option value="">Seleccionar lote</option>
+                @foreach($lotes as $l)
+                    <option value="{{ $l->id }}" {{ $lote->id == $l->id ? 'selected' : '' }}>
+                        {{ $l->codigo }} - {{ $l->unidadProduccion->nombre ?? 'N/A' }}
+                    </option>
+                @endforeach
+            </select>
         </div>
-        <div class="mt-8">
-            <h3 class="text-md font-bold mb-2">Detalle de Alimentaciones</h3>
-            <table class="min-w-full bg-white dark:bg-gray-800 rounded shadow mb-6">
-                <thead>
-                    <tr>
-                        <th class="px-4 py-2">Fecha</th>
-                        <th class="px-4 py-2">Tipo Alimento</th>
-                        <th class="px-4 py-2">Cantidad (kg)</th>
-                        <th class="px-4 py-2">Costo</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($lote->alimentaciones as $alimentacion)
-                        <tr>
-                            <td class="border px-4 py-2">{{ $alimentacion->fecha_alimentacion ? $alimentacion->fecha_alimentacion->format('d/m/Y') : '-' }}</td>
-                            <td class="border px-4 py-2">{{ $alimentacion->tipoAlimento->nombre ?? '-' }}</td>
-                            <td class="border px-4 py-2">{{ number_format($alimentacion->cantidad_kg, 2) }}</td>
-                            <td class="border px-4 py-2">${{ number_format($alimentacion->costo_total, 2) }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-            <h3 class="text-md font-bold mb-2">Detalle de Ventas</h3>
-            <table class="min-w-full bg-white dark:bg-gray-800 rounded shadow">
-                <thead>
-                    <tr>
-                        <th class="px-4 py-2">Fecha</th>
-                        <th class="px-4 py-2">Cantidad Vendida</th>
-                        <th class="px-4 py-2">Precio Unitario</th>
-                        <th class="px-4 py-2">Total Venta</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($lote->ventas as $venta)
-                        <tr>
-                            <td class="border px-4 py-2">{{ $venta->fecha_venta ? $venta->fecha_venta->format('d/m/Y') : '-' }}</td>
-                            <td class="border px-4 py-2">{{ $venta->cantidad_vendida }}</td>
-                            <td class="border px-4 py-2">${{ number_format($venta->precio_unitario, 2) }}</td>
-                            <td class="border px-4 py-2">${{ number_format($venta->total_venta, 2) }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Ver Reporte</button>
+    </form>
+
+    <!-- Encabezado del reporte -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">
+                    📈 Reporte de Ganancias
+                </h1>
+                <h2 class="text-xl text-gray-600">Lote: {{ $lote->codigo }}</h2>
+                <p class="text-gray-500">Tanque: {{ $lote->unidadProduccion->nombre ?? 'N/A' }}</p>
+            </div>
+            <div class="text-right">
+                <p class="text-sm text-gray-500">Fecha de generación: {{ now()->format('d/m/Y H:i') }}</p>
+                <a href="{{ route('reportes.ganancias') }}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm">
+                    ← Volver
+                </a>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <p><strong>Especie:</strong> {{ $lote->especie }}</p>
+                <p><strong>Fecha Inicio:</strong> {{ $lote->fecha_siembra ? $lote->fecha_siembra->format('d/m/Y') : '-' }}</p>
+                <p><strong>Fecha Cosecha:</strong> {{ $lote->fecha_cosecha ? $lote->fecha_cosecha->format('d/m/Y') : '-' }}</p>
+                <p><strong>Precio de Compra:</strong> Q{{ number_format($desglose['precio_compra_lote'] ?? 0, 2) }}</p>
+                <p><strong>Costo Alimentación:</strong> Q{{ number_format($desglose['total_alimentacion'] ?? 0, 2) }}</p>
+                <p><strong>Costo Protocolos:</strong> Q{{ number_format(($desglose['total_mantenimientos'] ?? 0) + ($desglose['total_limpiezas'] ?? 0), 2) }}</p>
+                <p><strong>Total Costos:</strong> Q{{ number_format($desglose['total_costos'] ?? 0, 2) }}</p>
+            </div>
+            <div>
+                <p><strong>Total Ventas:</strong> Q{{ number_format($desglose['total_ventas'] ?? 0, 2) }}</p>
+                <p><strong>Ganancia Real:</strong> Q{{ number_format($desglose['ganancia_real'] ?? 0, 2) }}</p>
+                <p><strong>Margen de Ganancia:</strong> {{ number_format($desglose['margen_ganancia'] ?? 0, 2) }}%</p>
+                <p><strong>Estado:</strong>
+                    @if(($desglose['ganancia_real'] ?? 0) >= 0)
+                        <span class="text-green-600 font-bold">Ganancia</span>
+                    @else
+                        <span class="text-red-600 font-bold">Pérdida</span>
+                    @endif
+                </p>
+                @php
+                    $vendido = ($desglose['total_ventas'] ?? 0) > 0;
+                    $estimado = null;
+                    if(!$vendido && isset($ventasHistoricas) && count($ventasHistoricas) > 0) {
+                        $promedio = collect($ventasHistoricas)->avg('precio_unitario');
+                        $estimado = $promedio * ($lote->cantidad_total ?? 0);
+                    }
+                @endphp
+                @if(!$vendido && $estimado)
+                    <p class="mt-2"><strong>Estimado de Ganancia en Venta:</strong> Q{{ number_format($estimado - ($desglose['total_costos'] ?? 0), 2) }}</p>
+                @endif
+            </div>
         </div>
     </div>
+
+    <!-- Gráfica de costos y ventas -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h3 class="text-lg font-bold mb-4">Comparativo de Costos y Ventas</h3>
+        <canvas id="gananciasChart" height="120"></canvas>
+    </div>
+
+    <!-- Detalle de Alimentaciones -->
+    <div class="mt-8">
+        <h3 class="text-md font-bold mb-2">Detalle de Alimentaciones</h3>
+        <table class="min-w-full bg-white dark:bg-gray-800 rounded shadow mb-6">
+            <thead>
+                <tr>
+                    <th class="px-4 py-2">Fecha</th>
+                    <th class="px-4 py-2">Tipo Alimento</th>
+                    <th class="px-4 py-2">Cantidad (kg)</th>
+                    <th class="px-4 py-2">Costo</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($lote->alimentaciones as $alimentacion)
+                    <tr>
+                        <td class="border px-4 py-2">{{ $alimentacion->fecha_alimentacion ? $alimentacion->fecha_alimentacion->format('d/m/Y') : '-' }}</td>
+                        <td class="border px-4 py-2">{{ $alimentacion->tipoAlimento->nombre ?? '-' }}</td>
+                        <td class="border px-4 py-2">{{ number_format($alimentacion->cantidad_kg, 2) }}</td>
+                        <td class="border px-4 py-2">Q{{ number_format($alimentacion->costo_total, 2) }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+        <h3 class="text-md font-bold mb-2">Detalle de Ventas</h3>
+        <table class="min-w-full bg-white dark:bg-gray-800 rounded shadow">
+            <thead>
+                <tr>
+                    <th class="px-4 py-2">Fecha</th>
+                    <th class="px-4 py-2">Cantidad Vendida</th>
+                    <th class="px-4 py-2">Precio Unitario</th>
+                    <th class="px-4 py-2">Total Venta</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($lote->ventas as $venta)
+                    <tr>
+                        <td class="border px-4 py-2">{{ $venta->fecha_venta ? $venta->fecha_venta->format('d/m/Y') : '-' }}</td>
+                        <td class="border px-4 py-2">{{ $venta->cantidad_vendida }}</td>
+                        <td class="border px-4 py-2">Q{{ number_format($venta->precio_unitario, 2) }}</td>
+                        <td class="border px-4 py-2">Q{{ number_format($venta->total_venta, 2) }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('gananciasChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Compra', 'Alimentación', 'Protocolos', 'Total Costos', 'Ventas', 'Ganancia'],
+            datasets: [{
+                label: 'Monto (Q)',
+                data: [
+                    {{ $desglose['precio_compra_lote'] ?? 0 }},
+                    {{ $desglose['total_alimentacion'] ?? 0 }},
+                    {{ ($desglose['total_mantenimientos'] ?? 0) + ($desglose['total_limpiezas'] ?? 0) }},
+                    {{ $desglose['total_costos'] ?? 0 }},
+                    {{ $desglose['total_ventas'] ?? 0 }},
+                    {{ $desglose['ganancia_real'] ?? 0 }}
+                ],
+                backgroundColor: [
+                    '#6366f1', '#22d3ee', '#f59e42', '#a3a3a3', '#22c55e', '#f43f5e'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                title: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+</script>
+@endpush
 @endsection
 @extends('layouts.app')
 
