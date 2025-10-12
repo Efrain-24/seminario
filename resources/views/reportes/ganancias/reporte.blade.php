@@ -1,8 +1,28 @@
-@extends('layouts.app')
 
-@section('title', 'Reporte de Ganancias - ' . $lote->codigo)
+<x-app-layout>
+@php
+    if (!isset($biomasaFinalKg)) $biomasaFinalKg = 0;
+    if (!isset($biomasaFinalLb)) $biomasaFinalLb = 0;
+    if (!isset($costoPorLibra)) $costoPorLibra = 0;
+@endphp
+    <x-slot name="header">
+        <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
+            📈 Reporte de Ganancias - {{ $lote->codigo }}
+        </h2>
+    </x-slot>
 
-@section('content')
+@php
+    if (!isset($lotes)) {
+        $lotes = collect();
+    }
+@endphp
+
+    <!-- 🔔 Notificaciones -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+    <x-notification type="warning" :message="session('warning')" />
+
+    <div class="container mx-auto py-8">
 
 <!-- 🔔 Notificaciones -->
 <x-notification type="success" :message="session('success')" />
@@ -226,6 +246,13 @@
         </p>
     </div>
     @endif
+
+    <!-- 📦 Producción y costo por libra -->
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg mb-6">
+        <h3 class="text-lg font-semibold text-yellow-800">Producción y Costo por Libra</h3>
+        <p class="text-gray-700 mb-1">Biomasa final: <span class="font-bold">{{ number_format($biomasaFinalKg, 2) }} kg</span> ({{ number_format($biomasaFinalLb, 2) }} lb)</p>
+        <p class="text-gray-700">Costo por libra producida: <span class="font-bold text-yellow-900">Q{{ number_format($costoPorLibra, 2) }}</span></p>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -248,4 +275,5 @@ new Chart(ctx, {
     options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
 });
 </script>
-@endsection
+    </div>
+</x-app-layout>

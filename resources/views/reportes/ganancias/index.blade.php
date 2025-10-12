@@ -1,8 +1,28 @@
-@extends('layouts.app')
 
-@section('title', 'Reportes de Ganancias')
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
+            📊 Reporte de Ganancias por Lote
+        </h2>
+    </x-slot>
 
-@section('content')
+@php
+    if (!isset($resumen)) {
+        $resumen = [
+            'costoAlimentacion' => 0, 'costoProtocolos' => 0, 'totalVenta' => 0, 'totalCostos' => 0, 'margen' => 0, 'ganancia' => 0, 'vendido' => false, 'estimado' => 0
+        ];
+    }
+    if (!isset($loteResumen)) {
+        $loteResumen = null;
+    }
+@endphp
+
+    <!-- 🔔 Notificaciones -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+    <x-notification type="warning" :message="session('warning')" />
+
+    <div class="container mx-auto px-4 py-6">
 
 <!-- 🔔 Notificaciones -->
 <x-notification type="success" :message="session('success')" />
@@ -129,5 +149,6 @@
     </div>
 </div>
 
-@endsection
+    </div>
+</x-app-layout>
 
