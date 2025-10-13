@@ -88,11 +88,19 @@
                             'available' => true,
                         ],
                         'reportes' => [
-                            'name' => 'Reportes',
-                            'description' => 'Reportes de ganancias, costos y análisis financiero',
+                            'name' => 'Reportes Integrados',
+                            'description' => 'Sistema completo de reportes: tradicionales + Sprint 11 (RF22-RF39)',
                             'icon' => '<i data-lucide="bar-chart-3"></i>',
-                            'route' => 'reportes.ganancias',
+                            'route' => 'reportes.panel',
                             'color' => 'from-violet-500 to-purple-600',
+                            'available' => true,
+                        ],
+                        'mantenimientos' => [
+                            'name' => 'Mantenimientos',
+                            'description' => 'Gestión completa de mantenimientos preventivos y correctivos de unidades',
+                            'icon' => '<i data-lucide="wrench"></i>',
+                            'route' => 'mantenimientos.panel',
+                            'color' => 'from-orange-500 to-red-600',
                             'available' => true,
                         ],
 

@@ -102,7 +102,7 @@
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                         <td class="px-4 py-4 whitespace-nowrap">
                                             <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                {{ $lote->codigo ?? 'L-' . $lote->id }}
+                                                {{ $lote->codigo_lote ?? 'L-' . $lote->id }}
                                             </div>
                                         </td>
                                         <td class="px-4 py-4 whitespace-nowrap">

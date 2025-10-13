@@ -1,5 +1,5 @@
-                    <x-nav-link :href="route('reportes.ganancias')" :active="request()->routeIs('reportes.*')">
-                        {{ __('Reportes') }}
+                    <x-nav-link :href="route('reportes.panel')" :active="request()->routeIs('reportes.*')">
+                        {{ __('📊 Reportes Integrados') }}
                     </x-nav-link>
 <nav x-data="{ open: false }" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
     <!-- Primary Navigation Menu -->
@@ -23,6 +23,13 @@
                         {{ __('Aplicaciones') }}
                     </x-nav-link>
                     
+                    <x-nav-link :href="route('panel.indicadores.consolidado')" :active="request()->routeIs('panel.indicadores.*')">
+                        📊 Panel Indicadores
+                    </x-nav-link>
+                    
+                    <x-nav-link :href="route('reportes.ganancias')" :active="request()->routeIs('reportes.*')">
+                        {{ __('Reportes') }}
+                    </x-nav-link>
                     
                     @if(Auth::user() && Auth::user()->isAdmin())
                         <x-nav-link :href="route('bitacora.index')" :active="request()->routeIs('bitacora.*')">
@@ -95,6 +102,10 @@
 
             <x-responsive-nav-link :href="route('aplicaciones')" :active="request()->routeIs('aplicaciones')">
                 {{ __('Aplicaciones') }}
+            </x-responsive-nav-link>
+            
+            <x-responsive-nav-link :href="route('panel.indicadores.consolidado')" :active="request()->routeIs('panel.indicadores.*')">
+                📊 Panel Indicadores
             </x-responsive-nav-link>
             @if(Auth::user() && Auth::user()->isAdmin())
                 <x-responsive-nav-link :href="route('bitacora.index')" :active="request()->routeIs('bitacora.*')">

@@ -16,7 +16,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Registrar servicios del Sprint 11
+        $this->app->singleton(\App\Services\CostoProduccionService::class);
+        $this->app->singleton(\App\Services\VentasResultadosService::class);
+        $this->app->singleton(\App\Services\ConsistenciaEstimacionService::class);
+        $this->app->singleton(\App\Services\FiltrosTrazabilidadService::class);
     }
 
     /**

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Reporte de Ganancias - ' . $lote->codigo)
+@section('title', 'Reporte de Ganancias - ' . $lote->codigo_lote)
 
 @section('content')
 @section('content')
@@ -18,7 +18,7 @@
                 <h1 class="text-2xl font-bold text-gray-800">
                     📈 Reporte de Ganancias
                 </h1>
-                <h2 class="text-xl text-gray-600">Lote: {{ $lote->codigo_lote ?? $lote->codigo }}</h2>
+                <h2 class="text-xl text-gray-600">Lote: {{ $lote->codigo_lote }}</h2>
                 <p class="text-gray-500">Tanque: {{ $lote->unidadProduccion->nombre ?? 'N/A' }}</p>
             </div>
             <div class="text-right">

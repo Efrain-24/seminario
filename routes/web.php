@@ -27,8 +27,16 @@ use App\Http\Controllers\LoteController;
 use App\Http\Controllers\VentaController;
 use App\Http\Controllers\ProveedorController;
 use App\Http\Controllers\BitacoraController;
-use App\Http\Controllers\ClienteController; // añadido
+use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\EntradaCompraController;
+// Nuevos controladores del Sprint 11
+use App\Http\Controllers\CostoProduccionController;
+use App\Http\Controllers\VentasResultadosController;
+use App\Http\Controllers\PanelIndicadoresController;
+// Controlador de reportes integrados
+use App\Http\Controllers\Reportes\ReporteIntegradoController;
+// Controlador de mantenimientos
+use App\Http\Controllers\MantenimientoController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -499,15 +507,103 @@ Route::middleware(['auth', 'redirect.temp.password'])->prefix('reportes')->name(
         ));
     })->name('ganancias.reporte');
     
-    // Panel de Reportes
-    Route::get('/panel', function () {
-        return view('reportes.panel');
-    })->name('panel');
+    // Panel de Reportes - Integrado con Sprint 11
+    Route::get('/panel', [ReporteIntegradoController::class, 'panel'])->name('panel');
+    
+    // Reporte consolidado que integra Sprint 11
+    Route::get('/consolidado', [ReporteIntegradoController::class, 'consolidado'])->name('consolidado');
+    
+    // Comparativa entre análisis tradicional y Sprint 11
+    Route::get('/comparativa', [ReporteIntegradoController::class, 'comparativa'])->name('comparativa');
+    
+    // Exportación integrada
+    Route::get('/exportar-integrado', [ReporteIntegradoController::class, 'exportarIntegrado'])->name('exportar_integrado');
     
     // Reportes de Usuarios (futuro)
     Route::get('/usuarios', function () {
         return view('reportes.usuarios.index');
     })->name('usuarios');
+    
+    // Integración Sprint 11 con Reportes
+    Route::get('/costos-detallados', function () {
+        return redirect()->route('costos.produccion.index');
+    })->name('costos_detallados');
+    
+    Route::get('/ventas-analisis', function () {
+        return redirect()->route('ventas.resultados.index');
+    })->name('ventas_analisis');
+    
+    Route::get('/dashboard-ejecutivo', function () {
+        return redirect()->route('panel.indicadores.consolidado');
+    })->name('dashboard_ejecutivo');
+});
+
+// ============================================
+// RUTAS DEL SPRINT 11 - INDICADORES HU-006 A HU-009
+// ============================================
+
+Route::middleware(['auth'])->group(function () {
+    
+    // RF22: Cálculo detallado del costo por libra producida
+    Route::prefix('costos/produccion')->name('costos.produccion.')->group(function () {
+        Route::get('/', [CostoProduccionController::class, 'index'])->name('index');
+        Route::get('/{lote}', [CostoProduccionController::class, 'show'])->name('show');
+        Route::get('/exportar/csv', [CostoProduccionController::class, 'exportar'])->name('exportar');
+        Route::get('/api/{lote}', [CostoProduccionController::class, 'api'])->name('api');
+        Route::post('/comparar', [CostoProduccionController::class, 'comparar'])->name('comparar');
+    });
+    
+    // RF36: Ventas ejecutadas y ventas potenciales
+    Route::prefix('ventas/resultados')->name('ventas.resultados.')->group(function () {
+        Route::get('/', [VentasResultadosController::class, 'index'])->name('index');
+        Route::get('/consolidado', [VentasResultadosController::class, 'consolidado'])->name('consolidado');
+        Route::get('/exportar', [VentasResultadosController::class, 'exportar'])->name('exportar');
+        Route::get('/api', [VentasResultadosController::class, 'api'])->name('api');
+    });
+    
+    // RF37: Consistencia y estimación
+    // RF38: Filtros y trazabilidad
+    // RF39: Panel de indicadores con confirmación al ocultar módulos
+    Route::prefix('panel/indicadores')->name('panel.indicadores.')->group(function () {
+        Route::get('/', [PanelIndicadoresController::class, 'index'])->name('index');
+        Route::get('/consolidado', [PanelIndicadoresController::class, 'consolidado'])->name('consolidado');
+        Route::get('/metricas', [PanelIndicadoresController::class, 'metricas'])->name('metricas');
+        
+        // Control de módulos
+        Route::post('/modulo/confirmar-ocultar', [PanelIndicadoresController::class, 'confirmarOcultarModulo'])->name('modulo.confirmar_ocultar');
+        Route::post('/modulo/ejecutar-ocultar', [PanelIndicadoresController::class, 'ejecutarOcultarModulo'])->name('modulo.ejecutar_ocultar');
+        Route::post('/modulo/restaurar', [PanelIndicadoresController::class, 'restaurarModulo'])->name('modulo.restaurar');
+        Route::get('/verificar-acceso', [PanelIndicadoresController::class, 'verificarAcceso'])->name('verificar_acceso');
+    });
+    
+});
+
+// ============================================
+// MÓDULO DE MANTENIMIENTOS - CONTROLADOR DEDICADO
+// ============================================
+
+Route::middleware(['auth'])->prefix('mantenimientos')->name('mantenimientos.')->group(function () {
+    // Panel principal y gestión
+    Route::get('/panel', [MantenimientoController::class, 'panel'])->name('panel');
+    Route::get('/metricas', [MantenimientoController::class, 'metricas'])->name('metricas');
+    Route::get('/exportar', [MantenimientoController::class, 'exportar'])->name('exportar');
+    
+    // CRUD completo
+    Route::get('/', [MantenimientoController::class, 'index'])->name('index');
+    Route::get('/create', [MantenimientoController::class, 'create'])->name('create');
+    Route::post('/', [MantenimientoController::class, 'store'])->name('store');
+    Route::get('/{mantenimiento}', [MantenimientoController::class, 'show'])->name('show');
+    Route::get('/{mantenimiento}/edit', [MantenimientoController::class, 'edit'])->name('edit');
+    Route::put('/{mantenimiento}', [MantenimientoController::class, 'update'])->name('update');
+    Route::delete('/{mantenimiento}', [MantenimientoController::class, 'destroy'])->name('destroy');
+    
+    // Acciones específicas
+    Route::post('/{mantenimiento}/iniciar', [MantenimientoController::class, 'iniciar'])->name('iniciar');
+    Route::post('/{mantenimiento}/completar', [MantenimientoController::class, 'completar'])->name('completar');
+    Route::post('/{mantenimiento}/cancelar', [MantenimientoController::class, 'cancelar'])->name('cancelar');
+    
+    // API para obtener datos
+    Route::get('/api/unidad/{unidad}', [MantenimientoController::class, 'apiPorUnidad'])->name('api.unidad');
 });
 
 require __DIR__ . '/auth.php';

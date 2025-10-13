@@ -79,7 +79,7 @@
                         <option value="">Seleccionar lote</option>
                         @foreach($lotes as $lote)
                             <option value="{{ $lote->id }}" {{ request('lote_id') == $lote->id ? 'selected' : '' }}>
-                                {{ $lote->codigo }} - {{ $lote->unidadProduccion->nombre ?? 'N/A' }}
+                                {{ $lote->codigo_lote }} - {{ $lote->unidadProduccion->nombre ?? 'N/A' }}
                             </option>
                         @endforeach
                     </select>
@@ -97,7 +97,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             @foreach($lotes as $lote)
             <div class="bg-gray-50 border rounded-lg p-4 hover:shadow-md transition-shadow">
-                <h3 class="font-semibold text-lg text-gray-800">{{ $lote->codigo }}</h3>
+                <h3 class="font-semibold text-lg text-gray-800">{{ $lote->codigo_lote }}</h3>
                 <p class="text-gray-600 text-sm">Tanque: {{ $lote->unidadProduccion->nombre ?? 'N/A' }}</p>
                 <p class="text-gray-600 text-sm">Fecha siembra: {{ $lote->fecha_siembra ? $lote->fecha_siembra->format('d/m/Y') : 'N/A' }}</p>
                 <div class="mt-3">

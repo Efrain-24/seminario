@@ -52,6 +52,11 @@ class MantenimientoUnidad extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function insumos()
+    {
+        return $this->hasMany(MantenimientoInsumo::class, 'mantenimiento_unidad_id');
+    }
+
     /**
      * Scopes
      */
