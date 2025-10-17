@@ -26,7 +26,9 @@ class MantenimientoUnidad extends Model
         'observaciones_despues',
         'proxima_revision',
         'requiere_vaciado',
-        'requiere_traslado_peces'
+        'requiere_traslado_peces',
+        'actividades',
+        'actividades_ejecutadas'
     ];
 
     protected $casts = [
@@ -36,7 +38,9 @@ class MantenimientoUnidad extends Model
         'hora_inicio' => 'datetime:H:i',
         'hora_fin' => 'datetime:H:i',
         'requiere_vaciado' => 'boolean',
-        'requiere_traslado_peces' => 'boolean'
+        'requiere_traslado_peces' => 'boolean',
+        'actividades' => 'array',
+        'actividades_ejecutadas' => 'array'
     ];
 
     /**
@@ -50,6 +54,18 @@ class MantenimientoUnidad extends Model
     public function usuario(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function insumos()
+    {
+        return $this->belongsToMany(
+            InventarioItem::class,
+            'mantenimiento_insumo',
+            'mantenimiento_unidad_id',
+            'inventario_item_id'
+        )
+        ->withPivot('cantidad', 'costo_unitario', 'costo_total')
+        ->withTimestamps();
     }
 
     /**
@@ -108,10 +124,26 @@ class MantenimientoUnidad extends Model
 
     public function getDiasRestantesAttribute()
     {
-        if ($this->fecha_mantenimiento->isFuture()) {
-            return now()->diffInDays($this->fecha_mantenimiento);
+        if ($this->estado_mantenimiento === 'completado') return 0;
+        return (int) $this->fecha_mantenimiento->diffInDays(now());
+    }
+
+    public function getPorcentajeCompletadoAttribute()
+    {
+        if (!$this->actividades || count($this->actividades) === 0) {
+            return 0;
         }
-        return 0;
+        
+        if (!$this->actividades_ejecutadas || count($this->actividades_ejecutadas) === 0) {
+            return 0;
+        }
+        
+        $total = count($this->actividades);
+        $completadas = count(array_filter($this->actividades_ejecutadas, function($a) {
+            return isset($a['completada']) && $a['completada'] === true;
+        }));
+        
+        return (int) (($completadas / $total) * 100);
     }
 
     public function getPrioridadColorAttribute()
@@ -164,6 +196,10 @@ class MantenimientoUnidad extends Model
             'costo_mantenimiento' => $datos['costo_mantenimiento'] ?? $this->costo_mantenimiento,
             'proxima_revision' => $datos['proxima_revision'] ?? $this->proxima_revision
         ]);
+
+        // Realizar descuento de inventario al completar el mantenimiento
+        // Solo si no se ha hecho descuento anterior (cuando se crea el mantenimiento)
+        // Se asume que ya se hizo descuento al crear, así que solo confirmamos el movimiento
 
         // Reactivar la unidad si estaba en mantenimiento
         if ($this->unidadProduccion->estado === 'mantenimiento') {

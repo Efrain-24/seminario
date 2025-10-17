@@ -183,7 +183,7 @@ class ProduccionController extends Controller
             'unidad_produccion_id' => 'required|exists:unidad_produccions,id',
             'tipo_mantenimiento' => 'required|in:preventivo,correctivo,limpieza,reparacion,inspeccion,desinfeccion',
             'descripcion_trabajo' => 'required|string|max:1000',
-            'fecha_mantenimiento' => 'required|date|after_or_equal:today',
+            'fecha_mantenimiento' => 'required|date',
             'prioridad' => 'required|in:baja,media,alta,critica',
             'user_id' => 'required|exists:users,id',
             'observaciones_antes' => 'nullable|string|max:1000',
@@ -251,7 +251,81 @@ class ProduccionController extends Controller
         foreach ($fechas as $fecha) {
             $data = $validated;
             $data['fecha_mantenimiento'] = $fecha->format('Y-m-d');
-            $mantenimientos[] = MantenimientoUnidad::create($data);
+            $mantenimiento = MantenimientoUnidad::create($data);
+            
+            // Guardar actividades si se proporcionaron
+            if ($request->has('actividades_json')) {
+                $actividadesJson = $request->input('actividades_json', '[]');
+                $actividades = json_decode($actividadesJson, true) ?? [];
+                // Filtrar actividades vacías
+                $actividades = array_filter($actividades, function($a) { return trim($a) !== ''; });
+                if (!empty($actividades)) {
+                    $mantenimiento->update([
+                        'actividades' => array_values($actividades),
+                        'actividades_ejecutadas' => [] // Inicializar como array vacío
+                    ]);
+                }
+            }
+            
+            // Guardar insumos si se proporcionaron (como JSON)
+            \Log::info('Verificando insumos en request', [
+                'has_insumos_json' => $request->has('insumos_json'),
+                'insumos_json_raw' => $request->input('insumos_json'),
+                'all_request_keys' => array_keys($request->all())
+            ]);
+            
+            // Procesar insumos desde JSON
+            if ($request->has('insumos_json')) {
+                $insumosJson = $request->input('insumos_json', '[]');
+                $insumosArray = json_decode($insumosJson, true) ?? [];
+                
+                \Log::info('Guardando insumos desde JSON', ['insumos_array' => $insumosArray, 'count' => count($insumosArray)]);
+                
+                foreach ($insumosArray as $insumoData) {
+                    $insumo_id = $insumoData['id'] ?? null;
+                    $cantidad = intval($insumoData['cantidad'] ?? 1);
+                    
+                    if ($insumo_id) {
+                        $insumo = \App\Models\InventarioItem::find($insumo_id);
+                        if ($insumo) {
+                            $costo_unitario = $insumo->costo_unitario ?? 0;
+                            $costo_total = $costo_unitario * $cantidad;
+                            
+                            $mantenimiento->insumos()->attach($insumo_id, [
+                                'cantidad' => $cantidad,
+                                'costo_unitario' => $costo_unitario,
+                                'costo_total' => $costo_total
+                            ]);
+                            
+                            \Log::info('Insumo guardado', ['insumo_id' => $insumo_id, 'cantidad' => $cantidad]);
+                        }
+                    }
+                }
+            }
+            // Mantener compatibilidad con formato antiguo (insumos[] y cantidades[]) por si acaso
+            elseif ($request->has('insumos') && is_array($request->input('insumos'))) {
+                $insumos = $request->input('insumos', []);
+                $cantidades = $request->input('cantidades', []);
+                
+                \Log::info('Guardando insumos (formato antiguo)', ['insumos' => $insumos, 'cantidades' => $cantidades]);
+                
+                foreach ($insumos as $idx => $insumo_id) {
+                    $insumo = \App\Models\InventarioItem::find($insumo_id);
+                    if ($insumo) {
+                        $cantidad = intval($cantidades[$idx] ?? 1);
+                        $costo_unitario = $insumo->costo_unitario ?? 0;
+                        $costo_total = $costo_unitario * $cantidad;
+                        
+                        $mantenimiento->insumos()->attach($insumo_id, [
+                            'cantidad' => $cantidad,
+                            'costo_unitario' => $costo_unitario,
+                            'costo_total' => $costo_total
+                        ]);
+                    }
+                }
+            }
+            
+            $mantenimientos[] = $mantenimiento;
         }
 
         // Redirigir a la unidad del primer mantenimiento creado
@@ -261,7 +335,7 @@ class ProduccionController extends Controller
 
     public function showMantenimiento(MantenimientoUnidad $mantenimiento)
     {
-        $mantenimiento->load(['unidadProduccion', 'usuario']);
+        $mantenimiento->load(['unidadProduccion', 'usuario', 'insumos']);
         return view('produccion.show-mantenimiento', compact('mantenimiento'));
     }
 
@@ -272,8 +346,15 @@ class ProduccionController extends Controller
             return redirect()->back()->with('error', 'Solo se pueden editar mantenimientos programados.');
         }
 
-        $unidades = UnidadProduccion::activas()->get();
+        $mantenimiento->load(['unidadProduccion', 'usuario', 'insumos']);
+        $unidades = UnidadProduccion::where('estado', '!=', 'inactivo')->get();
         $usuarios = User::active()->get();
+        
+        \Log::info('EditMantenimiento Debug', [
+            'mantenimiento_id' => $mantenimiento->id,
+            'unidad_produccion_id' => $mantenimiento->unidad_produccion_id,
+            'unidad_produccion' => $mantenimiento->unidadProduccion?->nombre,
+        ]);
         
         return view('produccion.edit-mantenimiento', compact('mantenimiento', 'unidades', 'usuarios'));
     }
@@ -289,16 +370,117 @@ class ProduccionController extends Controller
             'unidad_produccion_id' => 'required|exists:unidad_produccions,id',
             'tipo_mantenimiento' => 'required|in:preventivo,correctivo,limpieza,reparacion,inspeccion,desinfeccion',
             'prioridad' => 'required|in:baja,media,alta,critica',
-            'fecha_mantenimiento' => 'required|date|after_or_equal:today',
+            'fecha_mantenimiento' => 'required|date',
             'descripcion_trabajo' => 'required|string|max:1000',
             'observaciones_antes' => 'nullable|string|max:1000',
-            'usuario_id' => 'required|exists:users,id'
+            'user_id' => 'required|exists:users,id'
         ]);
 
         $validated['requiere_vaciado'] = $request->has('requiere_vaciado');
         $validated['requiere_traslado_peces'] = $request->has('requiere_traslado_peces');
 
         $mantenimiento->update($validated);
+        
+        // Actualizar actividades
+        if ($request->has('actividades') && is_array($request->input('actividades'))) {
+            $actividades = $request->input('actividades', []);
+            // Filtrar actividades vacías
+            $actividades = array_filter($actividades, function($a) { return trim($a) !== ''; });
+            $mantenimiento->update([
+                'actividades' => $actividades
+            ]);
+        }
+
+        // Actualizar insumos
+        $mantenimiento->insumos()->detach(); // Eliminar insumos anteriores
+        
+        // Revertir movimientos de inventario anteriores
+        \App\Models\InventarioMovimiento::where('referencia_type', MantenimientoUnidad::class)
+            ->where('referencia_id', $mantenimiento->id)
+            ->get()
+            ->each(function ($movimiento) {
+                // Revertir el descuento del stock
+                if ($movimiento->bodega_id) {
+                    $existencias = \App\Models\InventarioExistencia::where('item_id', $movimiento->item_id)
+                        ->where('bodega_id', $movimiento->bodega_id)
+                        ->first();
+                    if ($existencias && $movimiento->tipo === 'salida') {
+                        $existencias->stock_actual += $movimiento->cantidad_base;
+                        $existencias->save();
+                    }
+                } else {
+                    $existencias = \App\Models\InventarioExistencia::where('item_id', $movimiento->item_id)->first();
+                    if ($existencias && $movimiento->tipo === 'salida') {
+                        $existencias->stock_actual += $movimiento->cantidad_base;
+                        $existencias->save();
+                    }
+                }
+                $movimiento->delete();
+            });
+        
+        if ($request->has('insumos') && is_array($request->input('insumos'))) {
+            $insumos = $request->input('insumos', []);
+            $cantidades = $request->input('cantidades', []);
+            
+            foreach ($insumos as $idx => $insumo_id) {
+                $insumo = \App\Models\InventarioItem::find($insumo_id);
+                if ($insumo) {
+                    $cantidad = intval($cantidades[$idx] ?? 1);
+                    $costo_unitario = $insumo->costo_unitario ?? 0;
+                    $costo_total = $costo_unitario * $cantidad;
+                    
+                    $mantenimiento->insumos()->attach($insumo_id, [
+                        'cantidad' => $cantidad,
+                        'costo_unitario' => $costo_unitario,
+                        'costo_total' => $costo_total
+                    ]);
+                    
+                    // Obtener la bodega con existencias del insumo o usar la primera bodega disponible
+                    $bodega = \App\Models\InventarioExistencia::where('item_id', $insumo_id)
+                        ->with('bodega')
+                        ->first()
+                        ?->bodega;
+                    
+                    // Si no hay existencias, usar la primera bodega del sistema
+                    if (!$bodega) {
+                        $bodega = \App\Models\Bodega::first();
+                    }
+                    
+                    // Si aún no hay bodega, no crear el movimiento (error de configuración)
+                    if (!$bodega) {
+                        Log::error('No se encontró bodega para crear movimiento de mantenimiento', [
+                            'insumo_id' => $insumo_id,
+                            'mantenimiento_id' => $mantenimiento->id
+                        ]);
+                        continue;
+                    }
+                    
+                    // Crear movimiento de inventario para descontar el stock
+                    \App\Models\InventarioMovimiento::create([
+                        'item_id' => $insumo_id,
+                        'bodega_id' => $bodega->id,
+                        'tipo' => 'salida',
+                        'cantidad_base' => $cantidad,
+                        'unidad_origen' => $insumo->unidad_base,
+                        'cantidad_origen' => $cantidad,
+                        'referencia_type' => MantenimientoUnidad::class,
+                        'referencia_id' => $mantenimiento->id,
+                        'fecha' => \Carbon\Carbon::parse($validated['fecha_mantenimiento']),
+                        'descripcion' => "Insumo utilizado en mantenimiento: {$mantenimiento->tipo_mantenimiento}",
+                        'user_id' => $validated['user_id']
+                    ]);
+                    
+                    // Actualizar stock en existencias de la bodega específica
+                    $existencias = \App\Models\InventarioExistencia::where('item_id', $insumo_id)
+                        ->where('bodega_id', $bodega->id)
+                        ->first();
+                    if ($existencias) {
+                        $existencias->stock_actual = max(0, $existencias->stock_actual - $cantidad);
+                        $existencias->save();
+                    }
+                }
+            }
+        }
 
         return redirect()->route('produccion.mantenimientos.show', $mantenimiento)
                         ->with('success', 'Mantenimiento actualizado exitosamente.');
@@ -320,10 +502,95 @@ class ProduccionController extends Controller
             'observaciones_despues' => 'nullable|string|max:1000',
             'costo_mantenimiento' => 'nullable|numeric|min:0',
             'materiales_utilizados' => 'nullable|string|max:1000',
-            'proxima_revision' => 'nullable|date|after:today'
+            'proxima_revision' => 'nullable|date|after:today',
+            'insumos_utilizados' => 'nullable|array',
+            'actividades_completadas' => 'nullable|array'
         ]);
 
         try {
+            // Guardar el estado de actividades completadas
+            if ($request->has('actividades_completadas') && $mantenimiento->actividades) {
+                $actividadesCompletadas = $request->input('actividades_completadas', []);
+                $actividades = $mantenimiento->actividades;
+                $actividadesEjecutadas = [];
+                
+                foreach ($actividades as $idx => $actividad) {
+                    $actividadesEjecutadas[$idx] = [
+                        'nombre' => $actividad,
+                        'completada' => in_array($idx, $actividadesCompletadas)
+                    ];
+                }
+                
+                $mantenimiento->update([
+                    'actividades_ejecutadas' => $actividadesEjecutadas
+                ]);
+            }
+            
+            // Realizar descuento de inventario al completar
+            $insumosUtilizados = $request->input('insumos_utilizados', []);
+            
+            if ($insumosUtilizados && is_array($insumosUtilizados)) {
+                foreach ($insumosUtilizados as $insumo_id) {
+                    $insumo = $mantenimiento->insumos()->find($insumo_id);
+                    if ($insumo) {
+                        $cantidad = $insumo->pivot->cantidad;
+                        
+                        // Crear movimiento de inventario si no existe
+                        $movimientoExistente = \App\Models\InventarioMovimiento::where('referencia_type', MantenimientoUnidad::class)
+                            ->where('referencia_id', $mantenimiento->id)
+                            ->where('item_id', $insumo_id)
+                            ->where('tipo', 'salida')
+                            ->exists();
+                        
+                        if (!$movimientoExistente) {
+                            // Obtener la bodega con existencias del insumo o usar la primera bodega disponible
+                            $bodega = \App\Models\InventarioExistencia::where('item_id', $insumo_id)
+                                ->with('bodega')
+                                ->first()
+                                ?->bodega;
+                            
+                            // Si no hay existencias, usar la primera bodega del sistema
+                            if (!$bodega) {
+                                $bodega = \App\Models\Bodega::first();
+                            }
+                            
+                            // Si aún no hay bodega, no crear el movimiento (error de configuración)
+                            if (!$bodega) {
+                                Log::error('No se encontró bodega para crear movimiento de mantenimiento', [
+                                    'insumo_id' => $insumo_id,
+                                    'mantenimiento_id' => $mantenimiento->id
+                                ]);
+                                continue;
+                            }
+                            
+                            // Crear movimiento de inventario
+                            \App\Models\InventarioMovimiento::create([
+                                'item_id' => $insumo_id,
+                                'bodega_id' => $bodega->id,
+                                'tipo' => 'salida',
+                                'cantidad_base' => $cantidad,
+                                'unidad_origen' => $insumo->unidad_base,
+                                'cantidad_origen' => $cantidad,
+                                'referencia_type' => MantenimientoUnidad::class,
+                                'referencia_id' => $mantenimiento->id,
+                                'fecha' => $mantenimiento->fecha_mantenimiento,
+                                'descripcion' => "Insumo utilizado en mantenimiento: {$mantenimiento->tipo_mantenimiento}",
+                                'user_id' => $mantenimiento->user_id
+                            ]);
+                            
+                            // Actualizar stock en existencias de la bodega específica
+                            $existencias = \App\Models\InventarioExistencia::where('item_id', $insumo_id)
+                                ->where('bodega_id', $bodega->id)
+                                ->first();
+                            if ($existencias) {
+                                $existencias->stock_actual = max(0, $existencias->stock_actual - $cantidad);
+                                $existencias->save();
+                            }
+                        }
+                    }
+                }
+            }
+            
             $mantenimiento->completar($validated);
             return redirect()->route('produccion.mantenimientos', $mantenimiento->unidadProduccion)
                             ->with('success', 'Mantenimiento completado exitosamente.');
@@ -395,8 +662,8 @@ class ProduccionController extends Controller
     private function calcularTiempoPromedioMantenimiento()
     {
         $mantenimientosCompletos = MantenimientoUnidad::where('estado_mantenimiento', 'completado')
-                                                     ->whereNotNull('fecha_inicio')
-                                                     ->whereNotNull('fecha_fin')
+                                                     ->whereNotNull('hora_inicio')
+                                                     ->whereNotNull('hora_fin')
                                                      ->get();
 
         if ($mantenimientosCompletos->isEmpty()) {
@@ -404,8 +671,10 @@ class ProduccionController extends Controller
         }
 
         $totalHoras = $mantenimientosCompletos->sum(function($mantenimiento) {
-            if ($mantenimiento->fecha_inicio && $mantenimiento->fecha_fin) {
-                return $mantenimiento->fecha_inicio->diffInHours($mantenimiento->fecha_fin);
+            if ($mantenimiento->hora_inicio && $mantenimiento->hora_fin) {
+                $inicio = \Carbon\Carbon::parse($mantenimiento->hora_inicio);
+                $fin = \Carbon\Carbon::parse($mantenimiento->hora_fin);
+                return $inicio->diffInHours($fin);
             }
             return 0;
         });
@@ -810,6 +1079,10 @@ class ProduccionController extends Controller
         if ($user->role !== 'admin' && $user->role !== 'gerente') {
             return redirect()->back()->with('error', 'No tienes permiso para eliminar mantenimientos.');
         }
+        
+        // Revertir movimientos de inventario antes de eliminar
+        $this->revertirMovimientosInventario($mantenimiento);
+        
         // Si el mantenimiento es parte de un ciclo, eliminar todos los del ciclo
         $ciclicos = \App\Models\MantenimientoUnidad::where('unidad_produccion_id', $mantenimiento->unidad_produccion_id)
             ->where('tipo_mantenimiento', $mantenimiento->tipo_mantenimiento)
@@ -819,18 +1092,56 @@ class ProduccionController extends Controller
             ->where('estado_mantenimiento', $mantenimiento->estado_mantenimiento)
             ->whereDate('fecha_mantenimiento', '>=', $mantenimiento->fecha_mantenimiento)
             ->get();
+        
         if ($ciclicos->count() > 1) {
             foreach ($ciclicos as $c) {
+                $this->revertirMovimientosInventario($c);
                 $c->delete();
             }
-            return redirect()->route('produccion.mantenimientos.historial', $mantenimiento->unidad_produccion_id)
-                ->with('success', 'Todos los mantenimientos cíclicos relacionados han sido eliminados.');
+            // Clear query cache
+            \Illuminate\Support\Facades\Cache::flush();
+            return redirect()->route('produccion.mantenimientos', $mantenimiento->unidad_produccion_id)
+                ->with('success', 'Todos los mantenimientos cíclicos relacionados han sido eliminados y el inventario ha sido revertido.');
         } else {
             $mantenimiento->delete();
-            return redirect()->route('produccion.mantenimientos.historial', $mantenimiento->unidad_produccion_id)
-                ->with('success', 'Mantenimiento eliminado correctamente.');
+            // Clear query cache
+            \Illuminate\Support\Facades\Cache::flush();
+            return redirect()->route('produccion.mantenimientos', $mantenimiento->unidad_produccion_id)
+                ->with('success', 'Mantenimiento eliminado correctamente y el inventario ha sido revertido.');
         }
     }
+    
+    /**
+     * Revertir movimientos de inventario de un mantenimiento
+     */
+    private function revertirMovimientosInventario(MantenimientoUnidad $mantenimiento)
+    {
+        // Obtener todos los movimientos de salida relacionados
+        $movimientos = \App\Models\InventarioMovimiento::where('referencia_type', MantenimientoUnidad::class)
+            ->where('referencia_id', $mantenimiento->id)
+            ->where('tipo', 'salida')
+            ->get();
+        
+        foreach ($movimientos as $movimiento) {
+            // Revertir el stock en existencias
+            if ($movimiento->bodega_id) {
+                $existencias = \App\Models\InventarioExistencia::where('item_id', $movimiento->item_id)
+                    ->where('bodega_id', $movimiento->bodega_id)
+                    ->first();
+            } else {
+                $existencias = \App\Models\InventarioExistencia::where('item_id', $movimiento->item_id)->first();
+            }
+            
+            if ($existencias) {
+                $existencias->stock_actual += $movimiento->cantidad_base;
+                $existencias->save();
+            }
+            
+            // Eliminar el movimiento
+            $movimiento->delete();
+        }
+    }
+    
     /**
      * Eliminar todos los mantenimientos relacionados de un ciclo
      */
@@ -851,9 +1162,10 @@ class ProduccionController extends Controller
             ->get();
         $count = $ciclo->count();
         foreach ($ciclo as $m) {
+            $this->revertirMovimientosInventario($m);
             $m->delete();
         }
         return redirect()->route('produccion.mantenimientos', $mantenimiento->unidadProduccion)
-            ->with('success', "Se eliminaron $count mantenimientos relacionados del ciclo.");
+            ->with('success', "Se eliminaron $count mantenimientos relacionados del ciclo y el inventario ha sido revertido.");
     }
 }

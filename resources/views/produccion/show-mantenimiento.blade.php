@@ -11,7 +11,7 @@
                 @can('editar_mantenimientos')
                     @if($mantenimiento->estado_mantenimiento === 'programado')
                         <a href="{{ route('produccion.mantenimientos.edit', $mantenimiento) }}" 
-                           class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105 inline-flex items-center">
+                           class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105 inline-flex items-center">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
@@ -179,6 +179,109 @@
                                 </li>
                                 @endif
                             </ul>
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Insumos Agregados -->
+                    @if($mantenimiento->insumos && $mantenimiento->insumos->count() > 0)
+                    <div class="mb-6">
+                        <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-3">Productos / Insumos</h4>
+                        <div class="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 p-4 rounded-lg">
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full">
+                                    <thead>
+                                        <tr class="border-b border-blue-200 dark:border-blue-700">
+                                            <th class="px-4 py-2 text-left text-sm font-semibold text-blue-900 dark:text-blue-100">Producto</th>
+                                            <th class="px-4 py-2 text-center text-sm font-semibold text-blue-900 dark:text-blue-100">Cantidad</th>
+                                            <th class="px-4 py-2 text-center text-sm font-semibold text-blue-900 dark:text-blue-100">Unitario</th>
+                                            <th class="px-4 py-2 text-right text-sm font-semibold text-blue-900 dark:text-blue-100">Total</th>
+                                            @if($mantenimiento->estado_mantenimiento === 'en_proceso' || $mantenimiento->estado_mantenimiento === 'completado')
+                                            <th class="px-4 py-2 text-center text-sm font-semibold text-blue-900 dark:text-blue-100">Estado</th>
+                                            @endif
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @php $totalCosto = 0; @endphp
+                                        @foreach($mantenimiento->insumos as $insumo)
+                                            @php 
+                                                $cantidad = $insumo->pivot->cantidad;
+                                                $costo_unitario = $insumo->pivot->costo_unitario;
+                                                $costo_total = $insumo->pivot->costo_total;
+                                                $totalCosto += $costo_total;
+                                            @endphp
+                                            <tr class="border-b border-blue-100 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-800">
+                                                <td class="px-4 py-3 text-blue-900 dark:text-blue-100">{{ $insumo->nombre }}</td>
+                                                <td class="px-4 py-3 text-center text-blue-900 dark:text-blue-100">{{ $cantidad }} {{ $insumo->unidad_base }}</td>
+                                                <td class="px-4 py-3 text-center text-blue-900 dark:text-blue-100">Q{{ number_format($costo_unitario, 2) }}</td>
+                                                <td class="px-4 py-3 text-right text-blue-900 dark:text-blue-100 font-semibold">Q{{ number_format($costo_total, 2) }}</td>
+                                                @if($mantenimiento->estado_mantenimiento === 'en_proceso' || $mantenimiento->estado_mantenimiento === 'completado')
+                                                <td class="px-4 py-3 text-center">
+                                                    <span class="inline-flex items-center px-3 py-1 text-sm rounded-full font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                                                        <svg class="w-4 h-4 mr-1 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+                                                        Usado
+                                                    </span>
+                                                </td>
+                                                @endif
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="bg-blue-100 dark:bg-blue-800 font-semibold">
+                                            <td colspan="3" class="px-4 py-3 text-right text-blue-900 dark:text-blue-100">Costo Total de Insumos:</td>
+                                            <td class="px-4 py-3 text-right text-blue-900 dark:text-blue-100">Q{{ number_format($totalCosto, 2) }}</td>
+                                            @if($mantenimiento->estado_mantenimiento === 'en_proceso' || $mantenimiento->estado_mantenimiento === 'completado')
+                                            <td></td>
+                                            @endif
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Actividades para el técnico -->
+                    @if($mantenimiento->actividades && count($mantenimiento->actividades) > 0)
+                    <div class="mb-6">
+                        <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-3">Actividades para el técnico</h4>
+                        @php
+                            $total_actividades = count($mantenimiento->actividades);
+                            $actividades_completadas = 0;
+                            if ($mantenimiento->actividades_ejecutadas) {
+                                $actividades_completadas = count(array_filter($mantenimiento->actividades_ejecutadas, function($a) {
+                                    return isset($a['completada']) && $a['completada'] === true;
+                                }));
+                            }
+                            $porcentaje = $total_actividades > 0 ? round(($actividades_completadas / $total_actividades) * 100) : 0;
+                        @endphp
+                        <div class="bg-purple-50 dark:bg-purple-900 border border-purple-200 dark:border-purple-700 p-4 rounded-lg">
+                            <div class="mb-4">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm font-medium text-purple-900 dark:text-purple-100">Progreso: {{ $actividades_completadas }}/{{ $total_actividades }} completadas</span>
+                                    <span class="text-sm font-bold text-purple-700 dark:text-purple-300">{{ $porcentaje }}%</span>
+                                </div>
+                                <div class="w-full bg-purple-200 rounded-full h-3 dark:bg-purple-700">
+                                    <div class="bg-purple-600 h-3 rounded-full transition-all duration-300" style="width: {{ $porcentaje }}%"></div>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                @foreach($mantenimiento->actividades as $idx => $actividad)
+                                <div class="flex items-center p-2 bg-white dark:bg-gray-800 rounded-lg">
+                                    @if($mantenimiento->actividades_ejecutadas && isset($mantenimiento->actividades_ejecutadas[$idx]) && $mantenimiento->actividades_ejecutadas[$idx]['completada'])
+                                    <svg class="w-5 h-5 text-green-600 dark:text-green-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span class="text-gray-900 dark:text-gray-100 line-through">{{ $actividad }}</span>
+                                    @else
+                                    <svg class="w-5 h-5 text-gray-400 dark:text-gray-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span class="text-gray-900 dark:text-gray-100">{{ $actividad }}</span>
+                                    @endif
+                                </div>
+                                @endforeach
+                            </div>
                         </div>
                     </div>
                     @endif
@@ -371,9 +474,74 @@
         <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white dark:bg-gray-800">
             <div class="mt-3">
                 <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Completar Mantenimiento</h3>
-                <form method="POST" action="{{ route('produccion.mantenimientos.completar', $mantenimiento) }}" class="space-y-4">
+                <form method="POST" action="{{ route('produccion.mantenimientos.completar', $mantenimiento) }}" class="space-y-4 max-h-96 overflow-y-auto">
                     @csrf
                     <input type="hidden" name="_method" value="PATCH">
+                    
+                    <!-- Resumen de Mantenimiento -->
+                    <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                        <p class="text-sm text-gray-700 dark:text-gray-300"><strong>Unidad:</strong> {{ $mantenimiento->unidadProduccion->nombre }}</p>
+                        <p class="text-sm text-gray-700 dark:text-gray-300"><strong>Tipo:</strong> {{ ucfirst(str_replace('_', ' ', $mantenimiento->tipo_mantenimiento)) }}</p>
+                        <p class="text-sm text-gray-700 dark:text-gray-300"><strong>Descripción:</strong> {{ $mantenimiento->descripcion_trabajo }}</p>
+                    </div>
+                    
+                    <!-- Debug Info -->
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                        Insumos: {{ $mantenimiento->insumos ? $mantenimiento->insumos->count() : 0 }} | 
+                        Actividades: {{ $mantenimiento->actividades ? count($mantenimiento->actividades) : 0 }}
+                    </div>
+                    
+                    <!-- Checklist de Insumos -->
+                    @if($mantenimiento->insumos && $mantenimiento->insumos->count() > 0)
+                    <div class="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 p-4 rounded-lg">
+                        <h4 class="font-semibold text-blue-900 dark:text-blue-100 mb-3">Productos / Insumos Utilizados</h4>
+                        <div class="space-y-2">
+                            @foreach($mantenimiento->insumos as $insumo)
+                            <div class="flex items-center">
+                                <input type="checkbox" id="insumo_{{ $insumo->id }}" 
+                                       name="insumos_utilizados[]" 
+                                       value="{{ $insumo->id }}"
+                                       checked
+                                       class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+                                <label for="insumo_{{ $insumo->id }}" class="ml-2 block text-sm text-blue-900 dark:text-blue-100">
+                                    <span class="font-medium">{{ $insumo->nombre }}</span>
+                                    <span class="text-blue-700 dark:text-blue-300">({{ $insumo->pivot->cantidad }} {{ $insumo->unidad_base }})</span>
+                                </label>
+                            </div>
+                            @endforeach
+                        </div>
+                        <p class="text-xs text-blue-700 dark:text-blue-300 mt-2">✓ Marca los productos que fueron utilizados en el mantenimiento</p>
+                    </div>
+                    @else
+                    <div class="bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 p-4 rounded-lg">
+                        <p class="text-sm text-gray-600 dark:text-gray-400">No hay insumos/productos asociados a este mantenimiento</p>
+                    </div>
+                    @endif
+                    
+                    <!-- Checklist de Actividades -->
+                    @if($mantenimiento->actividades && count($mantenimiento->actividades) > 0)
+                    <div class="bg-purple-50 dark:bg-purple-900 border border-purple-200 dark:border-purple-700 p-4 rounded-lg">
+                        <h4 class="font-semibold text-purple-900 dark:text-purple-100 mb-3">Actividades Completadas</h4>
+                        <div class="space-y-2">
+                            @foreach($mantenimiento->actividades as $idx => $actividad)
+                            <div class="flex items-center">
+                                <input type="checkbox" id="actividad_{{ $idx }}" 
+                                       name="actividades_completadas[]" 
+                                       value="{{ $idx }}"
+                                       class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded">
+                                <label for="actividad_{{ $idx }}" class="ml-2 block text-sm text-purple-900 dark:text-purple-100">
+                                    {{ $actividad }}
+                                </label>
+                            </div>
+                            @endforeach
+                        </div>
+                        <p class="text-xs text-purple-700 dark:text-purple-300 mt-2">✓ Marca las actividades que fueron completadas</p>
+                    </div>
+                    @else
+                    <div class="bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 p-4 rounded-lg">
+                        <p class="text-sm text-gray-600 dark:text-gray-400">No hay actividades asociadas a este mantenimiento</p>
+                    </div>
+                    @endif
                     
                     <div>
                         <label for="observaciones_despues" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

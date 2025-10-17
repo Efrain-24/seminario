@@ -1,11 +1,205 @@
-
 <?php
 use App\Http\Controllers\Reportes\ReporteGananciasController;
+use Illuminate\Support\Facades\Route;
+use App\Models\Lote;
+use App\Models\Insumo;
+use Illuminate\Http\Request;
 
 // Rutas para reportes
 Route::middleware(['auth', 'redirect.temp.password'])->prefix('reportes')->name('reportes.')->group(function () {
     Route::get('ganancias', [ReporteGananciasController::class, 'index'])->name('ganancias');
-    Route::get('ganancias/{lote}', [ReporteGananciasController::class, 'reporte'])->name('ganancias.reporte');
+    Route::get('ganancias/{lote?}', function (Request $request, $lote = null) {
+        $unidades = \App\Models\UnidadProduccion::all();
+        $lotes = \App\Models\Lote::with('unidadProduccion')->get();
+        $loteSeleccionado = $lote ? \App\Models\Lote::with('unidadProduccion')->find($lote) : null;
+
+        $fechaInicio = $request->input('fecha_inicio');
+        $fechaFin = $request->input('fecha_fin');
+
+        // --- Compra Lote ---
+        $precioUnitarioPez = $loteSeleccionado->precio_unitario_pez ?? 0;
+        $precioCompraLote = $loteSeleccionado && $precioUnitarioPez > 0 ? $loteSeleccionado->cantidad_inicial * $precioUnitarioPez : 0;
+
+        // --- Alimentación ---
+        $alimentaciones = $loteSeleccionado ? $loteSeleccionado->alimentaciones()->with('inventarioItem')->get() : collect();
+        $totalAlimentacion = $alimentaciones->sum('costo_total');
+        $alimentacionDetalle = $alimentaciones->map(function($a) {
+            return [
+                'fecha' => optional($a->fecha_alimentacion)->format('d/m/Y'),
+                'producto' => $a->inventarioItem->nombre ?? 'N/A',
+                'cantidad' => $a->cantidad_kg,
+                'costo' => $a->costo_total,
+            ];
+        });
+
+        // --- Mantenimientos ---
+        $mantenimientos = $loteSeleccionado ? \App\Models\MantenimientoUnidad::where('unidad_produccion_id', $loteSeleccionado->unidad_produccion_id)->get() : collect();
+        $totalMantenimientos = $mantenimientos->sum('costo_mantenimiento');
+        $mantenimientoDetalle = $mantenimientos->map(function($m) {
+            return [
+                'fecha' => optional($m->fecha_mantenimiento)->format('d/m/Y'),
+                'tipo' => $m->tipo_mantenimiento,
+                'descripcion' => $m->descripcion_trabajo,
+                'costo' => $m->costo_mantenimiento,
+            ];
+        });
+
+        // --- Limpiezas ---
+        $limpiezas = $loteSeleccionado ? \App\Models\Limpieza::where('area', $loteSeleccionado->unidadProduccion->nombre)->get() : collect();
+        $totalLimpiezas = $limpiezas->sum('costo') ?? 0;
+        $limpiezaDetalle = $limpiezas->map(function($l) {
+            return [
+                'fecha' => optional($l->fecha)->format('d/m/Y'),
+                'tipo' => $l->protocoloSanidad->nombre ?? 'N/A',
+                'productos' => is_array($l->actividades_ejecutadas) ? implode(', ', array_map(fn($a) => is_array($a) ? ($a['descripcion'] ?? '') : $a, $l->actividades_ejecutadas)) : '',
+                'costo' => $l->costo ?? 0,
+            ];
+        });
+
+        // --- Ventas ---
+        $ventasQuery = $loteSeleccionado ? $loteSeleccionado->ventas() : null;
+        if ($ventasQuery && $fechaInicio && $fechaFin) {
+            $ventasQuery->whereBetween('fecha_venta', [$fechaInicio, $fechaFin]);
+        }
+        $ventas = $ventasQuery ? $ventasQuery->get() : collect();
+        $totalVentas = $ventas->sum('total_venta');
+        $ventasDetalle = $ventas->map(function($v) {
+            return [
+                'fecha' => optional($v->fecha_venta)->format('d/m/Y'),
+                'codigo' => $v->codigo_venta,
+                'cliente' => $v->cliente,
+                'peso_kg' => $v->peso_cosechado_kg,
+                'precio_kg' => $v->precio_kg,
+                'total' => $v->total_venta,
+                'estado' => $v->estado_venta,
+            ];
+        });
+
+        // --- Biomasa final ---
+        $biomasaFinalKg = $loteSeleccionado->biomasa ?? 0;
+        $biomasaFinalLb = $biomasaFinalKg * 2.20462;
+
+        // --- Costos totales y ganancia ---
+        $totalCostos = $precioCompraLote + $totalAlimentacion + $totalMantenimientos + $totalLimpiezas;
+        $gananciaReal = $totalVentas - $totalCostos;
+        $margenGanancia = $totalVentas > 0 ? ($gananciaReal / $totalVentas) * 100 : 0;
+
+        // --- Gráfica ---
+        $grafica = $ventas->isNotEmpty() ? [
+            'labels' => $ventas->pluck('fecha_venta')->map(fn($fecha) => optional($fecha)->format('d/m/Y'))->toArray(),
+            'data' => $ventas->pluck('total_venta')->toArray(),
+        ] : null;
+
+        $desglose = [
+            'total_ventas' => $totalVentas,
+            'total_costos' => $totalCostos,
+            'ganancia_real' => $gananciaReal,
+            'margen_ganancia' => $margenGanancia,
+            'precio_compra_lote' => $precioCompraLote,
+            'total_alimentacion' => $totalAlimentacion,
+            'total_mantenimientos' => $totalMantenimientos,
+            'total_limpiezas' => $totalLimpiezas,
+        ];
+
+        return view('reportes.ganancias.reporte', compact(
+            'unidades',
+            'lotes',
+            'loteSeleccionado',
+            'desglose',
+            'alimentacionDetalle',
+            'mantenimientoDetalle',
+            'limpiezaDetalle',
+            'ventasDetalle',
+            'biomasaFinalKg',
+            'biomasaFinalLb',
+            'grafica',
+            'fechaInicio',
+            'fechaFin'
+        ));
+    })->name('ganancias.reporte');
+
+    Route::get('ganancias/detalles/{lote?}', function (Request $request, $lote = null) {
+        // Obtener el lote del parámetro URL o del query string
+        $loteId = $lote ?? $request->input('lote_id');
+        
+        if (!$loteId) {
+            return redirect()->route('reportes.ganancias')->with('error', 'Por favor selecciona un lote');
+        }
+
+        $loteSeleccionado = \App\Models\Lote::with('unidadProduccion')->find($loteId);
+        if (!$loteSeleccionado) {
+            abort(404, 'Lote no encontrado');
+        }
+
+        // --- Consumo de alimento con detalles ---
+        $alimentaciones = $loteSeleccionado->alimentaciones()->with('inventarioItem')->get();
+        $alimentacionDetalle = $alimentaciones->map(function($a) {
+            // Obtener el precio de compra del inventario item
+            $precioCompra = $a->inventarioItem->costo_unitario ?? $a->inventarioItem->precio_promedio ?? 0;
+            $costoTotal = $a->cantidad_kg * $precioCompra;
+            return [
+                'fecha' => optional($a->fecha_alimentacion)->format('d/m/Y'),
+                'producto' => $a->inventarioItem->nombre ?? 'N/A',
+                'cantidad_kg' => $a->cantidad_kg,
+                'precio_compra' => $precioCompra,
+                'costo_total' => $costoTotal,
+            ];
+        })->toArray();
+        $costoTotalAlimento = collect($alimentacionDetalle)->sum('costo_total');
+
+        // --- Costos de protocolos con detalles ---
+        $protocolos = \App\Models\ProtocoloSanidad::where('unidad_produccion_id', $loteSeleccionado->unidad_produccion_id)
+            ->where('estado', 'ejecución')
+            ->orWhere('estado', 'ejecutado')
+            ->get();
+        
+        $protocoloDetalle = $protocolos->map(function($p) {
+            return [
+                'nombre' => $p->nombre,
+                'fecha' => optional($p->fecha_ejecucion)->format('d/m/Y'),
+                'descripcion' => $p->descripcion,
+                'costo' => $p->costo ?? 0,
+            ];
+        })->toArray();
+        $costoTotalProtocolos = collect($protocoloDetalle)->sum('costo');
+
+        // --- Insumos utilizados ---
+        $insumoDetalle = [];
+        $costoTotalInsumos = 0;
+        
+        // Verificar si existe el modelo Insumo antes de usarlo
+        if (class_exists(\App\Models\Insumo::class)) {
+            $insumos = \App\Models\Insumo::where('lote_id', $loteSeleccionado->id)->get();
+            $insumoDetalle = $insumos->map(function ($i) {
+                $costoTotal = $i->cantidad * ($i->precio_compra ?? 0);
+                return [
+                    'nombre' => $i->nombre,
+                    'cantidad' => $i->cantidad,
+                    'precio_compra' => $i->precio_compra ?? 0,
+                    'costo_total' => $costoTotal,
+                ];
+            })->toArray();
+            $costoTotalInsumos = collect($insumoDetalle)->sum('costo_total');
+        }
+
+        // --- Precio de compra del pez ---
+        $precioCompraPez = $loteSeleccionado->cantidad_inicial * ($loteSeleccionado->precio_unitario_pez ?? 0);
+
+        // --- Totales ---
+        $totalCostos = $costoTotalAlimento + $costoTotalProtocolos + $costoTotalInsumos + $precioCompraPez;
+
+        return view('reportes.ganancias.detalles', compact(
+            'loteSeleccionado',
+            'alimentacionDetalle',
+            'costoTotalAlimento',
+            'protocoloDetalle',
+            'costoTotalProtocolos',
+            'insumoDetalle',
+            'costoTotalInsumos',
+            'precioCompraPez',
+            'totalCostos'
+        ));
+    })->name('ganancias.detalles');
 });
 
 
@@ -38,8 +232,6 @@ use App\Http\Controllers\BitacoraController;
 use App\Http\Controllers\ClienteController; // añadido
 use App\Http\Controllers\EntradaCompraController;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
 // CRUD de Clientes
@@ -350,7 +542,7 @@ require __DIR__ . '/auth.php';
 // Rutas para cambio de contraseña (sin middleware de contraseña temporal)
 Route::middleware('auth')->group(function () {
     Route::get('password/change', [PasswordChangeController::class, 'show'])->name('password.change');
-    Route::put('password/change', [PasswordChangeController::class, 'update'])->name('password.update');
+    Route::put('password/change', [PasswordChangeController::class, 'update'])->name('password.change.update');
 });
 
 // Rutas de Protocolo de Sanidad
@@ -411,99 +603,115 @@ Route::delete('/seguimientos/{seguimiento}', [App\Http\Controllers\SeguimientoCo
 // Rutas de Reportes
 Route::middleware(['auth', 'redirect.temp.password'])->prefix('reportes')->name('reportes.')->group(function () {
     // Reportes de Ganancias (usando funciones temporalmente)
-    Route::get('/ganancias', function () {
-        $unidades = \App\Models\UnidadProduccion::all();
-        $lotes = \App\Models\Lote::with(['unidadProduccion'])->orderBy('created_at', 'desc')->get();
-        return view('reportes.ganancias.index', compact('unidades', 'lotes'));
-    })->name('ganancias');
+    Route::get('/ganancias', [\App\Http\Controllers\Reportes\ReporteGananciasController::class, 'index'])->name('ganancias');
     
-    Route::get('/ganancias/{lote}', function (\App\Models\Lote $lote) {
-        // Cargar relaciones necesarias
-        $lote->load(['alimentaciones.tipoAlimento', 'ventas', 'unidadProduccion']);
-        
-        // Calcular costos detallados
-        $totalAlimentacion = $lote->alimentaciones->sum('costo_total');
-        
-        // Obtener mantenimientos de la unidad de producción (filtrar por fechas relevantes del lote si es necesario)
-        $mantenimientos = collect();
-        if ($lote->unidadProduccion) {
-            $mantenimientos = \App\Models\MantenimientoUnidad::where('unidad_produccion_id', $lote->unidad_produccion_id)
-                ->where('estado_mantenimiento', 'completado')
-                ->get();
+    Route::get('/ganancias/{lote?}', function (Request $request, $lote = null) {
+        $unidades = \App\Models\UnidadProduccion::all();
+        $lotes = \App\Models\Lote::with('unidadProduccion')->get();
+        $loteSeleccionado = $lote ? \App\Models\Lote::with('unidadProduccion')->find($lote) : null;
+
+        $fechaInicio = $request->input('fecha_inicio');
+        $fechaFin = $request->input('fecha_fin');
+
+        // --- Compra Lote ---
+        $precioUnitarioPez = $loteSeleccionado->precio_unitario_pez ?? 0;
+        $precioCompraLote = $loteSeleccionado && $precioUnitarioPez > 0 ? $loteSeleccionado->cantidad_inicial * $precioUnitarioPez : 0;
+
+        // --- Alimentación ---
+        $alimentaciones = $loteSeleccionado ? $loteSeleccionado->alimentaciones()->with('inventarioItem')->get() : collect();
+        $totalAlimentacion = $alimentaciones->sum('costo_total');
+        $alimentacionDetalle = $alimentaciones->map(function($a) {
+            return [
+                'fecha' => optional($a->fecha_alimentacion)->format('d/m/Y'),
+                'producto' => $a->inventarioItem->nombre ?? 'N/A',
+                'cantidad' => $a->cantidad_kg,
+                'costo' => $a->costo_total,
+            ];
+        });
+
+        // --- Mantenimientos ---
+        $mantenimientos = $loteSeleccionado ? \App\Models\MantenimientoUnidad::where('unidad_produccion_id', $loteSeleccionado->unidad_produccion_id)->get() : collect();
+        $totalMantenimientos = $mantenimientos->sum('costo_mantenimiento');
+        $mantenimientoDetalle = $mantenimientos->map(function($m) {
+            return [
+                'fecha' => optional($m->fecha_mantenimiento)->format('d/m/Y'),
+                'tipo' => $m->tipo_mantenimiento,
+                'descripcion' => $m->descripcion_trabajo,
+                'costo' => $m->costo_mantenimiento,
+            ];
+        });
+
+        // --- Limpiezas ---
+        $limpiezas = $loteSeleccionado ? \App\Models\Limpieza::where('area', $loteSeleccionado->unidadProduccion->nombre)->get() : collect();
+        $totalLimpiezas = $limpiezas->sum('costo') ?? 0;
+        $limpiezaDetalle = $limpiezas->map(function($l) {
+            return [
+                'fecha' => optional($l->fecha)->format('d/m/Y'),
+                'tipo' => $l->protocoloSanidad->nombre ?? 'N/A',
+                'productos' => is_array($l->actividades_ejecutadas) ? implode(', ', array_map(fn($a) => is_array($a) ? ($a['descripcion'] ?? '') : $a, $l->actividades_ejecutadas)) : '',
+                'costo' => $l->costo ?? 0,
+            ];
+        });
+
+        // --- Ventas ---
+        $ventasQuery = $loteSeleccionado ? $loteSeleccionado->ventas() : null;
+        if ($ventasQuery && $fechaInicio && $fechaFin) {
+            $ventasQuery->whereBetween('fecha_venta', [$fechaInicio, $fechaFin]);
         }
-        $totalMantenimientos = $mantenimientos->sum('costo_mantenimiento') ?? 0;
-        
-        // Obtener limpiezas (filtrar por fechas relevantes del lote si es necesario)
-        $limpiezas = collect();
-        // Nota: Las limpiezas pueden no estar directamente relacionadas con lotes
-        $totalLimpiezas = 0; // Por ahora, dejar en 0 hasta definir la relación correcta
-        
-        $precioCompraLote = $lote->precio_compra ?? 0;
-        
+        $ventas = $ventasQuery ? $ventasQuery->get() : collect();
+        $totalVentas = $ventas->sum('total_venta');
+        $ventasDetalle = $ventas->map(function($v) {
+            return [
+                'fecha' => optional($v->fecha_venta)->format('d/m/Y'),
+                'codigo' => $v->codigo_venta,
+                'cliente' => $v->cliente,
+                'peso_kg' => $v->peso_cosechado_kg,
+                'precio_kg' => $v->precio_kg,
+                'total' => $v->total_venta,
+                'estado' => $v->estado_venta,
+            ];
+        });
+
+        // --- Biomasa final ---
+        $biomasaFinalKg = $loteSeleccionado->biomasa ?? 0;
+        $biomasaFinalLb = $biomasaFinalKg * 2.20462;
+
+        // --- Costos totales y ganancia ---
         $totalCostos = $precioCompraLote + $totalAlimentacion + $totalMantenimientos + $totalLimpiezas;
-        $totalVentas = $lote->ventas->sum('total_venta');
         $gananciaReal = $totalVentas - $totalCostos;
         $margenGanancia = $totalVentas > 0 ? ($gananciaReal / $totalVentas) * 100 : 0;
-        
-        // Preparar desglose financiero
+
+        // --- Gráfica ---
+        $grafica = $ventas->isNotEmpty() ? [
+            'labels' => $ventas->pluck('fecha_venta')->map(fn($fecha) => optional($fecha)->format('d/m/Y'))->toArray(),
+            'data' => $ventas->pluck('total_venta')->toArray(),
+        ] : null;
+
         $desglose = [
+            'total_ventas' => $totalVentas,
+            'total_costos' => $totalCostos,
+            'ganancia_real' => $gananciaReal,
+            'margen_ganancia' => $margenGanancia,
             'precio_compra_lote' => $precioCompraLote,
             'total_alimentacion' => $totalAlimentacion,
             'total_mantenimientos' => $totalMantenimientos,
             'total_limpiezas' => $totalLimpiezas,
-            'total_costos' => $totalCostos,
-            'total_ventas' => $totalVentas,
-            'ganancia_real' => $gananciaReal,
-            'margen_ganancia' => $margenGanancia
         ];
-        
-        // Preparar detalles para las tablas
-        $alimentacionDetalle = $lote->alimentaciones->map(function ($alimentacion) {
-            return [
-                'fecha' => $alimentacion->fecha_alimentacion ? $alimentacion->fecha_alimentacion->format('d/m/Y') : 'N/A',
-                'producto' => $alimentacion->tipoAlimento->nombre ?? 'N/A',
-                'cantidad' => $alimentacion->cantidad_kg ?? 0,
-                'costo' => $alimentacion->costo_total ?? 0
-            ];
-        });
-        
-        $mantenimientoDetalle = $mantenimientos->map(function ($mantenimiento) {
-            return [
-                'fecha' => $mantenimiento->fecha_mantenimiento ? $mantenimiento->fecha_mantenimiento->format('d/m/Y') : 'N/A',
-                'tipo' => $mantenimiento->tipo_mantenimiento ?? 'N/A',
-                'descripcion' => $mantenimiento->descripcion_trabajo ?? 'N/A',
-                'costo' => $mantenimiento->costo_mantenimiento ?? 0
-            ];
-        });
-        
-        $limpiezaDetalle = $limpiezas->map(function ($limpieza) {
-            return [
-                'fecha' => $limpieza->fecha ? $limpieza->fecha->format('d/m/Y') : 'N/A',
-                'tipo' => 'Limpieza',
-                'productos' => $limpieza->observaciones ?? 'N/A',
-                'costo' => 0 // Las limpiezas pueden no tener costo directo
-            ];
-        });
-        
-        $ventasDetalle = $lote->ventas->map(function ($venta) {
-            return [
-                'fecha' => $venta->fecha_venta,
-                'codigo' => $venta->codigo_venta ?? 'N/A',
-                'cliente' => $venta->cliente ?? 'N/A',
-                'peso_kg' => $venta->cantidad_vendida ?? 0,
-                'precio_kg' => $venta->precio_unitario ?? 0,
-                'total' => $venta->total_venta ?? 0,
-                'estado' => $venta->estado ?? 'completada'
-            ];
-        });
-        
+
         return view('reportes.ganancias.reporte', compact(
-            'lote', 
-            'desglose', 
-            'alimentacionDetalle', 
-            'mantenimientoDetalle', 
-            'limpiezaDetalle', 
-            'ventasDetalle'
+            'unidades',
+            'lotes',
+            'loteSeleccionado',
+            'desglose',
+            'alimentacionDetalle',
+            'mantenimientoDetalle',
+            'limpiezaDetalle',
+            'ventasDetalle',
+            'biomasaFinalKg',
+            'biomasaFinalLb',
+            'grafica',
+            'fechaInicio',
+            'fechaFin'
         ));
     })->name('ganancias.reporte');
     
@@ -517,5 +725,15 @@ Route::middleware(['auth', 'redirect.temp.password'])->prefix('reportes')->name(
         return view('reportes.usuarios.index');
     })->name('usuarios');
 });
+
+Route::get('/compras/insumos', function () {
+        $comprasInsumos = \App\Models\EntradaCompra::whereHas('bodega', function ($query) {
+            $query->where('nombre', 'like', '%suministro/insumo%');
+        })->whereDoesntHave('detalle', function ($query) {
+            $query->where('producto', 'like', '%pez%');
+        })->get();
+
+        return view('compras.insumos', compact('comprasInsumos'));
+    })->name('compras.insumos');
 
 require __DIR__ . '/auth.php';

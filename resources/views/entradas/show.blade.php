@@ -50,10 +50,6 @@
                 <th class="p-2 border text-right">{{ number_format($entrada->subtotal,2) }}</th>
             </tr>
             <tr>
-                <th colspan="3" class="p-2 border text-right">Impuesto</th>
-                <th class="p-2 border text-right">{{ number_format($entrada->impuesto,2) }}</th>
-            </tr>
-            <tr>
                 <th colspan="3" class="p-2 border text-right">Total</th>
                 <th class="p-2 border text-right font-semibold">{{ number_format($entrada->total,2) }}</th>
             </tr>

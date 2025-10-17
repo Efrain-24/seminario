@@ -1,4 +1,3 @@
-
 <x-app-layout>
     <x-slot name="header">
         <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
@@ -42,29 +41,27 @@
         <form method="GET" action="{{ route('reportes.ganancias') }}" class="mb-6 bg-gray-50 p-4 rounded-lg">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label for="unidad" class="block text-sm font-medium text-gray-700 mb-2">
-                        Unidad de Producción
+                    <label for="lote" class="block text-sm font-medium text-gray-700 mb-2">
+                        Lote
                     </label>
-                    <select name="unidad" id="unidad" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <option value="">Todas</option>
-                        @foreach($unidades as $unidad)
-                            <option value="{{ $unidad->id }}" {{ request('unidad') == $unidad->id ? 'selected' : '' }}>
-                                {{ $unidad->nombre }}
-                            </option>
+                    <select name="lote" id="lote" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">Seleccionar lote</option>
+                        @foreach($lotes as $lote)
+                            <option value="{{ $lote->id }}">{{ $lote->nombre }}</option>
                         @endforeach
                     </select>
                 </div>
-
                 <div>
-                    <label for="lote_id" class="block text-sm font-medium text-gray-700 mb-2">Lote</label>
-                    <select name="lote_id" id="lote_id" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <option value="">Seleccionar lote</option>
-                        @foreach($lotes as $lote)
-                            <option value="{{ $lote->id }}" {{ request('lote_id') == $lote->id ? 'selected' : '' }}>
-                                {{ $lote->codigo }} - {{ $lote->unidadProduccion->nombre ?? 'N/A' }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <label for="fecha_inicio" class="block text-sm font-medium text-gray-700 mb-2">
+                        Fecha Inicio
+                    </label>
+                    <input type="date" name="fecha_inicio" id="fecha_inicio" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="fecha_fin" class="block text-sm font-medium text-gray-700 mb-2">
+                        Fecha Fin
+                    </label>
+                    <input type="date" name="fecha_fin" id="fecha_fin" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
 
                 <div class="flex items-end">

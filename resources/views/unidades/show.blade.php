@@ -192,7 +192,7 @@
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                         <td class="px-4 py-4 whitespace-nowrap">
                                             <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                {{ $lote->codigo ?? 'L-' . $lote->id }}
+                                                {{ $lote->codigo_lote }}
                                             </div>
                                         </td>
                                         <td class="px-4 py-4 whitespace-nowrap">
@@ -211,7 +211,7 @@
                                             </span>
                                         </td>
                                         <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                            {{ $lote->fecha_siembra ? $lote->fecha_siembra->format('d/m/Y') : 'No registrada' }}
+                                            {{ $lote->fecha_inicio ? $lote->fecha_inicio->format('d/m/Y') : 'No registrada' }}
                                         </td>
                                     </tr>
                                 @endforeach

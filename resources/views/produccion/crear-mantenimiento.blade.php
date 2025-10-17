@@ -135,7 +135,6 @@
                                 <label for="fecha_mantenimiento" class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">Fecha del mantenimiento *</label>
                                 <input type="date" name="fecha_mantenimiento" id="fecha_mantenimiento" required
                                        value="{{ old('fecha_mantenimiento', now()->addDays(1)->format('Y-m-d')) }}"
-                                       min="{{ now()->format('Y-m-d') }}"
                                        class="block w-full border-gray-300 dark:border-gray-600 dark:bg-white dark:text-gray-900 rounded-md shadow-sm focus:border-orange-500 focus:ring-orange-500 px-3 py-2 text-base">
                             </div>
                         </div>
@@ -214,55 +213,33 @@
                         <script>
                         // Lógica para mapear los campos de la UI avanzada a los campos backend antes de enviar
                         document.getElementById('form-mantenimiento').addEventListener('submit', function(e) {
-                            if(document.getElementById('ciclico').checked) {
-                                // Determinar tipo de repetición
+                            // Configurar ciclo si está activado
+                            if(document.getElementById('ciclico') && document.getElementById('ciclico').checked) {
                                 const intervaloTipo = document.getElementById('intervalo_tipo').value;
-                                const intervaloValor = parseInt(document.getElementById('intervalo_valor').value);
-                                const fechaInicio = document.getElementById('fecha_mantenimiento').value;
+                                const intervaloValor = parseInt(document.getElementById('intervalo_valor').value) || 1;
                                 let repeatType = 'interval';
                                 let repeatEvery = intervaloValor;
                                 let repeatUnit = 'days';
-                                let repeatCount = 1;
-                                // Calcular cantidad de repeticiones según la fecha de inicio y el tipo
-                                if(fechaInicio) {
-                                    if(intervaloTipo === 'semanas') {
-                                        repeatCount = 12;
-                                    } else if(intervaloTipo === 'meses') {
-                                        repeatCount = 12;
-                                    } else if(intervaloTipo === 'anios') {
-                                        repeatCount = 3;
-                                    } else {
-                                        repeatCount = 12;
-                                    }
-                                }
-                                // Mapear unidad
+                                let repeatCount = 12;
+                                
                                 if(intervaloTipo === 'semanas') repeatUnit = 'weeks';
-                                else if(intervaloTipo === 'meses') repeatUnit = 'months';
-                                else if(intervaloTipo === 'anios') repeatUnit = 'years';
-                                else repeatUnit = 'days';
-                                // Patrón mensual avanzado
-                                if(intervaloTipo === 'meses') {
-                                    if(document.getElementById('patron_semana').checked) {
+                                else if(intervaloTipo === 'meses') {
+                                    repeatUnit = 'months';
+                                    if(document.getElementById('patron_semana') && document.getElementById('patron_semana').checked) {
                                         repeatType = 'advanced';
                                         document.getElementById('advanced_week').value = document.getElementById('semana_ordinal').value;
                                         document.getElementById('advanced_weekday').value = document.getElementById('dia_semana').value;
-                                    } else {
-                                        repeatType = 'interval';
                                     }
                                 }
+                                else if(intervaloTipo === 'anios') repeatUnit = 'years';
+                                
                                 document.getElementById('repeat_type').value = repeatType;
                                 document.getElementById('repeat_every').value = repeatEvery;
                                 document.getElementById('repeat_unit').value = repeatUnit;
                                 document.getElementById('repeat_count').value = repeatCount;
-                            } else {
-                                // Si no es cíclico, limpiar los campos ocultos
-                                document.getElementById('repeat_type').value = '';
-                                document.getElementById('repeat_every').value = '';
-                                document.getElementById('repeat_unit').value = '';
-                                document.getElementById('repeat_count').value = '';
-                                document.getElementById('advanced_week').value = '';
-                                document.getElementById('advanced_weekday').value = '';
                             }
+                            // El formulario se envía normalmente con los inputs hidden que están en la tabla
+                            return true;
                         });
                         function togglePatronMensual() {
                             // Solo mostrar patrón mensual si el ciclo es mensual
@@ -305,7 +282,6 @@
                         });
                         </script>
                         </div>
-                        <!--
 
                         <!-- Descripción -->
                         <div class="max-w-2xl mx-auto">
@@ -357,11 +333,43 @@
                         <!-- Artículos / Insumos -->
                         <div class="max-w-2xl mx-auto mt-4">
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Agregar insumos</label>
-                            <div class="flex items-center space-x-2 mb-2">
-                                <input type="text" id="buscador_insumo_factura" class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm" placeholder="Buscar insumo..." onkeyup="buscarInsumoFactura()">
-                                <button type="button" onclick="agregarInsumoFactura()" class="bg-orange-600 hover:bg-orange-700 text-white font-bold px-4 py-2 rounded">Agregar</button>
+                            <button type="button" onclick="abrirModalBuscadorInsumo()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105 inline-flex items-center mb-4">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                Agregar Insumo
+                            </button>
+                            
+                            <!-- Modal para buscar insumo -->
+                            <div id="modal_buscador_insumo" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+                                <div class="fixed inset-0 flex items-center justify-center pointer-events-none">
+                                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-96 max-w-full pointer-events-auto">
+                                        <div class="flex justify-between items-center mb-4">
+                                            <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200">Buscar Insumo</h3>
+                                            <button type="button" onclick="cerrarModalBuscadorInsumo()" class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
+                                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="mb-4">
+                                            <input type="text" id="buscador_insumo_factura" class="block w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-md shadow-sm px-4 py-2 focus:border-blue-500 focus:ring-blue-500" placeholder="Buscar insumo..." onkeyup="buscarInsumoFactura()">
+                                        </div>
+                                        <div id="resultados_insumo_factura" class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg max-h-64 overflow-y-auto mb-4"></div>
+                                        <div class="flex justify-end space-x-2">
+                                            <button type="button" onclick="cerrarModalBuscadorInsumo()" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg transition duration-200">
+                                                Cancelar
+                                            </button>
+                                            <button type="button" onclick="agregarInsumoSeleccionadoFactura()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105 inline-flex items-center">
+                                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                                </svg>
+                                                Agregar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div id="resultados_insumo_factura" class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg max-h-40 overflow-y-auto mb-2"></div>
                             <table class="min-w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg">
                                 <thead>
                                     <tr>
@@ -376,7 +384,10 @@
                                 <tbody id="insumos_factura_seleccionados">
                                 </tbody>
                             </table>
+                            <!-- Hidden inputs para insumos y cantidades -->
+                            <div id="insumos_hidden_container"></div>
                         </div>
+                        
                         <script>
                         var todosInsumosFactura = [
                             @foreach(App\Models\InventarioItem::all() as $insumo)
@@ -384,32 +395,53 @@
                             @endforeach
                         ];
                         var insumosFacturaSeleccionados = [];
+                        
+                        function abrirModalBuscadorInsumo() {
+                            document.getElementById('modal_buscador_insumo').classList.remove('hidden');
+                            document.getElementById('buscador_insumo_factura').focus();
+                        }
+                        
+                        function cerrarModalBuscadorInsumo() {
+                            document.getElementById('modal_buscador_insumo').classList.add('hidden');
+                            document.getElementById('buscador_insumo_factura').value = '';
+                            document.getElementById('resultados_insumo_factura').innerHTML = '';
+                            insumoFacturaSeleccionadoId = null;
+                        }
+                        
                         function buscarInsumoFactura() {
                             var query = document.getElementById('buscador_insumo_factura').value.toLowerCase();
-                            var resultados = todosInsumosFactura.filter(i => i.nombre.toLowerCase().includes(query) && !insumosFacturaSeleccionados.some(sel => sel.id === i.id));
+                            // Mostrar todos los insumos sin filtrar por duplicados (permite agregar el mismo insumo múltiples veces)
+                            var resultados = todosInsumosFactura.filter(i => i.nombre.toLowerCase().includes(query));
                             var html = '';
                             resultados.forEach(i => {
-                                html += `<div class='px-2 py-1 cursor-pointer hover:bg-orange-100 dark:hover:bg-orange-900' onclick='seleccionarInsumoFactura(${i.id})'>${i.nombre} (${i.unidad})</div>`;
+                                html += `<div class='px-4 py-3 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900 border-b border-gray-200 dark:border-gray-600 transition' onclick='seleccionarInsumoFactura(${i.id})'><strong>${i.nombre}</strong> <span class="text-gray-600 dark:text-gray-400">(${i.unidad})</span></div>`;
                             });
-                            document.getElementById('resultados_insumo_factura').innerHTML = html;
+                            document.getElementById('resultados_insumo_factura').innerHTML = html || '<div class="px-4 py-3 text-gray-500 text-center">No se encontraron resultados</div>';
                         }
+                        
                         var insumoFacturaSeleccionadoId = null;
                         function seleccionarInsumoFactura(id) {
                             insumoFacturaSeleccionadoId = id;
-                            document.getElementById('buscador_insumo_factura').value = todosInsumosFactura.find(i => i.id === id).nombre;
+                            var insumo = todosInsumosFactura.find(i => i.id === id);
+                            document.getElementById('buscador_insumo_factura').value = insumo.nombre;
                             document.getElementById('resultados_insumo_factura').innerHTML = '';
                         }
-                        function agregarInsumoFactura() {
-                            var id = insumoFacturaSeleccionadoId;
-                            if(id === null) return;
-                            var insumo = todosInsumosFactura.find(i => i.id === id);
-                            if(insumo && !insumosFacturaSeleccionados.some(i => i.id === id)) {
+                        
+                        function agregarInsumoSeleccionadoFactura() {
+                            if(insumoFacturaSeleccionadoId === null) {
+                                alert('Por favor selecciona un insumo');
+                                return;
+                            }
+                            var insumo = todosInsumosFactura.find(i => i.id === insumoFacturaSeleccionadoId);
+                            
+                            if(insumo) {
+                                // Permitir agregar el mismo insumo múltiples veces (se agrega como nueva fila)
                                 insumosFacturaSeleccionados.push({...insumo, cantidad: 1});
                                 renderInsumosFacturaSeleccionados();
-                                document.getElementById('buscador_insumo_factura').value = '';
-                                insumoFacturaSeleccionadoId = null;
+                                cerrarModalBuscadorInsumo();
                             }
                         }
+                        
                         function cambiarCantidadFactura(idx, val) {
                             insumosFacturaSeleccionados[idx].cantidad = parseInt(val) || 1;
                             renderInsumosFacturaSeleccionados();
@@ -419,16 +451,16 @@
                             renderInsumosFacturaSeleccionados();
                         }
                         function renderInsumosFacturaSeleccionados() {
-                            var html = '';
+                            var htmlTabla = '';
                             insumosFacturaSeleccionados.forEach((i, idx) => {
                                 var costoUnitario = i.costo_unitario ? parseFloat(i.costo_unitario) : 0;
                                 var cantidad = parseInt(i.cantidad) || 1;
                                 var total = costoUnitario * cantidad;
-                                html += `<tr>
-                                    <td class='px-4 py-2'><input type='hidden' name='insumos[]' value='${i.id}'>${i.nombre}</td>
+                                htmlTabla += `<tr>
+                                    <td class='px-4 py-2'>${i.nombre}</td>
                                     <td class='px-4 py-2'>${i.unidad}</td>
                                     <td class='px-4 py-2'>
-                                        <input type='number' name='cantidades[]' value='${cantidad}' min='1' class='w-16 border-gray-300 rounded' onchange='cambiarCantidadFactura(${idx}, this.value)'>
+                                        <input type='number' value='${cantidad}' min='1' class='w-16 border-gray-300 rounded' onchange='cambiarCantidadFactura(${idx}, this.value)'>
                                     </td>
                                     <td class='px-4 py-2'>Q${costoUnitario.toFixed(2)}</td>
                                     <td class='px-4 py-2'>Q${total.toFixed(2)}</td>
@@ -437,7 +469,12 @@
                                     </td>
                                 </tr>`;
                             });
-                            document.getElementById('insumos_factura_seleccionados').innerHTML = html;
+                            
+                            document.getElementById('insumos_factura_seleccionados').innerHTML = htmlTabla;
+                            
+                            // GUARDAR COMO JSON EN CAMPO OCULTO (igual que actividades)
+                            document.getElementById('insumos_json').value = JSON.stringify(insumosFacturaSeleccionados);
+                            
                             calcularCostoTotal();
                         }
                         document.addEventListener('DOMContentLoaded', function() {
@@ -467,33 +504,6 @@
                             });
                             document.getElementById('costo_total').value = total.toFixed(2);
                         }
-                        // Actualiza el costo cada vez que cambian los insumos o cantidades
-                        function renderInsumosFacturaSeleccionados() {
-                            var html = '';
-                            insumosFacturaSeleccionados.forEach((i, idx) => {
-                                var costoUnitario = i.costo_unitario ? parseFloat(i.costo_unitario) : 0;
-                                var cantidad = parseInt(i.cantidad) || 1;
-                                var total = costoUnitario * cantidad;
-                                html += `<tr>
-                                    <td class='px-4 py-2'><input type='hidden' name='insumos[]' value='${i.id}'>${i.nombre}</td>
-                                    <td class='px-4 py-2'>${i.unidad}</td>
-                                    <td class='px-4 py-2'>
-                                        <input type='number' name='cantidades[]' value='${cantidad}' min='1' class='w-16 border-gray-300 rounded' onchange='cambiarCantidadFactura(${idx}, this.value);calcularCostoTotal();'>
-                                    </td>
-                                    <td class='px-4 py-2'>Q${costoUnitario.toFixed(2)}</td>
-                                    <td class='px-4 py-2'>Q${total.toFixed(2)}</td>
-                                    <td class='px-4 py-2 text-center'>
-                                        <button type='button' onclick='eliminarInsumoFactura(${idx});calcularCostoTotal();' class='text-red-600 hover:text-red-800'>Eliminar</button>
-                                    </td>
-                                </tr>`;
-                            });
-                            document.getElementById('insumos_factura_seleccionados').innerHTML = html;
-                            calcularCostoTotal();
-                        }
-                        document.addEventListener('DOMContentLoaded', function() {
-                            buscarInsumoFactura();
-                            renderInsumosFacturaSeleccionados();
-                        });
                         </script>
 
                         <!-- Actividades a completar por el técnico -->
@@ -511,7 +521,7 @@
                             </table>
                             <div class="flex items-center space-x-2">
                                 <input type="text" id="nueva_actividad" class="border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 w-full" placeholder="Agregar actividad...">
-                                <button type="button" onclick="agregarActividad()" class="bg-orange-600 hover:bg-orange-700 text-white font-bold px-4 py-2 rounded">Agregar</button>
+                                <button type="button" onclick="agregarActividad()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded">Agregar</button>
                             </div>
                         </div>
                         <script>
@@ -531,14 +541,20 @@
                         function renderActividades() {
                             var html = '';
                             actividades.forEach((a, idx) => {
-                                html += `<tr><td class='px-4 py-2'><input type='hidden' name='actividades[]' value='${a}'>${a}</td><td class='px-4 py-2 text-center'><button type='button' onclick='eliminarActividad(${idx})' class='text-red-600 hover:text-red-800'>Eliminar</button></td></tr>`;
+                                html += `<tr><td class='px-4 py-2'>${a}</td><td class='px-4 py-2 text-center'><button type='button' onclick='eliminarActividad(${idx})' class='text-red-600 hover:text-red-800'>Eliminar</button></td></tr>`;
                             });
                             document.getElementById('actividades_table').innerHTML = html;
+                            // Actualizar campo hidden con todas las actividades
+                            document.getElementById('actividades_json').value = JSON.stringify(actividades);
                         }
                         document.addEventListener('DOMContentLoaded', function() {
                             renderActividades();
                         });
                         </script>
+                        <!-- Campo oculto para enviar insumos como JSON -->
+                        <input type="hidden" id="insumos_json" name="insumos_json" value="[]">
+                        <!-- Campo oculto para enviar actividades como JSON -->
+                        <input type="hidden" id="actividades_json" name="actividades_json" value="[]">
 
                         <!-- Botones de acción -->
                         <div class="flex items-center justify-end space-x-4 pt-4 max-w-2xl mx-auto">
@@ -547,7 +563,7 @@
                                 Cancelar
                             </a>
                             <button type="submit" 
-                                    class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105">
+                                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105">
                                 Programar Mantenimiento
                             </button>
                         </div>
