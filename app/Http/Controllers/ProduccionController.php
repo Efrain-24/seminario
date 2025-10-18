@@ -517,7 +517,7 @@ class ProduccionController extends Controller
                 foreach ($actividades as $idx => $actividad) {
                     $actividadesEjecutadas[$idx] = [
                         'nombre' => $actividad,
-                        'completada' => in_array($idx, $actividadesCompletadas)
+                        'estado' => in_array($idx, $actividadesCompletadas) ? 'completada' : 'pendiente'
                     ];
                 }
                 

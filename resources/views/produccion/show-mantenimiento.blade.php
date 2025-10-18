@@ -296,7 +296,14 @@
                 $actividades = $mantenimiento->actividades ?? [];
                 $actividadesEjecutadas = $mantenimiento->actividades_ejecutadas ?? [];
                 $total = is_array($actividades) ? count($actividades) : 0;
-                $completadas = is_array($actividadesEjecutadas) ? count(array_filter($actividadesEjecutadas, function($a) { return $a['estado'] === 'completada'; })) : 0;
+                $completadas = 0;
+                if (is_array($actividadesEjecutadas)) {
+                    foreach ($actividades as $i => $actividad) {
+                        if (isset($actividadesEjecutadas[$i]) && ($actividadesEjecutadas[$i]['estado'] ?? null) === 'completada') {
+                            $completadas++;
+                        }
+                    }
+                }
             @endphp
             @if($total > 0)
             <div class="mb-6">
@@ -322,7 +329,7 @@
                                 <tr>
                                     <td class="px-4 py-2 text-gray-900 dark:text-gray-100">{{ $actividad['nombre'] ?? $actividad }}</td>
                                     <td class="px-4 py-2">
-                                        @if(isset($actividadesEjecutadas[$i]) && $actividadesEjecutadas[$i]['estado'] === 'completada')
+                                        @if(isset($actividadesEjecutadas[$i]) && ($actividadesEjecutadas[$i]['estado'] ?? null) === 'completada')
                                             <span class="inline-flex items-center px-3 py-1 text-sm rounded-full font-medium bg-green-100 text-green-800">
                                                 <svg class="w-4 h-4 mr-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
                                                 Completada
@@ -587,26 +594,27 @@
                             Completar Mantenimiento
                         </button>
                     </div>
-                    <!-- Opciones de eliminación -->
-                    <div class="mt-8">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Eliminar Mantenimiento</h3>
-                        <div class="flex flex-col md:flex-row md:space-x-4 space-y-2 md:space-y-0">
-                            <form method="POST" action="{{ route('produccion.mantenimientos.eliminar', $mantenimiento) }}" onsubmit="return confirm('¿Seguro que deseas eliminar solo este mantenimiento?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded">Eliminar solo este mantenimiento</button>
-                            </form>
-                            @if($mantenimiento->repeat_type && $mantenimiento->repeat_type !== 'none')
-                            <form method="POST" action="{{ route('produccion.mantenimientos.eliminarCiclo', $mantenimiento) }}" onsubmit="return confirm('¿Seguro que deseas eliminar todos los mantenimientos relacionados de este ciclo?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-6 rounded">Eliminar todos los relacionados</button>
-                            </form>
-                            @endif
-                        </div>
-                    </div>
-                    </div>
                 </form>
+
+                <!-- Opciones de eliminación -->
+                <div class="mt-8">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Eliminar Mantenimiento</h3>
+                    <div class="flex flex-col md:flex-row md:space-x-4 space-y-2 md:space-y-0">
+                        <form method="POST" action="{{ route('produccion.mantenimientos.eliminar', $mantenimiento) }}" onsubmit="return confirm('¿Seguro que deseas eliminar solo este mantenimiento?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded">Eliminar solo este mantenimiento</button>
+                        </form>
+                        @if($mantenimiento->repeat_type && $mantenimiento->repeat_type !== 'none')
+                        <form method="POST" action="{{ route('produccion.mantenimientos.eliminarCiclo', $mantenimiento) }}" onsubmit="return confirm('¿Seguro que deseas eliminar todos los mantenimientos relacionados de este ciclo?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-6 rounded">Eliminar todos los relacionados</button>
+                        </form>
+                        @endif
+                    </div>
+                </div>
+                </div>
             </div>
         </div>
     </div>

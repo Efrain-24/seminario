@@ -147,14 +147,12 @@
                             <input type="hidden" name="advanced_week" id="advanced_week">
                             <input type="hidden" name="advanced_weekday" id="advanced_weekday">
                             <div class="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                                <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">Define aquí el calendario de repetición del mantenimiento cíclico.</p>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha de inicio del ciclo *</label>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Comenzar desde *</label>
                                         <input type="date" name="fecha_inicio_ciclico" id="fecha_inicio_ciclico" class="w-full border-gray-300 dark:border-gray-600 rounded-md" onchange="actualizarPatronMensual()" />
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha de fin del ciclo *</label>
-                                        <input type="date" name="fecha_fin_ciclico" id="fecha_fin_ciclico" class="w-full border-gray-300 dark:border-gray-600 rounded-md" />
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Primera fecha de ejecución</p>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Repetir cada</label>
@@ -165,12 +163,17 @@
                                                 @endfor
                                             </select>
                                             <select name="intervalo_tipo" id="intervalo_tipo" class="w-28 border-gray-300 dark:border-gray-600 rounded-md font-bold text-lg" style="display:inline-block;" onchange="togglePatronMensual()">
-                                                <option value="semanas">semana</option>
-                                                <option value="meses">mes</option>
-                                                <option value="anios">año</option>
+                                                <option value="semanas">semana(s)</option>
+                                                <option value="meses">mes(es)</option>
+                                                <option value="anios">año(s)</option>
                                             </select>
                                         </div>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Ejemplo: <b>cada 2 semanas</b>, <b>cada 3 meses</b>, etc.</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Frecuencia de repetición</p>
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Repetir hasta *</label>
+                                        <input type="date" name="fecha_fin_ciclico" id="fecha_fin_ciclico" class="w-full border-gray-300 dark:border-gray-600 rounded-md" />
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Fecha final: El ciclo generará mantenimientos hasta este día (inclusive)</p>
                                     </div>
                                     <div id="patron_mensual_box" class="col-span-2 mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Patrón de repetición</label>
@@ -207,9 +210,92 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- Botón de calcular fechas eliminado, la lógica es backend -->
+                                <!-- Vista previa de fechas generadas -->
+                                <div id="vista_previa_fechas" class="hidden mt-4 p-4 bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg">
+                                    <h4 class="font-semibold text-blue-900 dark:text-blue-100 mb-2">Vista previa de fechas generadas:</h4>
+                                    <div id="lista_fechas_previa" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                                        <!-- Se llenará dinámicamente con JavaScript -->
+                                    </div>
+                                    <p class="text-xs text-blue-700 dark:text-blue-300 mt-3">
+                                        Se crearán <strong id="total_mantenimientos">0</strong> mantenimientos en las fechas mostradas arriba.
+                                    </p>
+                                </div>
                             </div>
                         </div>
+                        <script>
+                        // Función para generar y mostrar vista previa de fechas
+                        function actualizarVistaPrevia() {
+                            const ciclico = document.getElementById('ciclico').checked;
+                            if (!ciclico) {
+                                document.getElementById('vista_previa_fechas').classList.add('hidden');
+                                return;
+                            }
+
+                            const fechaInicio = document.getElementById('fecha_inicio_ciclico').value;
+                            const fechaFin = document.getElementById('fecha_fin_ciclico').value;
+                            const intervaloValor = parseInt(document.getElementById('intervalo_valor').value) || 1;
+                            const intervaloTipo = document.getElementById('intervalo_tipo').value;
+
+                            if (!fechaInicio || !fechaFin) {
+                                document.getElementById('vista_previa_fechas').classList.add('hidden');
+                                return;
+                            }
+
+                            // Calcular fechas
+                            const inicio = new Date(fechaInicio + 'T00:00:00');
+                            const fin = new Date(fechaFin + 'T00:00:00');
+
+                            if (inicio > fin) {
+                                document.getElementById('vista_previa_fechas').classList.add('hidden');
+                                return;
+                            }
+
+                            const fechas = [];
+                            let fechaActual = new Date(inicio);
+
+                            while (fechaActual <= fin) {
+                                fechas.push(new Date(fechaActual));
+                                
+                                if (intervaloTipo === 'semanas') {
+                                    fechaActual.setDate(fechaActual.getDate() + (intervaloValor * 7));
+                                } else if (intervaloTipo === 'meses') {
+                                    fechaActual.setMonth(fechaActual.getMonth() + intervaloValor);
+                                } else if (intervaloTipo === 'anios') {
+                                    fechaActual.setFullYear(fechaActual.getFullYear() + intervaloValor);
+                                }
+                            }
+
+                            // Mostrar fechas en la vista previa
+                            const listElement = document.getElementById('lista_fechas_previa');
+                            listElement.innerHTML = '';
+                            
+                            fechas.forEach(fecha => {
+                                const dia = String(fecha.getDate()).padStart(2, '0');
+                                const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                                const anio = fecha.getFullYear();
+                                const nombreDia = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sab'][fecha.getDay()];
+                                
+                                const badge = document.createElement('div');
+                                badge.className = 'bg-white dark:bg-blue-800 p-2 rounded border border-blue-200 dark:border-blue-600 text-center text-xs font-medium text-blue-900 dark:text-blue-100';
+                                badge.textContent = `${dia}/${mes}\n${nombreDia}`;
+                                listElement.appendChild(badge);
+                            });
+
+                            document.getElementById('total_mantenimientos').textContent = fechas.length;
+                            document.getElementById('vista_previa_fechas').classList.remove('hidden');
+                        }
+
+                        // Agregar listeners para actualizar la vista previa
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const campos = ['fecha_inicio_ciclico', 'fecha_fin_ciclico', 'intervalo_valor', 'intervalo_tipo', 'ciclico'];
+                            campos.forEach(id => {
+                                const elem = document.getElementById(id);
+                                if (elem) {
+                                    elem.addEventListener('change', actualizarVistaPrevia);
+                                }
+                            });
+                        });
+                        </script>
                         <script>
                         // Lógica para mapear los campos de la UI avanzada a los campos backend antes de enviar
                         document.getElementById('form-mantenimiento').addEventListener('submit', function(e) {
