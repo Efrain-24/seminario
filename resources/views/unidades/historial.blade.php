@@ -93,6 +93,12 @@
                                         Cantidad Inicial
                                     </th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Mortalidad
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Venta
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         Estado
                                     </th>
                                 </tr>
@@ -116,6 +122,16 @@
                                         <td class="px-4 py-4 whitespace-nowrap">
                                             <div class="text-sm text-gray-900 dark:text-gray-100">
                                                 {{ number_format($lote->cantidad_inicial ?? 0) }}
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900 dark:text-gray-100">
+                                                {{ number_format($lote->mortalidad_total ?? 0) }}
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900 dark:text-gray-100">
+                                                {{ number_format($lote->venta_total ?? 0) }}
                                             </div>
                                         </td>
                                         <td class="px-4 py-4 whitespace-nowrap">

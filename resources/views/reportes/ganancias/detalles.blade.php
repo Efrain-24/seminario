@@ -52,6 +52,10 @@
                                 <p class="text-lg font-semibold" style="color: #eab308;">Q{{ number_format($costoTotalInsumos, 2) }}</p>
                             </div>
                             <div class="flex justify-between items-center pb-3 border-b border-gray-200 dark:border-gray-700">
+                                <p class="text-gray-700 dark:text-gray-300">Costo Compra Pez ({{ number_format($loteSeleccionado->cantidad_inicial) }} peces)</p>
+                                <p class="text-lg font-semibold" style="color: #8b5cf6;">Q{{ number_format($costoCompraPez, 2) }}</p>
+                            </div>
+                            <div class="flex justify-between items-center pb-3 border-b border-gray-200 dark:border-gray-700">
                                 <p class="text-gray-700 dark:text-gray-300">Mortalidad ({{ $cantidadMortalidad }} peces)</p>
                                 <p class="text-lg font-semibold" style="color: #dc2626;">Q{{ number_format($costoMortalidad, 2) }}</p>
                             </div>
@@ -104,6 +108,7 @@
                     'Costo Protocolo',
                     'Costo Alimentos',
                     'Costo Insumos',
+                    'Costo Compra Pez',
                     'Mortalidad',
                     'Ingreso por Ventas',
                     'Ventas Potenciales'
@@ -113,6 +118,7 @@
                         {{ $costoTotalProtocolos }},
                         {{ $costoTotalAlimento }},
                         {{ $costoTotalInsumos }},
+                        {{ $costoCompraPez }},
                         {{ $costoMortalidad }},
                         {{ $totalIngresosVentas }},
                         {{ $ventasPotenciales }}
@@ -121,6 +127,7 @@
                         '#0ea5e9',  // Celeste - Costo Protocolo
                         '#f97316',  // Naranja - Costo Alimentos
                         '#eab308',  // Amarillo - Costo Insumos
+                        '#8b5cf6',  // Púrpura - Costo Compra Pez
                         '#dc2626',  // Rojo - Mortalidad
                         '#2563eb',  // Azul - Ingreso por Ventas
                         '#ec4899'   // Fucsia - Ventas Potenciales
@@ -129,6 +136,7 @@
                         '#0ea5e9',
                         '#f97316',
                         '#eab308',
+                        '#8b5cf6',
                         '#dc2626',
                         '#2563eb',
                         '#ec4899'

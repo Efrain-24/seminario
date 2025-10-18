@@ -201,14 +201,7 @@ Route::middleware(['auth', 'redirect.temp.password'])->prefix('reportes')->name(
             }
         }
 
-        // --- Mortalidad ---
-        // Obtener la mortalidad registrada del lote
-        $cantidadMortalidad = $loteSeleccionado->cantidad_inicial - $loteSeleccionado->cantidad_actual;
-        if ($cantidadMortalidad < 0) {
-            $cantidadMortalidad = 0;
-        }
-        
-        // Obtener el precio unitario de la última compra del artículo "Pez"
+        // --- Obtener el precio unitario de la última compra del artículo "Pez" ---
         $precioUnitarioPez = 0;
         $itemPez = \App\Models\InventarioItem::where('nombre', 'Pez')->orWhere('nombre', 'like', '%pez%')->first();
         if ($itemPez) {
@@ -227,11 +220,17 @@ Route::middleware(['auth', 'redirect.temp.password'])->prefix('reportes')->name(
                 }
             }
         }
-        
-        $costoMortalidad = $cantidadMortalidad * $precioUnitarioPez;
 
-        // --- Precio de compra del pez ---
-        $precioCompraPez = $loteSeleccionado->cantidad_inicial * $precioUnitarioPez;
+        // --- Costo de compra del pez (cantidad_inicial * precio_unitario_pez) ---
+        $costoCompraPez = $loteSeleccionado->cantidad_inicial * $precioUnitarioPez;
+
+        // --- Mortalidad ---
+        // Obtener la mortalidad registrada del lote (suma de mortalidad en seguimientos)
+        $cantidadMortalidad = $loteSeleccionado->mortalidad_total;
+        if ($cantidadMortalidad < 0) {
+            $cantidadMortalidad = 0;
+        }
+        $costoMortalidad = $cantidadMortalidad * $precioUnitarioPez;
 
         // --- Ingresos por Ventas ---
         $ventasDelLote = $loteSeleccionado->ventas()->get();
@@ -247,12 +246,45 @@ Route::middleware(['auth', 'redirect.temp.password'])->prefix('reportes')->name(
         $ventasPotenciales = $loteSeleccionado->cantidad_actual * $ultimoPrecioVenta;
 
         // --- Totales ---
-        $totalCostos = $costoTotalAlimento + $costoTotalProtocolos + $costoTotalInsumos + $precioCompraPez + $costoMortalidad;
+        $totalCostos = $costoTotalAlimento + $costoTotalProtocolos + $costoTotalInsumos + $costoCompraPez + $costoMortalidad;
         
         // --- Subtotal (Ingresos - Costos) ---
         $totalIngresos = $totalIngresosVentas + $ventasPotenciales;
-        $costosSinPrecioCompra = $costoTotalAlimento + $costoTotalProtocolos + $costoTotalInsumos + $costoMortalidad;
-        $subtotal = $totalIngresos - $costosSinPrecioCompra;
+        $costosSinCompraPez = $costoTotalAlimento + $costoTotalProtocolos + $costoTotalInsumos + $costoCompraPez + $costoMortalidad;
+        $subtotal = $totalIngresos - $costosSinCompraPez;
+
+        // Si es petición AJAX, retornar JSON con HTML y datos
+        if ($request->wantsJson() || $request->expectsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            $html = view('reportes.ganancias.detalles-partial', compact(
+                'loteSeleccionado',
+                'alimentacionDetalle',
+                'costoTotalAlimento',
+                'protocoloDetalle',
+                'costoTotalProtocolos',
+                'insumoDetalle',
+                'costoTotalInsumos',
+                'costoCompraPez',
+                'cantidadMortalidad',
+                'costoMortalidad',
+                'totalCostos',
+                'totalIngresosVentas',
+                'ventasPotenciales',
+                'subtotal'
+            ))->render();
+
+            return response()->json([
+                'html' => $html,
+                'data' => [
+                    'protocolo' => $costoTotalProtocolos,
+                    'alimentos' => $costoTotalAlimento,
+                    'insumos' => $costoTotalInsumos,
+                    'pez' => $costoCompraPez,
+                    'mortalidad' => $costoMortalidad,
+                    'ventas' => $totalIngresosVentas,
+                    'potenciales' => $ventasPotenciales
+                ]
+            ]);
+        }
 
         return view('reportes.ganancias.detalles', compact(
             'loteSeleccionado',
@@ -262,7 +294,7 @@ Route::middleware(['auth', 'redirect.temp.password'])->prefix('reportes')->name(
             'costoTotalProtocolos',
             'insumoDetalle',
             'costoTotalInsumos',
-            'precioCompraPez',
+            'costoCompraPez',
             'cantidadMortalidad',
             'costoMortalidad',
             'totalCostos',

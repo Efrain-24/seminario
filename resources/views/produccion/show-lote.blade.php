@@ -191,21 +191,21 @@
                             </div>
                             <div class="flex justify-between items-center">
                                 <span class="text-gray-600 dark:text-gray-400">Cantidad Actual:</span>
-                                <span class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ number_format($lote->cantidad_actual) }}</span>
+                                <span class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ number_format($lote->cantidad_actual_real) }}</span>
                             </div>
                             <div class="flex justify-between items-center">
                                 <span class="text-gray-600 dark:text-gray-400">Supervivencia:</span>
-                                <span class="text-lg font-semibold {{ $lote->cantidad_inicial > 0 ? (($lote->cantidad_actual / $lote->cantidad_inicial) >= 0.9 ? 'text-green-600' : (($lote->cantidad_actual / $lote->cantidad_inicial) >= 0.7 ? 'text-yellow-600' : 'text-red-600')) : 'text-gray-600' }}">
-                                    @if($lote->cantidad_inicial > 0)
-                                        {{ number_format(($lote->cantidad_actual / $lote->cantidad_inicial) * 100, 1) }}%
-                                    @else
-                                        0%
-                                    @endif
+                                <span class="text-lg font-semibold {{ $lote->supervivencia >= 90 ? 'text-green-600' : ($lote->supervivencia >= 70 ? 'text-yellow-600' : 'text-red-600') }}">
+                                    {{ number_format($lote->supervivencia, 1) }}%
                                 </span>
                             </div>
                             <div class="flex justify-between items-center">
                                 <span class="text-gray-600 dark:text-gray-400">Mortalidad:</span>
-                                <span class="text-lg font-semibold text-red-600">{{ number_format($lote->cantidad_inicial - $lote->cantidad_actual) }}</span>
+                                <span class="text-lg font-semibold text-red-600">{{ number_format($lote->mortalidad_total) }}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600 dark:text-gray-400">Peces Vendidos:</span>
+                                <span class="text-lg font-semibold text-green-600">{{ number_format($lote->venta_total) }}</span>
                             </div>
                         </div>
                     </div>

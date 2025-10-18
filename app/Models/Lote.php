@@ -87,17 +87,53 @@ class Lote extends Model
     }
 
     /**
-     * Obtener la cantidad actual basada en el último seguimiento
+     * Obtener la cantidad actual basada en el último seguimiento, considerando mortalidad y ventas
      */
     public function getCantidadActualRealAttribute()
     {
         $ultimoSeguimiento = $this->seguimientos()->orderBy('fecha_seguimiento', 'desc')->first();
-        
+
+        $cantidadInicial = $this->cantidad_inicial;
+        $mortalidad = $this->seguimientos()->sum('mortalidad');
+        $venta = $this->ventas()->sum('cantidad_cosechada');
+
         if ($ultimoSeguimiento && $ultimoSeguimiento->cantidad_actual) {
-            return $ultimoSeguimiento->cantidad_actual;
+            return $ultimoSeguimiento->cantidad_actual - $mortalidad - $venta;
         }
-        
-        return $this->cantidad_actual; // fallback
+
+        return $cantidadInicial - $mortalidad - $venta;
+    }
+
+    /**
+     * Obtener la mortalidad total basada en los seguimientos
+     */
+    public function getMortalidadTotalAttribute()
+    {
+        return $this->seguimientos()->sum('mortalidad');
+    }
+
+    /**
+     * Obtener la cantidad total de peces vendidos
+     */
+    public function getVentaTotalAttribute()
+    {
+        return $this->ventas()->sum('cantidad_cosechada');
+    }
+
+    /**
+     * Obtener el porcentaje de supervivencia (peces vivos + vendidos / cantidad inicial * 100)
+     */
+    public function getSupervivenciaAttribute()
+    {
+        if ($this->cantidad_inicial == 0) {
+            return 0;
+        }
+
+        $pececesVivos = $this->cantidad_actual_real;
+        $pececesVendidos = $this->venta_total;
+        $supervivientes = $pececesVivos + $pececesVendidos;
+
+        return round(($supervivientes / $this->cantidad_inicial) * 100, 2);
     }
 
     // Scopes

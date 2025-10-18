@@ -5,6 +5,9 @@
         </h2>
     </x-slot>
 
+    <!-- Cargar Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <!-- Notificaciones -->
     <x-notification type="success" :message="session('success')" />
     <x-notification type="error" :message="session('error')" />
@@ -52,14 +55,141 @@
                                 return false;
                             }
                             
-                            // Redirigir a la ruta de detalles con el lote en la URL
+                            // Realizar petición AJAX para obtener los detalles
                             let url = "{{ route('reportes.ganancias.detalles', ['lote' => '__LOTE__']) }}".replace('__LOTE__', loteId);
                             if (fechaInicio) url += '?fecha_inicio=' + fechaInicio;
                             if (fechaFin) url += (fechaInicio ? '&' : '?') + 'fecha_fin=' + fechaFin;
                             
-                            window.location.href = url;
+                            fetch(url, {
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            })
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error('Error en la respuesta del servidor');
+                                    }
+                                    return response.json();
+                                })
+                                .then(data => {
+                                    console.log('Datos recibidos:', data);
+                                    
+                                    // Inyectar el HTML
+                                    const resultadosContainer = document.getElementById('resultadosReporte');
+                                    resultadosContainer.innerHTML = data.html;
+                                    
+                                    // Esperar a que el DOM se actualice
+                                    setTimeout(() => {
+                                        // Obtener el canvas
+                                        const canvas = document.getElementById('gananciasChart');
+                                        
+                                        if (!canvas) {
+                                            console.error('Canvas no encontrado');
+                                            return;
+                                        }
+                                        
+                                        if (!window.Chart) {
+                                            console.error('Chart.js no está cargado');
+                                            return;
+                                        }
+                                        
+                                        // Destruir gráfica anterior si existe
+                                        Chart.helpers.each(Chart.instances, function(instance) {
+                                            if (instance.canvas === canvas) {
+                                                instance.destroy();
+                                            }
+                                        });
+                                        
+                                        // Crear nueva gráfica con los datos JSON
+                                        const ctx = canvas.getContext('2d');
+                                        const chartData = {
+                                            labels: [
+                                                'Costo Protocolo',
+                                                'Costo Alimentos',
+                                                'Costo Insumos',
+                                                'Costo Compra Pez',
+                                                'Mortalidad',
+                                                'Ingreso por Ventas',
+                                                'Ventas Potenciales'
+                                            ],
+                                            datasets: [{
+                                                data: [
+                                                    data.data.protocolo,
+                                                    data.data.alimentos,
+                                                    data.data.insumos,
+                                                    data.data.pez,
+                                                    data.data.mortalidad,
+                                                    data.data.ventas,
+                                                    data.data.potenciales
+                                                ],
+                                                backgroundColor: [
+                                                    '#0ea5e9',  // Celeste - Costo Protocolo
+                                                    '#f97316',  // Naranja - Costo Alimentos
+                                                    '#eab308',  // Amarillo - Costo Insumos
+                                                    '#8b5cf6',  // Púrpura - Costo Compra Pez
+                                                    '#dc2626',  // Rojo - Mortalidad
+                                                    '#2563eb',  // Azul - Ingreso por Ventas
+                                                    '#ec4899'   // Fucsia - Ventas Potenciales
+                                                ],
+                                                borderColor: [
+                                                    '#0ea5e9',
+                                                    '#f97316',
+                                                    '#eab308',
+                                                    '#8b5cf6',
+                                                    '#dc2626',
+                                                    '#2563eb',
+                                                    '#ec4899'
+                                                ],
+                                                borderWidth: 2
+                                            }]
+                                        };
+
+                                        new Chart(ctx, {
+                                            type: 'doughnut',
+                                            data: chartData,
+                                            options: {
+                                                responsive: true,
+                                                maintainAspectRatio: false,
+                                                plugins: {
+                                                    legend: {
+                                                        position: 'bottom',
+                                                        labels: {
+                                                            padding: 15,
+                                                            font: {
+                                                                size: 12
+                                                            },
+                                                            color: '#374151'
+                                                        }
+                                                    },
+                                                    tooltip: {
+                                                        callbacks: {
+                                                            label: function(context) {
+                                                                return 'Q' + context.parsed.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        });
+                                        
+                                        console.log('Gráfica creada exitosamente con los datos:', data.data);
+                                    }, 100);
+                                    
+                                    // Scroll suave hacia los resultados
+                                    setTimeout(() => {
+                                        resultadosContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                    }, 150);
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    alert('Error al cargar el reporte: ' + error.message);
+                                });
                         }
                     </script>
+
+                    <!-- Contenedor para resultados dinámicos -->
+                    <div id="resultadosReporte" class="mt-8"></div>
 
                     @if(isset($loteSeleccionado))
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Detalles del Lote</h3>
