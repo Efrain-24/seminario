@@ -4,17 +4,18 @@
 
 @section('content')
 
+<!-- ACTUALIZADO 2025-10-17 -->
 <!-- Notificaciones -->
 <x-notification type="success" :message="session('success')" />
 <x-notification type="error" :message="session('error')" />
 <x-notification type="warning" :message="session('warning')" />
 
-<!-- Background con gradiente -->
-<div class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-    <div class="container mx-auto px-6 py-12">
+<!-- Background simple -->
+<div class="bg-white dark:bg-gray-800 py-2 relative overflow-hidden">    
+    <div class="container mx-auto px-6 relative z-10">
 
         <!-- Formulario principal con diseño hermoso -->
-        <div class="max-w-4xl mx-auto">
+        <div class="max-w-3xl mx-auto">
             <div class="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden animate-fade-in-up">
                 <!-- Header del formulario -->
                 <div class="bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-6">
@@ -394,6 +395,21 @@ input:focus, select:focus, textarea:focus {
 #total-venta.updating {
     transform: scale(1.1);
     color: #f59e0b !important;
+}
+
+/* Ocultar loaders, skeletons y placeholders grandes */
+[class*="skeleton"],
+[class*="loader"],
+[class*="placeholder"],
+[role="status"],
+[role="progressbar"] {
+    display: none !important;
+}
+
+/* Asegurar que no haya espacio en blanco grande */
+div[class*="h-screen"],
+div[class*="min-h-screen"] {
+    min-height: auto !important;
 }
 </style>
 
