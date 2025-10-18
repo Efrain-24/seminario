@@ -73,16 +73,16 @@
                 </div>
             </div>
 
-            <!-- Costos de Protocolos -->
+            <!-- Costos de Mantenimientos -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Costos de Protocolos</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Costos de Mantenimientos Completados</h3>
                     @if(count($protocoloDetalle) > 0)
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm">
                                 <thead class="bg-gray-100 dark:bg-gray-700">
                                     <tr>
-                                        <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Protocolo</th>
+                                        <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Tipo de Mantenimiento</th>
                                         <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Fecha</th>
                                         <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Descripción</th>
                                         <th class="px-4 py-2 text-right text-gray-700 dark:text-gray-300">Costo</th>
@@ -100,54 +100,33 @@
                                 </tbody>
                                 <tfoot class="bg-green-50 dark:bg-green-900/20 font-semibold">
                                     <tr>
-                                        <td colspan="3" class="px-4 py-2 text-right text-gray-900 dark:text-gray-100">Total Protocolos:</td>
+                                        <td colspan="3" class="px-4 py-2 text-right text-gray-900 dark:text-gray-100">Total Mantenimientos:</td>
                                         <td class="px-4 py-2 text-right text-green-600 dark:text-green-400">Q{{ number_format($costoTotalProtocolos, 2) }}</td>
                                     </tr>
                                 </tfoot>
                             </table>
                         </div>
                     @else
-                        <p class="text-gray-600 dark:text-gray-400">No hay protocolos registrados para este lote.</p>
+                        <p class="text-gray-600 dark:text-gray-400">No hay mantenimientos completados registrados para este lote.</p>
                     @endif
                 </div>
             </div>
 
-            <!-- Insumos Utilizados -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6">
+            <!-- Nota sobre Insumos -->
+            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Insumos Utilizados</h3>
-                    @if(count($insumoDetalle) > 0)
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-sm">
-                                <thead class="bg-gray-100 dark:bg-gray-700">
-                                    <tr>
-                                        <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Insumo</th>
-                                        <th class="px-4 py-2 text-right text-gray-700 dark:text-gray-300">Cantidad</th>
-                                        <th class="px-4 py-2 text-right text-gray-700 dark:text-gray-300">Precio Compra</th>
-                                        <th class="px-4 py-2 text-right text-gray-700 dark:text-gray-300">Costo Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                    @foreach($insumoDetalle as $insumo)
-                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                            <td class="px-4 py-2 text-gray-900 dark:text-gray-100">{{ $insumo['nombre'] }}</td>
-                                            <td class="px-4 py-2 text-right text-gray-900 dark:text-gray-100">{{ number_format($insumo['cantidad'], 2) }}</td>
-                                            <td class="px-4 py-2 text-right text-gray-900 dark:text-gray-100">Q{{ number_format($insumo['precio_compra'], 2) }}</td>
-                                            <td class="px-4 py-2 text-right font-medium text-gray-900 dark:text-gray-100">Q{{ number_format($insumo['costo_total'], 2) }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                                <tfoot class="bg-purple-50 dark:bg-purple-900/20 font-semibold">
-                                    <tr>
-                                        <td colspan="3" class="px-4 py-2 text-right text-gray-900 dark:text-gray-100">Total Insumos:</td>
-                                        <td class="px-4 py-2 text-right text-purple-600 dark:text-purple-400">Q{{ number_format($costoTotalInsumos, 2) }}</td>
-                                    </tr>
-                                </tfoot>
-                            </table>
+                    <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2z" clip-rule="evenodd" />
+                        </svg>
+                        <div>
+                            <h3 class="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">Nota sobre Insumos</h3>
+                            <p class="text-blue-700 dark:text-blue-300">
+                                Los costos de los insumos utilizados en los mantenimientos completados ya están incluidos en la sección "Costos de Mantenimientos Completados" arriba. 
+                                El costo total de cada mantenimiento incluye tanto el costo del mantenimiento como el costo de todos los insumos utilizados.
+                            </p>
                         </div>
-                    @else
-                        <p class="text-gray-600 dark:text-gray-400">No hay insumos registrados para este lote.</p>
-                    @endif
+                    </div>
                 </div>
             </div>
 

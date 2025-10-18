@@ -147,40 +147,37 @@ Route::middleware(['auth', 'redirect.temp.password'])->prefix('reportes')->name(
         })->toArray();
         $costoTotalAlimento = collect($alimentacionDetalle)->sum('costo_total');
 
-        // --- Costos de protocolos con detalles ---
-        $protocolos = \App\Models\ProtocoloSanidad::where('unidad_produccion_id', $loteSeleccionado->unidad_produccion_id)
-            ->where('estado', 'ejecución')
-            ->orWhere('estado', 'ejecutado')
+        // --- Costos de mantenimientos completados (incluyendo insumos) ---
+        // Buscar mantenimientos completados de la unidad de producción
+        $mantenimientos = \App\Models\MantenimientoUnidad::where('unidad_produccion_id', $loteSeleccionado->unidad_produccion_id)
+            ->where('estado_mantenimiento', 'completado')
+            ->with('insumos')
             ->get();
         
-        $protocoloDetalle = $protocolos->map(function($p) {
+        $protocoloDetalle = $mantenimientos->map(function($m) {
+            // Calcular costo total de insumos de este mantenimiento
+            $costoInsumos = 0;
+            if ($m->insumos && count($m->insumos) > 0) {
+                $costoInsumos = $m->insumos->sum(function($insumo) {
+                    return $insumo->pivot->costo_total ?? ($insumo->pivot->cantidad * ($insumo->pivot->costo_unitario ?? 0));
+                });
+            }
+            
+            // Costo total = costo del mantenimiento + costo de insumos
+            $costoTotal = ($m->costo_mantenimiento ?? 0) + $costoInsumos;
+            
             return [
-                'nombre' => $p->nombre,
-                'fecha' => optional($p->fecha_ejecucion)->format('d/m/Y'),
-                'descripcion' => $p->descripcion,
-                'costo' => $p->costo ?? 0,
+                'nombre' => $m->tipo_mantenimiento,
+                'fecha' => optional($m->fecha_mantenimiento)->format('d/m/Y'),
+                'descripcion' => $m->descripcion_trabajo,
+                'costo' => $costoTotal,
             ];
         })->toArray();
         $costoTotalProtocolos = collect($protocoloDetalle)->sum('costo');
 
-        // --- Insumos utilizados ---
+        // --- Insumos utilizados (solo para referencia, los costos ya están incluidos arriba) ---
         $insumoDetalle = [];
         $costoTotalInsumos = 0;
-        
-        // Verificar si existe el modelo Insumo antes de usarlo
-        if (class_exists(\App\Models\Insumo::class)) {
-            $insumos = \App\Models\Insumo::where('lote_id', $loteSeleccionado->id)->get();
-            $insumoDetalle = $insumos->map(function ($i) {
-                $costoTotal = $i->cantidad * ($i->precio_compra ?? 0);
-                return [
-                    'nombre' => $i->nombre,
-                    'cantidad' => $i->cantidad,
-                    'precio_compra' => $i->precio_compra ?? 0,
-                    'costo_total' => $costoTotal,
-                ];
-            })->toArray();
-            $costoTotalInsumos = collect($insumoDetalle)->sum('costo_total');
-        }
 
         // --- Precio de compra del pez ---
         $precioCompraPez = $loteSeleccionado->cantidad_inicial * ($loteSeleccionado->precio_unitario_pez ?? 0);
