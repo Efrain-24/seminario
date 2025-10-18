@@ -20,7 +20,7 @@
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Seleccione un Lote</h3>
 
                     <form id="filtroForm" class="mb-6 bg-gray-50 p-4 rounded-lg flex flex-wrap gap-4 items-end">
-                        <div>
+                        <div class="flex-1 min-w-xs">
                             <label for="lote_id" class="block text-sm font-medium text-gray-700 mb-2">Tanque/Lote</label>
                             <select name="lote_id" id="lote_id" class="form-control border border-gray-300 rounded px-3 py-2 w-full" required>
                                 <option value="">Seleccionar lote</option>
@@ -33,22 +33,12 @@
                                 @endif
                             </select>
                         </div>
-                        <div>
-                            <label for="fecha_inicio" class="block text-sm font-medium text-gray-700 mb-2">Fecha Inicio</label>
-                            <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control border border-gray-300 rounded px-3 py-2 w-full" value="{{ request('fecha_inicio') }}">
-                        </div>
-                        <div>
-                            <label for="fecha_fin" class="block text-sm font-medium text-gray-700 mb-2">Fecha Fin</label>
-                            <input type="date" name="fecha_fin" id="fecha_fin" class="form-control border border-gray-300 rounded px-3 py-2 w-full" value="{{ request('fecha_fin') }}">
-                        </div>
                         <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors" onclick="filtrarReporte()">Filtrar Reporte</button>
                     </form>
 
                     <script>
                         function filtrarReporte() {
                             const loteId = document.getElementById('lote_id').value;
-                            const fechaInicio = document.getElementById('fecha_inicio').value;
-                            const fechaFin = document.getElementById('fecha_fin').value;
                             
                             if (!loteId) {
                                 alert('Por favor selecciona un lote');
@@ -57,8 +47,6 @@
                             
                             // Realizar petición AJAX para obtener los detalles
                             let url = "{{ route('reportes.ganancias.detalles', ['lote' => '__LOTE__']) }}".replace('__LOTE__', loteId);
-                            if (fechaInicio) url += '?fecha_inicio=' + fechaInicio;
-                            if (fechaFin) url += (fechaInicio ? '&' : '?') + 'fecha_fin=' + fechaFin;
                             
                             fetch(url, {
                                 headers: {
