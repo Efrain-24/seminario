@@ -233,8 +233,26 @@ Route::middleware(['auth', 'redirect.temp.password'])->prefix('reportes')->name(
         // --- Precio de compra del pez ---
         $precioCompraPez = $loteSeleccionado->cantidad_inicial * $precioUnitarioPez;
 
+        // --- Ingresos por Ventas ---
+        $ventasDelLote = $loteSeleccionado->ventas()->get();
+        $totalIngresosVentas = $ventasDelLote->sum('total_venta');
+
+        // --- Ventas Potenciales ---
+        $ultimaVenta = $loteSeleccionado->ventas()->orderBy('id', 'desc')->first();
+        $ultimoPrecioVenta = 0;
+        if ($ultimaVenta) {
+            // Calcular el precio por kg de la última venta
+            $ultimoPrecioVenta = $ultimaVenta->peso_cosechado_kg > 0 ? $ultimaVenta->total_venta / $ultimaVenta->peso_cosechado_kg : 0;
+        }
+        $ventasPotenciales = $loteSeleccionado->cantidad_actual * $ultimoPrecioVenta;
+
         // --- Totales ---
         $totalCostos = $costoTotalAlimento + $costoTotalProtocolos + $costoTotalInsumos + $precioCompraPez + $costoMortalidad;
+        
+        // --- Subtotal (Ingresos - Costos) ---
+        $totalIngresos = $totalIngresosVentas + $ventasPotenciales;
+        $costosSinPrecioCompra = $costoTotalAlimento + $costoTotalProtocolos + $costoTotalInsumos + $costoMortalidad;
+        $subtotal = $totalIngresos - $costosSinPrecioCompra;
 
         return view('reportes.ganancias.detalles', compact(
             'loteSeleccionado',
@@ -247,7 +265,10 @@ Route::middleware(['auth', 'redirect.temp.password'])->prefix('reportes')->name(
             'precioCompraPez',
             'cantidadMortalidad',
             'costoMortalidad',
-            'totalCostos'
+            'totalCostos',
+            'totalIngresosVentas',
+            'ventasPotenciales',
+            'subtotal'
         ));
     })->name('ganancias.detalles');
 });

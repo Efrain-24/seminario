@@ -1,14 +1,14 @@
-<x-    </x-slot>
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+            Editar Lote: {{ $lote->codigo_lote }} (ID: {{ $lote->id }})
+        </h2>
+    </x-slot>
 
     <!-- Notificaciones -->
     <x-notification type="success" :message="session('success')" />
     <x-notification type="error" :message="session('error')" />
     <x-notification type="warning" :message="session('warning')" />
-
-    <div class="py-12">-layout>
-    <x-slot name="header">
-    <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Editar Lote: {{ $lote->codigo_lote }} (ID: {{ $lote->id }})</h2>
-    </x-slot>
 
     <div class="py-10">
     <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
@@ -85,11 +85,23 @@
                 <textarea name="observaciones" class="w-full border rounded px-3 py-2" rows="3">{{ old('observaciones', $lote->observaciones) }}</textarea>
             </div>
         </div>
-        <div class="mt-8 flex justify-end">
-            <a href="{{ route('produccion.lotes.show', $lote) }}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded mr-2">Cancelar</a>
-            <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded shadow">Actualizar</button>
+        <div class="mt-8 flex justify-between">
+            <div>
+                <button type="button" onclick="if(confirm('¿Estás seguro de que deseas eliminar este lote? Esta acción no se puede deshacer.')) { document.getElementById('deleteForm').submit(); }" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded mr-2">🗑️ Eliminar Lote</button>
+            </div>
+            <div>
+                <a href="{{ route('produccion.lotes.show', $lote) }}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded mr-2">Cancelar</a>
+                <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded shadow">Actualizar</button>
+            </div>
         </div>
     </form>
+
+    <!-- Formulario oculto para eliminar -->
+    <form id="deleteForm" action="{{ route('produccion.lotes.destroy', $lote) }}" method="POST" style="display:none;">
+        @csrf
+        @method('DELETE')
+    </form>
+
     </div>
     </div>
     </div>

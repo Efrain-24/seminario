@@ -175,11 +175,17 @@ class CosechaParcialController extends Controller
             $rules = array_merge($rules, [
                 'cliente'             => ['required', 'string', 'max:255'],
                 'telefono_cliente'    => ['nullable', 'string', 'max:20'],
-                'precio_kg'           => ['required', 'numeric', 'min:0'],
+                'precio_unitario'     => ['required', 'numeric', 'min:0'],
             ]);
         }
 
         $data = $request->validate($rules);
+        
+        // Renombrar precio_unitario a precio_kg para compatibilidad
+        if (isset($data['precio_unitario'])) {
+            $data['precio_kg'] = $data['precio_unitario'];
+            unset($data['precio_unitario']);
+        }
 
         DB::transaction(function () use ($data, $cosecha) {
             $cosecha->load('lote');

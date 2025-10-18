@@ -8,6 +8,8 @@ use App\Models\MantenimientoUnidad;
 use App\Models\Traslado;
 use App\Models\Seguimiento;
 use App\Models\User;
+use App\Models\InventarioItem;
+use App\Models\InventarioExistencia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log; // logging
 use Illuminate\Support\Facades\Auth;
@@ -53,9 +55,21 @@ class ProduccionController extends Controller
         $validated['codigo_lote'] = Lote::generarCodigoLote($validated['especie']);
         $validated['cantidad_actual'] = $validated['cantidad_inicial'];
 
-        Lote::create($validated);
+        try {
+            // Crear el lote
+            $lote = Lote::create($validated);
+            
+            // Descontar del inventario de peces
+            $this->descontarDelInventario($validated['cantidad_inicial']);
 
-    return redirect()->route('produccion.lotes')->with('success', 'Lote creado exitosamente con código: ' . $validated['codigo_lote']);
+            return redirect()->route('produccion.lotes')->with('success', 'Lote creado exitosamente con código: ' . $validated['codigo_lote']);
+        } catch (\Throwable $e) {
+            Log::error('Error al crear lote', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return back()->withInput()->with('error', 'Ocurrió un error al crear el lote: ' . $e->getMessage());
+        }
     }
 
     public function showLote(Lote $lote)
@@ -113,6 +127,79 @@ class ProduccionController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
             return back()->withInput()->with('error', 'Ocurrió un error al actualizar el lote: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Eliminar un lote
+     */
+    public function destroyLote(Lote $lote)
+    {
+        try {
+            $codigoLote = $lote->codigo_lote;
+            $cantidadInicial = $lote->cantidad_inicial;
+            
+            // Devolver al inventario antes de eliminar
+            $this->agregarAlInventario($cantidadInicial);
+            
+            $lote->delete();
+            
+            return redirect()->route('produccion.lotes')->with('success', "Lote $codigoLote eliminado correctamente y stock devuelto al inventario.");
+        } catch (\Throwable $e) {
+            Log::error('Error al eliminar lote', [
+                'lote_id' => $lote->id,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return back()->with('error', 'Ocurrió un error al eliminar el lote: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Descontar cantidad del inventario de peces
+     */
+    private function descontarDelInventario($cantidad)
+    {
+        $inventarioItem = InventarioItem::where('nombre', 'Pez')->first();
+        if (!$inventarioItem) {
+            Log::warning('No se encontró el artículo "Pez" en inventario');
+            return;
+        }
+
+        $existencia = InventarioExistencia::where('item_id', $inventarioItem->id)->first();
+        if ($existencia) {
+            $existencia->stock_actual -= $cantidad;
+            $existencia->save();
+            
+            Log::info('Stock descontado del inventario', [
+                'item' => 'Pez',
+                'cantidad' => $cantidad,
+                'stock_resultante' => $existencia->stock_actual
+            ]);
+        }
+    }
+
+    /**
+     * Agregar cantidad al inventario de peces
+     */
+    private function agregarAlInventario($cantidad)
+    {
+        $inventarioItem = InventarioItem::where('nombre', 'Pez')->first();
+        if (!$inventarioItem) {
+            Log::warning('No se encontró el artículo "Pez" en inventario');
+            return;
+        }
+
+        $existencia = InventarioExistencia::where('item_id', $inventarioItem->id)->first();
+        if ($existencia) {
+            $existencia->stock_actual += $cantidad;
+            $existencia->save();
+            
+            Log::info('Stock devuelto al inventario', [
+                'item' => 'Pez',
+                'cantidad' => $cantidad,
+                'stock_resultante' => $existencia->stock_actual
+            ]);
         }
     }
 

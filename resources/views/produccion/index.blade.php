@@ -1,16 +1,14 @@
-<x-ap    </x-slot>
-
-    <!-- Notificaciones -->
-    <x-notification type="success" :message="session('success')" />
-    <x-notification type="error" :message="session('error')" />
-    <x-notification type="warning" :message="session('warning')" />
-
-    <div class="py-12">ayout>
+<x-app-layout>
     <x-slot name="header">
         <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
             Módulo de Producción
         </h2>
     </x-slot>
+
+    <!-- Notificaciones -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+    <x-notification type="warning" :message="session('warning')" />
 
     <div class="py-10">
         <div class="max-w-7xl mx-auto px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
