@@ -1,29 +1,11 @@
+@php
+    $item = $item ?? null;
+    $bodegas = $bodegas ?? collect();
+    $movimientos = $movimientos ?? collect();
+    $stockPorBodega = $stockPorBodega ?? collect();
+@endphp
+
 <x-app-layout>
-    @push('scripts')
-    <scr        </div>
-    </x-slot>
-
-    <!-- Notificaciones -->
-    <x-notification type="success" :message="session('success')" />
-    <x-notification type="error" :message="session('error')" />
-    <x-notification type="warning" :message="session('warning')" />
-
-    <div class="py-8 max-w-7xl mx-auto px-4">
-    document.addEventListener('DOMContentLoaded', function() {
-        const params = new URLSearchParams(window.location.search);
-        if(params.get('accion') === 'entrada') {
-            // Buscar el botón o enlace de Nueva Entrada y hacer scroll/click
-            const entradaBtn = document.querySelector('a[href*="movimientos.create"][href*="entrada"]');
-            if(entradaBtn) {
-                entradaBtn.scrollIntoView({behavior: 'smooth', block: 'center'});
-                entradaBtn.classList.add('ring-4','ring-emerald-300');
-                setTimeout(() => entradaBtn.classList.remove('ring-4','ring-emerald-300'), 2000);
-                entradaBtn.click();
-            }
-        }
-    });
-    </script>
-    @endpush
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4">
@@ -35,23 +17,27 @@
                 </a>
                 <div>
                     <h2 class="text-xl font-semibold leading-tight text-gray-900 dark:text-gray-100">
-                        {{ $item->nombre }}
+                        {{ $item->nombre ?? 'Ítem no encontrado' }}
                     </h2>
                     <p class="text-sm text-gray-600 dark:text-gray-400">
-                        {{ ucfirst($item->tipo) }} • {{ $item->unidad_base }}
+                        {{ ucfirst($item->tipo ?? 'Desconocido') }} • {{ $item->unidad_base ?? 'N/A' }}
                         @if($item->sku) • SKU: {{ $item->sku }} @endif
                     </p>
                 </div>
             </div>
-            
             <div class="flex items-center space-x-2">
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
                     {{ $item->tipo === 'alimento' ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' : 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100' }}">
-                    {{ ucfirst($item->tipo) }}
+                    {{ ucfirst($item->tipo ?? 'Desconocido') }}
                 </span>
             </div>
         </div>
     </x-slot>
+
+    <!-- Notificaciones -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+    <x-notification type="warning" :message="session('warning')" />
 
     <div class="py-8 max-w-7xl mx-auto px-4 space-y-6">
         @if (session('success'))
@@ -65,8 +51,9 @@
             </div>
         @endif
 
+        <!-- Panel principal con acciones -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {{-- Panel principal con acciones --}}
+            {{-- Panel principal con acciones rápidas --}}
             <div class="lg:col-span-2 space-y-6">
                 {{-- Acciones rápidas --}}
                 <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
@@ -80,7 +67,7 @@
                     </div>
                     <div class="p-6">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <a href="{{ route('produccion.inventario.movimientos.create', 'entrada') }}?item_id={{ $item->id }}"
+                            <a href="{{ route('produccion.inventario.movimientos.create', 'entrada') }}?item_id={{ $item->id ?? '' }}"
                                 class="flex flex-col items-center p-4 border-2 border-emerald-200 rounded-lg hover:border-emerald-300 hover:bg-emerald-50 dark:border-emerald-700 dark:hover:bg-emerald-900/20 transition-colors group">
                                 <div class="flex items-center justify-center w-12 h-12 bg-emerald-100 rounded-full group-hover:bg-emerald-200 dark:bg-emerald-800 dark:group-hover:bg-emerald-700 mb-3">
                                     <svg class="w-6 h-6 text-emerald-600 dark:text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,7 +78,7 @@
                                 <p class="text-xs text-center text-gray-500 dark:text-gray-400">Registrar ingreso de stock</p>
                             </a>
 
-                            <a href="{{ route('produccion.inventario.movimientos.create', 'salida') }}?item_id={{ $item->id }}"
+                            <a href="{{ route('produccion.inventario.movimientos.create', 'salida') }}?item_id={{ $item->id ?? '' }}"
                                 class="flex flex-col items-center p-4 border-2 border-rose-200 rounded-lg hover:border-rose-300 hover:bg-rose-50 dark:border-rose-700 dark:hover:bg-rose-900/20 transition-colors group">
                                 <div class="flex items-center justify-center w-12 h-12 bg-rose-100 rounded-full group-hover:bg-rose-200 dark:bg-rose-800 dark:group-hover:bg-rose-700 mb-3">
                                     <svg class="w-6 h-6 text-rose-600 dark:text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -102,7 +89,7 @@
                                 <p class="text-xs text-center text-gray-500 dark:text-gray-400">Registrar consumo de stock</p>
                             </a>
 
-                            <a href="{{ route('produccion.inventario.movimientos.create', 'ajuste') }}?item_id={{ $item->id }}"
+                            <a href="{{ route('produccion.inventario.movimientos.create', 'ajuste') }}?item_id={{ $item->id ?? '' }}"
                                 class="flex flex-col items-center p-4 border-2 border-indigo-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 dark:border-indigo-700 dark:hover:bg-indigo-900/20 transition-colors group">
                                 <div class="flex items-center justify-center w-12 h-12 bg-indigo-100 rounded-full group-hover:bg-indigo-200 dark:bg-indigo-800 dark:group-hover:bg-indigo-700 mb-3">
                                     <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">

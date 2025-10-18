@@ -18,7 +18,13 @@ class EntradaCompraController extends Controller
     public function index()
     {
         $entradas = EntradaCompra::with('proveedor')->orderByDesc('id')->paginate(15);
-        return view('entradas.index', compact('entradas'));
+        
+        // Calcular estadísticas con TODOS los registros
+        $totalEntradas = EntradaCompra::count();
+        $sumaTotal = EntradaCompra::sum('total');
+        $promedioEntrada = $totalEntradas > 0 ? $sumaTotal / $totalEntradas : 0;
+        
+        return view('entradas.index', compact('entradas', 'totalEntradas', 'sumaTotal', 'promedioEntrada'));
     }
 
     public function create()
@@ -34,6 +40,7 @@ class EntradaCompraController extends Controller
         $data = $request->validate([
             // corregido a tabla proveedores
             'proveedor_id' => 'required|exists:proveedores,id',
+            'bodega_id' => 'required|exists:bodegas,id',
             'numero_documento' => 'nullable|string|max:50',
             'fecha_documento' => 'nullable|date',
             'fecha_ingreso' => 'required|date',
@@ -95,9 +102,12 @@ class EntradaCompraController extends Controller
                     'item_id' => $d['item_id'],
                     'bodega_id' => $bodegaId,
                     'tipo' => 'entrada',
-                    'cantidad' => $d['cantidad'],
+                    'cantidad_base' => $d['cantidad'],
                     'descripcion' => 'Entrada por compra',
                     'fecha' => $entrada->fecha_ingreso,
+                    'referencia_type' => EntradaCompra::class,
+                    'referencia_id' => $entrada->id,
+                    'user_id' => Auth::id(),
                 ]);
             }
 

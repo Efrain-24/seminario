@@ -21,6 +21,11 @@ class InventarioMovimiento extends Model
         'descripcion',
         'user_id'
     ];
+
+    protected $casts = [
+        'fecha' => 'datetime',
+    ];
+
     public function item()
     {
         return $this->belongsTo(InventarioItem::class);

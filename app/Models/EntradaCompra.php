@@ -40,4 +40,9 @@ class EntradaCompra extends Model
     {
         return $this->hasMany(EntradaCompraDetalle::class, 'entrada_id');
     }
+
+    public function movimientos()
+    {
+        return $this->morphMany(InventarioMovimiento::class, 'referencia');
+    }
 }
