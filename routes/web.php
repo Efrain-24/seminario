@@ -163,27 +163,78 @@ Route::middleware(['auth', 'redirect.temp.password'])->prefix('reportes')->name(
                 });
             }
             
-            // Costo total = costo del mantenimiento + costo de insumos
-            $costoTotal = ($m->costo_mantenimiento ?? 0) + $costoInsumos;
+            // Costo del protocolo y costo de insumos separados
+            $costoProtocolo = $m->costo_mantenimiento ?? 0;
             
             return [
                 'nombre' => $m->tipo_mantenimiento,
                 'fecha' => optional($m->fecha_mantenimiento)->format('d/m/Y'),
                 'descripcion' => $m->descripcion_trabajo,
-                'costo' => $costoTotal,
+                'costo_protocolo' => $costoProtocolo,
+                'costo_insumos' => $costoInsumos,
+                'costo_total' => $costoProtocolo + $costoInsumos,
             ];
         })->toArray();
-        $costoTotalProtocolos = collect($protocoloDetalle)->sum('costo');
+        
+        $costoTotalProtocolos = collect($protocoloDetalle)->sum('costo_protocolo');
+        $costoTotalInsumos = collect($protocoloDetalle)->sum('costo_insumos');
 
-        // --- Insumos utilizados (solo para referencia, los costos ya están incluidos arriba) ---
+        // --- Desglose de insumos utilizados ---
         $insumoDetalle = [];
-        $costoTotalInsumos = 0;
+        foreach ($mantenimientos as $m) {
+            if ($m->insumos && count($m->insumos) > 0) {
+                foreach ($m->insumos as $insumo) {
+                    $cantidad = $insumo->pivot->cantidad ?? 0;
+                    $costoUnitario = $insumo->pivot->costo_unitario ?? 0;
+                    $costoTotal = $insumo->pivot->costo_total ?? ($cantidad * $costoUnitario);
+                    
+                    $insumoDetalle[] = [
+                        'nombre' => $insumo->nombre,
+                        'protocolo' => $m->tipo_mantenimiento,
+                        'fecha' => optional($m->fecha_mantenimiento)->format('d/m/Y'),
+                        'cantidad' => $cantidad,
+                        'unidad' => $insumo->unidad ?? 'unidad',
+                        'costo_unitario' => $costoUnitario,
+                        'costo_total' => $costoTotal,
+                    ];
+                }
+            }
+        }
+
+        // --- Mortalidad ---
+        // Obtener la mortalidad registrada del lote
+        $cantidadMortalidad = $loteSeleccionado->cantidad_inicial - $loteSeleccionado->cantidad_actual;
+        if ($cantidadMortalidad < 0) {
+            $cantidadMortalidad = 0;
+        }
+        
+        // Obtener el precio unitario de la última compra del artículo "Pez"
+        $precioUnitarioPez = 0;
+        $itemPez = \App\Models\InventarioItem::where('nombre', 'Pez')->orWhere('nombre', 'like', '%pez%')->first();
+        if ($itemPez) {
+            // Obtener la última entrada de compra de este item
+            $ultimaEntrada = \App\Models\EntradaCompra::with('detalles')
+                ->whereHas('detalles', function($query) use ($itemPez) {
+                    $query->where('item_id', $itemPez->id);
+                })
+                ->orderBy('id', 'desc')
+                ->first();
+            
+            if ($ultimaEntrada && $ultimaEntrada->detalles) {
+                $detalleItem = $ultimaEntrada->detalles->firstWhere('item_id', $itemPez->id);
+                if ($detalleItem) {
+                    $precioUnitarioPez = $detalleItem->costo_unitario ?? 0;
+                }
+            }
+        }
+        
+        $costoMortalidad = $cantidadMortalidad * $precioUnitarioPez;
 
         // --- Precio de compra del pez ---
-        $precioCompraPez = $loteSeleccionado->cantidad_inicial * ($loteSeleccionado->precio_unitario_pez ?? 0);
+        $precioCompraPez = $loteSeleccionado->cantidad_inicial * $precioUnitarioPez;
 
         // --- Totales ---
-        $totalCostos = $costoTotalAlimento + $costoTotalProtocolos + $costoTotalInsumos + $precioCompraPez;
+        $totalCostos = $costoTotalAlimento + $costoTotalProtocolos + $costoTotalInsumos + $precioCompraPez + $costoMortalidad;
 
         return view('reportes.ganancias.detalles', compact(
             'loteSeleccionado',
@@ -194,6 +245,8 @@ Route::middleware(['auth', 'redirect.temp.password'])->prefix('reportes')->name(
             'insumoDetalle',
             'costoTotalInsumos',
             'precioCompraPez',
+            'cantidadMortalidad',
+            'costoMortalidad',
             'totalCostos'
         ));
     })->name('ganancias.detalles');
