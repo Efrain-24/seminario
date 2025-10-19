@@ -4,7 +4,7 @@
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                 {{ __('Editar Tipo de Alimento') }}
             </h2>
-            <a href="{{ route('tipos-alimento.show', $tipoAlimento) }}" 
+            <a href="{{ route('alimentacion.tipos-alimento.show', $tipoAlimento) }}" 
                class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
                 Volver
             </a>
@@ -20,7 +20,7 @@
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
-                    <form action="{{ route('tipos-alimento.update', $tipoAlimento) }}" method="POST">
+                    <form action="{{ route('alimentacion.tipos-alimento.update', $tipoAlimento) }}" method="POST">
                         @csrf
                         @method('PUT')
                         
@@ -211,7 +211,7 @@
 
                                     <div>
                                         <label for="peso_presentacion" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Peso por Presentación (kg)
+                                            Peso por Presentación (l)
                                         </label>
                                         <input type="number" 
                                                name="peso_presentacion" 
@@ -227,7 +227,7 @@
 
                                     <div>
                                         <label for="costo_por_kg" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Costo por Kg ($)
+                                            Costo por L (Q)
                                         </label>
                                         <input type="number" 
                                                name="costo_por_kg" 
@@ -259,7 +259,7 @@
                         </div>
 
                         <div class="mt-6 flex justify-end space-x-2">
-                            <a href="{{ route('tipos-alimento.show', $tipoAlimento) }}" 
+                            <a href="{{ route('alimentacion.tipos-alimento.show', $tipoAlimento) }}" 
                                class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
                                 Cancelar
                             </a>

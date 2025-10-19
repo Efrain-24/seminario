@@ -20,13 +20,6 @@
             <div class="p-6">
                 @php
                     $moduleDefinitions = [
-                        'reportes' => [
-                            'name' => 'Reportes',
-                            'description' => 'Reportes de ganancias, costos y análisis financiero',
-                            'icon' => '<i data-lucide="bar-chart-3"></i>',
-                            'route' => 'reportes.ganancias',
-                            'color' => '#1E293B', // gris oscuro
-                        ],
                         'unidades' => [
                             'name' => 'Unidades',
                             'description' => 'Gestión de unidades de producción y mantenimiento',
@@ -82,6 +75,13 @@
                             'icon' => '<i data-lucide="shopping-cart"></i>',
                             'route' => 'compras.panel',
                             'color' => '#EAB308', // amarillo fuerte
+                        ],
+                        'reportes' => [
+                            'name' => 'Reportes',
+                            'description' => 'Reportes de ganancias, costos y análisis financiero',
+                            'icon' => '<i data-lucide="bar-chart-3"></i>',
+                            'route' => 'reportes.ganancias',
+                            'color' => '#1E293B', // gris oscuro
                         ],
                     ];
 

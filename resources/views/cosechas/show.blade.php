@@ -361,13 +361,13 @@
                         </div>
                     @endif
 
-                    @if($cosecha->lote->fecha_siembra)
+                    @if($cosecha->lote->fecha_inicio)
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Fecha de Siembra
                             </label>
                             <p class="text-sm text-gray-900 dark:text-gray-100">
-                                {{ $cosecha->lote->fecha_siembra->format('d/m/Y') }}
+                                {{ $cosecha->lote->fecha_inicio->format('d/m/Y') }}
                             </p>
                         </div>
                     @endif

@@ -102,50 +102,7 @@
                             </a>
                         </div>
 
-                        <!-- Submódulo Cosechas Totales -->
-                        <div class="group relative">
-                            <a href="{{ route('cosechas.trazabilidad.index') }}" class="block">
-                                <div class="bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/30 dark:to-teal-800/30 rounded-xl p-6 border border-teal-200 dark:border-teal-700 hover:shadow-lg transition-all duration-300 group-hover:scale-105">
-                                    <div class="flex items-center justify-between mb-4">
-                                        <div class="w-12 h-12 bg-teal-500 rounded-lg flex items-center justify-center">
-                                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                            </svg>
-                                        </div>
-                                        <svg class="w-5 h-5 text-teal-400 group-hover:text-teal-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                        </svg>
-                                    </div>
-                                    <h4 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Cosechas Totales</h4>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Registro completo de cosechas finales por lote</p>
-                                    
-                                    <!-- Funciones disponibles -->
-                                    <div class="mt-4 pt-4 border-t border-teal-200 dark:border-teal-700">
-                                        <p class="text-xs text-teal-600 dark:text-teal-400 font-medium mb-2">Funciones disponibles:</p>
-                                        <div class="flex flex-wrap gap-2">
-                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300">
-                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                </svg>
-                                                Finalizar
-                                            </span>
-                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300">
-                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                                                </svg>
-                                                Biomasa
-                                            </span>
-                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300">
-                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
-                                                </svg>
-                                                Análisis
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
+                        
 
                         <!-- Submódulo Gestión de Ventas -->
                         <div class="group relative">

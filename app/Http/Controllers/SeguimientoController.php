@@ -19,7 +19,9 @@ class SeguimientoController extends Controller
             if ($ultimoSeguimiento && $ultimoSeguimiento->peso_promedio) {
                 $peso_promedio = $ultimoSeguimiento->peso_promedio;
             }
-            $lote->total_peso = round($lote->cantidad_actual * $peso_promedio, 2);
+            if (\Illuminate\Support\Facades\Schema::hasColumn('lotes', 'total_peso')) {
+                $lote->total_peso = round($lote->cantidad_actual * $peso_promedio, 2);
+            }
             $lote->save();
         }
         $seguimiento->delete();

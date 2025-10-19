@@ -1,4 +1,18 @@
-<x-app-layout>    </x-slot>
+<x-app-layout>
+    <x-slot name="header">
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+                Historial de Unidad de Producción
+                <span class="text-base font-normal text-gray-600 dark:text-gray-400">- {{ $unidad->nombre }}</span>
+            </h2>
+            <a href="{{ route('unidades.show', ['unidad' => $unidad->id]) }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-1.5 px-4 rounded-lg shadow-md transition duration-200 ease-in-out transform hover:scale-105 inline-flex items-center text-xs">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
+                </svg>
+                Volver a Detalle
+            </a>
+        </div>
+    </x-slot>
 
     <!-- Notificaciones -->
     <x-notification type="success" :message="session('success')" />
@@ -117,7 +131,7 @@
                                             </div>
                                         </td>
                                         <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                            {{ $lote->fecha_siembra ? $lote->fecha_siembra->format('d/m/Y') : 'No registrada' }}
+                                            {{ $lote->fecha_inicio ? $lote->fecha_inicio->format('d/m/Y') : 'No registrada' }}
                                         </td>
                                         <td class="px-4 py-4 whitespace-nowrap">
                                             <div class="text-sm text-gray-900 dark:text-gray-100">

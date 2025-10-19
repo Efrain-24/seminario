@@ -1,13 +1,5 @@
 <x-app-layout>
-    <x-slot        </div>
-    </x-slot>
-    
-    <!-- Notificaciones -->
-    <x-notification type="success" :message="session('success')" />
-    <x-notification type="error" :message="session('error')" />
-    <x-notification type="warning" :message="session('warning')" />
-
-    <div class="py-12">e="header">
+    <x-slot name="header">
         <div class="flex justify-between items-center">
             <div class="flex items-center">
                 <a href="{{ route('proveedores.index') }}" class="mr-4 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
@@ -35,6 +27,11 @@
             </div>
         </div>
     </x-slot>
+
+    <!-- Notificaciones -->
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+    <x-notification type="warning" :message="session('warning')" />
 
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -90,161 +87,45 @@
     <script>
         function limpiarFormulario() {
             if (confirm('¿Estás seguro de que deseas limpiar todos los campos del formulario?')) {
-                // Limpiar todos los inputs de texto
                 document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="url"], input[type="number"], textarea').forEach(function(input) {
                     input.value = '';
                 });
-                
-                // Resetear selects a su primer opción
-                document.querySelectorAll('select').forEach(function(select) {
-                    select.selectedIndex = 0;
-                });
-                
-                // Desmarcar checkboxes
-                document.querySelectorAll('input[type="checkbox"]').forEach(function(checkbox) {
-                    checkbox.checked = false;
-                });
-                
-                // Reestablecer valores por defecto específicos
-                const estadoSelect = document.getElementById('estado');
-                if (estadoSelect) estadoSelect.value = 'activo';
-                
-                const monedaSelect = document.getElementById('moneda_preferida');
-                if (monedaSelect) monedaSelect.value = 'GTQ';
-                
-                const pagoSelect = document.getElementById('forma_pago_preferida');
-                if (pagoSelect) pagoSelect.value = 'contado';
-                
-                const diasCredito = document.getElementById('dias_credito');
-                if (diasCredito) diasCredito.value = '0';
-                
-                const aceptaDevoluciones = document.getElementById('acepta_devoluciones');
-                if (aceptaDevoluciones) aceptaDevoluciones.checked = true;
-                
-                // Actualizar info de tipo y categoría si existen las funciones
+                document.querySelectorAll('select').forEach(function(select) { select.selectedIndex = 0; });
+                document.querySelectorAll('input[type="checkbox"]').forEach(function(checkbox) { checkbox.checked = false; });
+                const estadoSelect = document.getElementById('estado'); if (estadoSelect) estadoSelect.value = 'activo';
+                const monedaSelect = document.getElementById('moneda_preferida'); if (monedaSelect) monedaSelect.value = 'GTQ';
+                const pagoSelect = document.getElementById('forma_pago_preferida'); if (pagoSelect) pagoSelect.value = 'contado';
+                const diasCredito = document.getElementById('dias_credito'); if (diasCredito) diasCredito.value = '0';
+                const aceptaDevoluciones = document.getElementById('acepta_devoluciones'); if (aceptaDevoluciones) aceptaDevoluciones.checked = true;
                 if (typeof actualizarTipoInfo === 'function') actualizarTipoInfo();
                 if (typeof actualizarCategoriaInfo === 'function') actualizarCategoriaInfo();
-                
-                // Quitar clases de validación de error
-                document.querySelectorAll('.border-red-300, .border-red-500').forEach(function(element) {
-                    element.classList.remove('border-red-300', 'border-red-500');
-                    element.classList.add('border-gray-300', 'dark:border-gray-600');
-                });
-                
-                // Mostrar mensaje de confirmación
+                document.querySelectorAll('.border-red-300, .border-red-500').forEach(function(element) { element.classList.remove('border-red-300', 'border-red-500'); element.classList.add('border-gray-300', 'dark:border-gray-600'); });
                 showNotification('Formulario limpiado correctamente', 'success');
             }
         }
 
         function showNotification(message, type = 'info') {
-            // Crear elemento de notificación
             const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 transform translate-x-full ${
-                type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' :
-                type === 'error' ? 'bg-red-50 text-red-800 border border-red-200' :
-                'bg-blue-50 text-blue-800 border border-blue-200'
-            }`;
-            
-            notification.innerHTML = `
-                <div class="flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        ${type === 'success' ? 
-                            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>' :
-                            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>'
-                        }
-                    </svg>
-                    ${message}
-                </div>
-            `;
-            
+            notification.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 transform translate-x-full ${type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : type === 'error' ? 'bg-red-50 text-red-800 border border-red-200' : 'bg-blue-50 text-blue-800 border border-blue-200'}`;
+            notification.innerHTML = `<div class="flex items-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">${type === 'success' ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>' : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>'}</svg>${message}</div>`;
             document.body.appendChild(notification);
-            
-            // Animar entrada
-            setTimeout(() => {
-                notification.classList.remove('translate-x-full');
-            }, 100);
-            
-            // Remover después de 3 segundos
-            setTimeout(() => {
-                notification.classList.add('translate-x-full');
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.parentNode.removeChild(notification);
-                    }
-                }, 300);
-            }, 3000);
+            setTimeout(() => { notification.classList.remove('translate-x-full'); }, 100);
+            setTimeout(() => { notification.classList.add('translate-x-full'); setTimeout(() => { if (notification.parentNode) notification.parentNode.removeChild(notification); }, 300); }, 3000);
         }
 
-        // Validación en tiempo real
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector('form');
-            const requiredFields = form.querySelectorAll('[required]');
-            
+            const requiredFields = form ? form.querySelectorAll('[required]') : [];
             requiredFields.forEach(function(field) {
-                field.addEventListener('blur', function() {
-                    if (this.value.trim() === '') {
-                        this.classList.remove('border-gray-300', 'dark:border-gray-600');
-                        this.classList.add('border-red-300', 'focus:border-red-500');
-                    } else {
-                        this.classList.remove('border-red-300', 'focus:border-red-500');
-                        this.classList.add('border-gray-300', 'dark:border-gray-600');
-                    }
-                });
-                
-                field.addEventListener('input', function() {
-                    if (this.classList.contains('border-red-300') && this.value.trim() !== '') {
-                        this.classList.remove('border-red-300', 'focus:border-red-500');
-                        this.classList.add('border-gray-300', 'dark:border-gray-600');
-                    }
-                });
+                field.addEventListener('blur', function() { if (this.value.trim() === '') { this.classList.remove('border-gray-300', 'dark:border-gray-600'); this.classList.add('border-red-300', 'focus:border-red-500'); } else { this.classList.remove('border-red-300', 'focus:border-red-500'); this.classList.add('border-gray-300', 'dark:border-gray-600'); } });
+                field.addEventListener('input', function() { if (this.classList.contains('border-red-300') && this.value.trim() !== '') { this.classList.remove('border-red-300', 'focus:border-red-500'); this.classList.add('border-gray-300', 'dark:border-gray-600'); } });
             });
-            
-            // Validación del email
-            const emailField = document.getElementById('email');
-            if (emailField) {
-                emailField.addEventListener('blur', function() {
-                    if (this.value && !this.value.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-                        this.classList.remove('border-gray-300', 'dark:border-gray-600');
-                        this.classList.add('border-red-300', 'focus:border-red-500');
-                    }
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    let isValid = true; requiredFields.forEach(function(field) { if (field.value.trim() === '') { field.classList.remove('border-gray-300', 'dark:border-gray-600'); field.classList.add('border-red-300', 'focus:border-red-500'); isValid = false; } });
+                    if (!isValid) { e.preventDefault(); showNotification('Por favor, completa todos los campos requeridos', 'error'); const firstError = form.querySelector('.border-red-300'); if (firstError) { firstError.scrollIntoView({ behavior: 'smooth', block: 'center' }); firstError.focus(); } }
                 });
             }
-            
-            // Validación de la URL del sitio web
-            const sitioWebField = document.getElementById('sitio_web');
-            if (sitioWebField) {
-                sitioWebField.addEventListener('blur', function() {
-                    if (this.value && !this.value.match(/^https?:\/\/.+/)) {
-                        this.classList.remove('border-gray-300', 'dark:border-gray-600');
-                        this.classList.add('border-red-300', 'focus:border-red-500');
-                    }
-                });
-            }
-
-            // Validación antes del envío
-            form.addEventListener('submit', function(e) {
-                let isValid = true;
-                
-                requiredFields.forEach(function(field) {
-                    if (field.value.trim() === '') {
-                        field.classList.remove('border-gray-300', 'dark:border-gray-600');
-                        field.classList.add('border-red-300', 'focus:border-red-500');
-                        isValid = false;
-                    }
-                });
-                
-                if (!isValid) {
-                    e.preventDefault();
-                    showNotification('Por favor, completa todos los campos requeridos', 'error');
-                    
-                    // Scroll al primer campo con error
-                    const firstError = form.querySelector('.border-red-300');
-                    if (firstError) {
-                        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        firstError.focus();
-                    }
-                }
-            });
         });
     </script>
 </x-app-layout>

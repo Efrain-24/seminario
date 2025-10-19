@@ -183,7 +183,7 @@ class UnidadProduccionController extends Controller
     {
         $unidad->load([
             'lotes' => function($query) {
-                $query->orderBy('fecha_siembra', 'desc');
+                $query->orderBy('fecha_inicio', 'desc');
             },
             'mantenimientos' => function($query) {
                 $query->orderBy('fecha_mantenimiento', 'desc');

@@ -5,11 +5,11 @@
                 {{ $tipoAlimento->nombre_completo }}
             </h2>
             <div class="flex space-x-2">
-                <a href="{{ route('tipos-alimento.edit', $tipoAlimento) }}" 
+                <a href="{{ route('alimentacion.tipos-alimento.edit', $tipoAlimento) }}" 
                    class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded">
                     Editar
                 </a>
-                <a href="{{ route('tipos-alimento.index') }}" 
+                <a href="{{ route('alimentacion.tipos-alimento.index') }}" 
                    class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
                     Volver
                 </a>
@@ -85,7 +85,7 @@
                                 
                                 <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
                                     <div class="text-2xl font-bold text-green-600 dark:text-green-400">
-                                        {{ number_format($estadisticas['cantidad_total_usada'], 2) }} kg
+                                        {{ number_format($estadisticas['cantidad_total_usada'], 2) }} l
                                     </div>
                                     <div class="text-sm text-green-700 dark:text-green-300">
                                         Cantidad total usada
@@ -94,7 +94,7 @@
                                 
                                 <div class="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
                                     <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-                                        ${{ number_format($estadisticas['costo_total_usado'], 2) }}
+                                        Q{{ number_format($estadisticas['costo_total_usado'], 2) }}
                                     </div>
                                     <div class="text-sm text-yellow-700 dark:text-yellow-300">
                                         Costo total
@@ -175,14 +175,14 @@
                         <div>
                             <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Peso por Presentación</label>
                             <p class="text-lg text-gray-900 dark:text-gray-100">
-                                {{ $tipoAlimento->peso_presentacion ? $tipoAlimento->peso_presentacion . ' kg' : 'No especificado' }}
+                                {{ $tipoAlimento->peso_presentacion ? $tipoAlimento->peso_presentacion . ' l' : 'No especificado' }}
                             </p>
                         </div>
                         
                         <div>
                             <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Costo por Kg</label>
                             <p class="text-lg font-bold text-green-600 dark:text-green-400">
-                                {{ $tipoAlimento->costo_por_kg ? '$' . number_format($tipoAlimento->costo_por_kg, 2) : 'No definido' }}
+                                {{ $tipoAlimento->costo_por_kg ? 'Q' . number_format($tipoAlimento->costo_por_kg, 2) : 'No definido' }}
                             </p>
                         </div>
                     </div>
@@ -239,10 +239,10 @@
                                                 {{ $alimentacion->lote->unidadProduccion->codigo ?? 'N/A' }}
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                {{ $alimentacion->cantidad_kg }} kg
+                                                {{ $alimentacion->cantidad_kg }} l
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                                ${{ number_format($alimentacion->costo_total, 2) }}
+                                                Q{{ number_format($alimentacion->costo_total, 2) }}
                                             </td>
                                         </tr>
                                     @endforeach

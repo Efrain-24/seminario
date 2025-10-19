@@ -52,7 +52,7 @@
                                                     {{ ucfirst($mantenimiento->estado_mantenimiento) }}
                                                 </span>
                                             </div>
-                                            <a href="{{ route('mantenimiento-unidad.show', $mantenimiento) }}" class="text-blue-600 dark:text-blue-400 hover:underline text-sm">Ver Detalle</a>
+                                            <a href="{{ route('mantenimiento-unidades.show', $mantenimiento) }}" class="text-blue-600 dark:text-blue-400 hover:underline text-sm">Ver Detalle</a>
                                         </li>
                                     @endforeach
                                 </ul>
@@ -136,9 +136,37 @@
                         <div class="border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 p-4">
                             <ul class="space-y-2">
                                 @foreach($actsNorm as $index => $actividad)
-                                    <li class="flex items-start gap-2">
-                                        <span class="text-blue-600 dark:text-blue-400 font-medium">{{ $index + 1 }}.</span>
-                                        <span class="text-gray-900 dark:text-gray-100">{{ $actividad }}</span>
+                                    <li class="flex flex-col gap-2">
+                                        <div class="flex items-start gap-2">
+                                            <span class="text-blue-600 dark:text-blue-400 font-medium">{{ $index + 1 }}.</span>
+                                            @if(is_array($actividad))
+                                                @if(isset($actividad['titulo']))
+                                                    <div>
+                                                        <div class="text-gray-900 dark:text-gray-100 font-medium">{{ $actividad['titulo'] }}</div>
+                                                        @if(!empty($actividad['descripcion']))
+                                                            <div class="text-sm text-gray-700 dark:text-gray-300 mt-1">{{ $actividad['descripcion'] }}</div>
+                                                        @endif
+                                                        @if(!empty($actividad['frecuencia']) || !empty($actividad['responsable']))
+                                                            <div class="text-xs text-gray-500 mt-1">
+                                                                @if(!empty($actividad['frecuencia']))
+                                                                    Frecuencia: {{ $actividad['frecuencia'] }}
+                                                                @endif
+                                                                @if(!empty($actividad['responsable']))
+                                                                    — Responsable: {{ $actividad['responsable'] }}
+                                                                @endif
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                @else
+                                                    {{-- Fallback: implode scalar parts if possible --}}
+                                                    <div class="text-gray-900 dark:text-gray-100">
+                                                        {{ is_array($actividad) ? implode(', ', array_map(fn($v) => is_scalar($v) ? (string)$v : json_encode($v), $actividad)) : $actividad }}
+                                                    </div>
+                                                @endif
+                                            @else
+                                                <div class="text-gray-900 dark:text-gray-100">{{ $actividad }}</div>
+                                            @endif
+                                        </div>
                                     </li>
                                 @endforeach
                             </ul>

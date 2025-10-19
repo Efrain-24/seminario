@@ -132,7 +132,7 @@
                 <div class="bg-gray-50 border rounded-lg p-4 hover:shadow-md transition-shadow">
                     <h3 class="font-semibold text-lg text-gray-800">{{ $lote->codigo }}</h3>
                     <p class="text-gray-600 text-sm">Tanque: {{ $lote->unidadProduccion->nombre ?? 'N/A' }}</p>
-                    <p class="text-gray-600 text-sm">Fecha siembra: {{ $lote->fecha_siembra ? $lote->fecha_siembra->format('d/m/Y') : 'N/A' }}</p>
+                    <p class="text-gray-600 text-sm">Fecha siembra: {{ $lote->fecha_inicio ? $lote->fecha_inicio->format('d/m/Y') : 'N/A' }}</p>
                     <div class="mt-3">
                         <a href="{{ route('reportes.ganancias.reporte', $lote->id) }}" 
                            class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm">

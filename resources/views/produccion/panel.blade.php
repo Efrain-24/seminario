@@ -175,7 +175,7 @@
 
                         <!-- Submódulo Tipos de Alimentos -->
                         <div class="group relative">
-                            <a href="{{ route('tipos-alimentos.index') }}" class="block">
+                            <a href="{{ route('alimentacion.tipos-alimento.index') }}" class="block">
                                 <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 rounded-xl p-6 border border-purple-200 dark:border-purple-700 hover:shadow-lg transition-all duration-300 group-hover:scale-105">
                                     <div class="flex items-center justify-between mb-4">
                                         <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
