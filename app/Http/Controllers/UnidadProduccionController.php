@@ -85,7 +85,11 @@ class UnidadProduccionController extends Controller
      */
     public function show(UnidadProduccion $unidad)
     {
-        $unidad->load(['lotes', 'mantenimientos' => function($query) {
+        $unidad->load(['lotes' => function($query) {
+            $query->with(['seguimientos' => function($subQuery) {
+                $subQuery->orderBy('fecha_seguimiento', 'desc')->limit(1);
+            }]);
+        }, 'mantenimientos' => function($query) {
             $query->orderBy('fecha_mantenimiento', 'desc')->take(10);
         }]);
         

@@ -28,7 +28,12 @@ class CosechaParcial extends Model
         // Campos de venta
         'codigo_venta',
         'cliente',
+        'tipo_cliente',
+        'cliente_nombre',
+        'nombre_cliente',
         'telefono_cliente',
+        'direccion_cliente',
+        'cliente_nit',
         'email_cliente',
         'fecha_venta',
         'precio_kg',

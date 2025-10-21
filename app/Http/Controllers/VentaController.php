@@ -14,11 +14,53 @@ class VentaController extends Controller
 {
     public function index()
     {
-        $ventas = Venta::with(['cosechaParcial.lote'])
-            ->orderBy('fecha_venta', 'desc')
-            ->paginate(15);
+        // Obtener ventas agrupadas por codigo_venta desde cosechas_parciales
+        $ventasAgrupadas = CosechaParcial::with(['lote'])
+            ->where('destino', 'venta')
+            ->whereNotNull('codigo_venta')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->groupBy('codigo_venta');
 
-        return view('ventas.index', compact('ventas'));
+        // Convertir cada grupo en un objeto con datos unificados
+        $ventas = collect();
+        foreach ($ventasAgrupadas as $codigoVenta => $grupoVentas) {
+            $primeraVenta = $grupoVentas->first();
+            $totalVenta = $grupoVentas->sum('total_venta');
+            $totalProductos = $grupoVentas->count();
+            
+            // Crear objeto venta agrupada
+            $ventaAgrupada = (object) [
+                'id' => $primeraVenta->id,
+                'codigo_venta' => $codigoVenta,
+                'cliente' => $primeraVenta->cliente,
+                'cliente_tipo' => $primeraVenta->cliente_tipo,
+                'cliente_nit' => $primeraVenta->cliente_nit,
+                'telefono_cliente' => $primeraVenta->telefono_cliente,
+                'fecha_venta' => $primeraVenta->fecha_venta,
+                'total_venta' => $totalVenta,
+                'estado_venta' => $primeraVenta->estado_venta,
+                'created_at' => $primeraVenta->created_at,
+                'total_productos' => $totalProductos,
+                'productos' => $grupoVentas,
+                'es_venta_agrupada' => true
+            ];
+            
+            $ventas->push($ventaAgrupada);
+        }
+
+        // Paginación manual
+        $page = request()->get('page', 1);
+        $perPage = 15;
+        $ventasPaginadas = new \Illuminate\Pagination\LengthAwarePaginator(
+            $ventas->forPage($page, $perPage),
+            $ventas->count(),
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'pageName' => 'page']
+        );
+
+        return view('ventas.index', ['ventas' => $ventasPaginadas]);
     }
 
     public function create()
@@ -195,6 +237,47 @@ class VentaController extends Controller
         return $pdf->stream('ticket-venta-' . $venta->codigo_venta . '.pdf');
     }
 
+    /**
+     * Ver ticket de venta desde cosecha parcial
+     */
+    public function verTicketCosecha($id)
+    {
+        // Buscar la cosecha parcial que representa la venta
+        $cosechaPrincipal = CosechaParcial::with(['lote'])
+            ->where('id', $id)
+            ->where('destino', 'venta')
+            ->whereNotNull('codigo_venta')
+            ->firstOrFail();
+        
+        // Obtener TODAS las cosechas con el mismo codigo_venta para generar ticket completo
+        $todasLasCosechas = CosechaParcial::with(['lote'])
+            ->where('codigo_venta', $cosechaPrincipal->codigo_venta)
+            ->where('destino', 'venta')
+            ->get();
+        
+        // Crear objeto venta con datos unificados para el ticket
+        $venta = (object) [
+            'id' => $cosechaPrincipal->id,
+            'codigo_venta' => $cosechaPrincipal->codigo_venta,
+            'cliente' => $cosechaPrincipal->cliente,
+            'cliente_tipo' => $cosechaPrincipal->cliente_tipo,
+            'cliente_nit' => $cosechaPrincipal->cliente_nit,
+            'telefono_cliente' => $cosechaPrincipal->telefono_cliente,
+            'fecha_venta' => $cosechaPrincipal->fecha_venta,
+            'created_at' => $cosechaPrincipal->created_at,
+            'total_venta' => $todasLasCosechas->sum('total_venta'),
+            'productos' => $todasLasCosechas,
+            'es_venta_multiple' => $todasLasCosechas->count() > 1
+        ];
+        
+        // Generar el PDF optimizado para impresora térmica
+        $pdf = PDF::loadView('ventas.ticket', compact('venta'));
+        $pdf->setPaper([0, 0, 226.77, 651.97], 'portrait'); // 80mm x 230mm aprox para ticket térmico
+        
+        // Mostrar en el navegador
+        return $pdf->stream('ticket-venta-' . $venta->codigo_venta . '.pdf');
+    }
+
     public function panel()
     {
         $mesActual = Carbon::now();
@@ -208,15 +291,15 @@ class VentaController extends Controller
             ->whereYear('fecha_venta', $mesActual->year)
             ->sum('total');
 
-        $clientesActivos = Venta::whereMonth('fecha_venta', $mesActual->month)
+        // Contar ventas únicas (tanto CF como NIT) basado en ID de venta
+        $ventasRealizadas = Venta::whereMonth('fecha_venta', $mesActual->month)
             ->whereYear('fecha_venta', $mesActual->year)
-            ->distinct('cliente')
-            ->count('cliente');
+            ->count();
 
         return view('ventas.panel', compact(
             'cosechasEsteMes',
             'ventasEsteMes', 
-            'clientesActivos'
+            'ventasRealizadas'
         ));
     }
 }

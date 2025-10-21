@@ -22,8 +22,11 @@
                 <input type="number" name="cantidad_inicial" value="{{ old('cantidad_inicial', $lote->cantidad_inicial) }}" class="w-full border rounded px-3 py-2" min="1" required>
             </div>
             <div>
-                <label class="block mb-2 font-semibold">Peso Promedio Inicial (kg)</label>
-                <input type="number" step="0.01" name="peso_promedio_inicial" value="{{ old('peso_promedio_inicial', $lote->peso_promedio_inicial) }}" class="w-full border rounded px-3 py-2">
+                <label class="block mb-2 font-semibold">Peso Promedio Inicial (gramos)</label>
+                <input type="number" step="0.1" name="peso_promedio_inicial_gramos" 
+                       value="{{ old('peso_promedio_inicial_gramos', $lote->peso_promedio_inicial ? $lote->peso_promedio_inicial * 1000 : '') }}" 
+                       class="w-full border rounded px-3 py-2" placeholder="120.0" min="11" max="990">
+                <p class="text-xs text-gray-500 mt-1">Ingrese el peso en gramos (será convertido automáticamente a kg)</p>
             </div>
             <div>
                 <label class="block mb-2 font-semibold">Talla Promedio Inicial (cm)</label>

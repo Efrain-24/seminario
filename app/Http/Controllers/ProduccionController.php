@@ -24,7 +24,9 @@ class ProduccionController extends Controller
     // === GESTIÓN DE LOTES ===
     public function gestionLotes()
     {
-        $lotes = Lote::with('unidadProduccion')->orderBy('created_at', 'desc')->paginate(10);
+        $lotes = Lote::with(['unidadProduccion', 'seguimientos' => function($query) {
+            $query->orderBy('fecha_seguimiento', 'desc')->limit(1);
+        }])->orderBy('created_at', 'desc')->paginate(10);
         return view('produccion.lotes', compact('lotes'));
     }
 
@@ -39,21 +41,30 @@ class ProduccionController extends Controller
         $validated = $request->validate([
             'especie' => 'required|string',
             'cantidad_inicial' => 'required|integer|min:1',
-            // Peso en kg con tres decimales: 0.011 a 0.99
-            'peso_promedio_inicial' => 'nullable|numeric|min:0.011|max:0.99',
+            // Peso en gramos: 11 a 990 gramos
+            'peso_promedio_inicial_gramos' => 'nullable|numeric|min:11|max:990',
             'talla_promedio_inicial' => 'nullable|numeric|min:0',
+            'precio_libra' => 'nullable|numeric|min:0',
             'fecha_inicio' => 'required|date',
             'unidad_produccion_id' => 'nullable|exists:unidad_produccions,id',
             'observaciones' => 'nullable|string'
         ], [
-            'peso_promedio_inicial.numeric' => 'Permite ingreso promedio de rango 0.011 a 0.99 kg.',
-            'peso_promedio_inicial.min' => 'Permite ingreso promedio de rango 0.011 a 0.99 kg.',
-            'peso_promedio_inicial.max' => 'Permite ingreso promedio de rango 0.011 a 0.99 kg.'
+            'peso_promedio_inicial_gramos.numeric' => 'El peso debe ser un número válido.',
+            'peso_promedio_inicial_gramos.min' => 'El peso debe ser de al menos 11 gramos.',
+            'peso_promedio_inicial_gramos.max' => 'El peso no puede ser mayor a 990 gramos.',
+            'precio_libra.numeric' => 'El precio debe ser un número válido.',
+            'precio_libra.min' => 'El precio no puede ser negativo.'
         ]);
 
         // Generar código automáticamente
         $validated['codigo_lote'] = Lote::generarCodigoLote($validated['especie']);
         $validated['cantidad_actual'] = $validated['cantidad_inicial'];
+        
+        // Convertir peso de gramos a kilogramos para almacenar en la BD
+        if (isset($validated['peso_promedio_inicial_gramos'])) {
+            $validated['peso_promedio_inicial'] = round($validated['peso_promedio_inicial_gramos'] / 1000, 6);
+            unset($validated['peso_promedio_inicial_gramos']); // Remover el campo en gramos
+        }
 
         try {
             // Crear el lote
@@ -96,16 +107,16 @@ class ProduccionController extends Controller
             $validated = $request->validate([
                 'especie' => 'required|string',
                 'cantidad_inicial' => 'sometimes|integer|min:1',
-                // kg entre 0.011 y 0.99
-                'peso_promedio_inicial' => 'nullable|numeric|min:0.011|max:0.99',
+                // gramos entre 11 y 990
+                'peso_promedio_inicial_gramos' => 'nullable|numeric|min:11|max:990',
                 'talla_promedio_inicial' => 'nullable|numeric|min:0',
                 'fecha_inicio' => 'required|date',
                 'unidad_produccion_id' => 'nullable|exists:unidad_produccions,id',
                 'observaciones' => 'nullable|string'
             ], [
-                'peso_promedio_inicial.numeric' => 'Permite ingreso promedio de rango 0.011 a 0.99 kg.',
-                'peso_promedio_inicial.min' => 'Permite ingreso promedio de rango 0.011 a 0.99 kg.',
-                'peso_promedio_inicial.max' => 'Permite ingreso promedio de rango 0.011 a 0.99 kg.'
+                'peso_promedio_inicial_gramos.numeric' => 'El peso debe ser un número válido.',
+                'peso_promedio_inicial_gramos.min' => 'El peso debe ser de al menos 11 gramos.',
+                'peso_promedio_inicial_gramos.max' => 'El peso no puede ser mayor a 990 gramos.'
             ]);
 
             // Asegurar que no intenten modificar el código
@@ -114,6 +125,12 @@ class ProduccionController extends Controller
             // Mantener cantidad_inicial si no la envían
             if (!array_key_exists('cantidad_inicial', $validated)) {
                 $validated['cantidad_inicial'] = $lote->cantidad_inicial;
+            }
+            
+            // Convertir peso de gramos a kilogramos para almacenar en la BD
+            if (isset($validated['peso_promedio_inicial_gramos'])) {
+                $validated['peso_promedio_inicial'] = round($validated['peso_promedio_inicial_gramos'] / 1000, 6);
+                unset($validated['peso_promedio_inicial_gramos']); // Remover el campo en gramos
             }
 
             // Ya viene en kg, no se convierte
@@ -354,19 +371,11 @@ class ProduccionController extends Controller
                 }
             }
             
-            // Guardar insumos si se proporcionaron (como JSON)
-            \Log::info('Verificando insumos en request', [
-                'has_insumos_json' => $request->has('insumos_json'),
-                'insumos_json_raw' => $request->input('insumos_json'),
-                'all_request_keys' => array_keys($request->all())
-            ]);
-            
             // Procesar insumos desde JSON
             if ($request->has('insumos_json')) {
                 $insumosJson = $request->input('insumos_json', '[]');
                 $insumosArray = json_decode($insumosJson, true) ?? [];
                 
-                \Log::info('Guardando insumos desde JSON', ['insumos_array' => $insumosArray, 'count' => count($insumosArray)]);
                 
                 foreach ($insumosArray as $insumoData) {
                     $insumo_id = $insumoData['id'] ?? null;
@@ -383,8 +392,6 @@ class ProduccionController extends Controller
                                 'costo_unitario' => $costo_unitario,
                                 'costo_total' => $costo_total
                             ]);
-                            
-                            \Log::info('Insumo guardado', ['insumo_id' => $insumo_id, 'cantidad' => $cantidad]);
                         }
                     }
                 }
@@ -393,9 +400,7 @@ class ProduccionController extends Controller
             elseif ($request->has('insumos') && is_array($request->input('insumos'))) {
                 $insumos = $request->input('insumos', []);
                 $cantidades = $request->input('cantidades', []);
-                
-                \Log::info('Guardando insumos (formato antiguo)', ['insumos' => $insumos, 'cantidades' => $cantidades]);
-                
+
                 foreach ($insumos as $idx => $insumo_id) {
                     $insumo = \App\Models\InventarioItem::find($insumo_id);
                     if ($insumo) {
@@ -436,12 +441,6 @@ class ProduccionController extends Controller
         $mantenimiento->load(['unidadProduccion', 'usuario', 'insumos']);
         $unidades = UnidadProduccion::where('estado', '!=', 'inactivo')->get();
         $usuarios = User::active()->get();
-        
-        \Log::info('EditMantenimiento Debug', [
-            'mantenimiento_id' => $mantenimiento->id,
-            'unidad_produccion_id' => $mantenimiento->unidad_produccion_id,
-            'unidad_produccion' => $mantenimiento->unidadProduccion?->nombre,
-        ]);
         
         return view('produccion.edit-mantenimiento', compact('mantenimiento', 'unidades', 'usuarios'));
     }
@@ -814,7 +813,7 @@ class ProduccionController extends Controller
             'tipo_seguimiento' => 'required|in:rutinario,muestreo,mortalidad,traslado',
             'cantidad_actual' => 'nullable|integer|min:0',
             'mortalidad' => 'nullable|integer|min:0',
-            'peso_promedio' => 'nullable|numeric|min:0',
+            'peso_promedio_gramos' => 'nullable|numeric|min:1|max:10000',
             'talla_promedio' => 'nullable|numeric|min:0',
             'temperatura_agua' => 'nullable|numeric',
             'ph_agua' => 'nullable|numeric|min:0|max:14',
@@ -826,6 +825,12 @@ class ProduccionController extends Controller
         $cantidad_actual = $request->cantidad_actual !== null ? $request->cantidad_actual : $lote->cantidad_actual;
         // Descontar mortalidad del lote
         $nueva_cantidad = max(0, $cantidad_actual - $mortalidad);
+        
+        // Convertir peso de gramos a kilogramos para almacenar en la BD
+        $peso_promedio_kg = null;
+        if ($request->peso_promedio_gramos) {
+            $peso_promedio_kg = round($request->peso_promedio_gramos / 1000, 6); // Convertir g a kg con 6 decimales
+        }
         $seguimiento = Seguimiento::create([
             'lote_id' => $lote->id,
             'user_id' => Auth::id(),
@@ -833,7 +838,7 @@ class ProduccionController extends Controller
             'tipo_seguimiento' => $request->tipo_seguimiento,
             'cantidad_actual' => $nueva_cantidad,
             'mortalidad' => $mortalidad,
-            'peso_promedio' => $request->peso_promedio,
+            'peso_promedio' => $peso_promedio_kg,
             'talla_promedio' => $request->talla_promedio,
             'temperatura_agua' => $request->temperatura_agua,
             'ph_agua' => $request->ph_agua,
@@ -842,7 +847,7 @@ class ProduccionController extends Controller
         ]);
 
         // Actualizar cantidad_actual y total_peso en el lote
-        $peso_promedio = $request->peso_promedio ?? $lote->peso_promedio_inicial;
+        $peso_promedio = $peso_promedio_kg ?? $lote->peso_promedio_inicial;
         $total_peso = round($nueva_cantidad * $peso_promedio, 2);
         $updateData = ['cantidad_actual' => $nueva_cantidad];
         if (\Illuminate\Support\Facades\Schema::hasColumn('lotes', 'total_peso')) {

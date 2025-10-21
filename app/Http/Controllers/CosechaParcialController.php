@@ -16,21 +16,76 @@ class CosechaParcialController extends Controller
 {
     public function index()
     {
-    $q = CosechaParcial::with('lote')->latest('fecha');
-    if ($loteId = request('lote_id')) $q->where('lote_id', $loteId);
-    if ($desde  = request('desde'))   $q->whereDate('fecha', '>=', $desde);
-    if ($hasta  = request('hasta'))   $q->whereDate('fecha', '<=', $hasta);
+        $q = CosechaParcial::with('lote')->latest('fecha');
+        if ($loteId = request('lote_id')) $q->where('lote_id', $loteId);
+        if ($desde  = request('desde'))   $q->whereDate('fecha', '>=', $desde);
+        if ($hasta  = request('hasta'))   $q->whereDate('fecha', '<=', $hasta);
 
-    $cosechas = $q->paginate(12)->withQueryString();
-    $lotes = \App\Models\Lote::orderBy('codigo_lote')->get(['id', 'codigo_lote']);
-    return view('cosechas.index', compact('cosechas', 'lotes'));
+        // Obtener todas las cosechas
+        $todasLasCosechas = $q->get();
+        
+        // Agrupar por código de venta para las ventas, mostrar individual para otros destinos
+        $cosechasAgrupadas = $todasLasCosechas->groupBy(function($cosecha) {
+            // Si es venta y tiene código, agrupar por código
+            if ($cosecha->destino === 'venta' && $cosecha->codigo_venta) {
+                return 'venta_' . $cosecha->codigo_venta;
+            }
+            // Si no es venta o no tiene código, mostrar individual
+            return 'individual_' . $cosecha->id;
+        })->map(function($grupo) {
+            $primera = $grupo->first();
+            
+            // Si es un grupo de venta (múltiples registros con mismo código)
+            if ($grupo->count() > 1 && $primera->destino === 'venta') {
+                return (object) [
+                    'es_grupo_venta' => true,
+                    'codigo_venta' => $primera->codigo_venta,
+                    'fecha' => $primera->fecha,
+                    'fecha_venta' => $primera->fecha_venta,
+                    'tipo_cliente' => $primera->tipo_cliente,
+                    'cliente_nombre' => $primera->cliente_nombre,
+                    'cliente_nit' => $primera->cliente_nit,
+                    'total_venta' => $grupo->sum('total_venta'),
+                    'cantidad_productos' => $grupo->count(),
+                    'peso_total' => $grupo->sum('peso_cosechado_kg'),
+                    'estado_venta' => $primera->estado_venta,
+                    'detalles' => $grupo, // Todos los productos de la venta
+                    'created_at' => $primera->created_at
+                ];
+            }
+            
+            // Si es registro individual
+            return (object) [
+                'es_grupo_venta' => false,
+                'cosecha' => $primera
+            ];
+        })->sortByDesc('created_at');
+
+        // Paginar manualmente los resultados agrupados
+        $page = request('page', 1);
+        $perPage = 12;
+        $total = $cosechasAgrupadas->count();
+        $items = $cosechasAgrupadas->slice(($page - 1) * $perPage, $perPage);
+        
+        $cosechas = new \Illuminate\Pagination\LengthAwarePaginator(
+            $items,
+            $total,
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'pageName' => 'page']
+        );
+        $cosechas->withQueryString();
+
+        $lotes = \App\Models\Lote::orderBy('codigo_lote')->get(['id', 'codigo_lote']);
+        return view('cosechas.index', compact('cosechas', 'lotes'));
     }
 
     public function create()
     {
-        // Usamos codigo_lote como "nombre" para el <select>
-        $lotes = Lote::orderBy('codigo_lote')
-            ->get(['id', 'codigo_lote as nombre', 'cantidad_actual']);
+        // Obtener lotes activos con código y especie
+        $lotes = Lote::where('estado', 'activo')
+            ->orderBy('codigo_lote')
+            ->get(['id', 'codigo_lote', 'especie', 'cantidad_actual']);
 
         // Obtener tipo de cambio actual GTQ a USD
         $tipoCambio = TipoCambio::actual()?->valor ?? 7.8;
@@ -425,5 +480,208 @@ class CosechaParcialController extends Controller
             ->route('produccion.cosechas.show', $cosecha)
             ->with('success', 'Venta completada exitosamente.')
             ->with('ticket_disponible', true);
+    }
+
+    /**
+     * Mostrar vista de factura para crear múltiples cosechas
+     */
+    public function createFactura()
+    {
+        $lotes = Lote::where('estado', 'activo')
+                    ->where('cantidad_actual', '>', 0)
+                    ->with('unidadProduccion')
+                    ->orderBy('codigo_lote')
+                    ->get();
+
+        return view('cosechas.factura', compact('lotes'));
+    }
+
+    /**
+     * Guardar múltiples cosechas desde la vista estilo factura
+     */
+    public function storeMultiple(Request $request)
+    {
+        // TEMPORAL: Debug para ver qué llega
+        \Illuminate\Support\Facades\Log::info('=== DATOS RECIBIDOS EN CONTROLADOR ===', [
+            'tipo_cliente' => $request->tipo_cliente,
+            'cliente_nombre' => $request->cliente_nombre,
+            'cliente_nit' => $request->cliente_nit,
+            'productos' => $request->productos,
+            'all_request' => $request->all()
+        ]);
+
+        // Validar datos básicos
+        $request->validate([
+            'tipo_cliente' => 'required|in:CF,NIT',
+            'cliente_nombre' => 'required_if:tipo_cliente,NIT|nullable|string|max:255',
+            'cliente_nit' => 'required_if:tipo_cliente,NIT|nullable|string|max:15',
+            'productos' => 'required|array|min:1',
+            'productos.*.lote_id' => 'required|integer|exists:lotes,id',
+            'productos.*.cantidad_peces' => 'required|integer|min:1',
+            'productos.*.peso_libras' => 'required|numeric|min:0.01'
+        ], [
+            'cliente_nombre.required_if' => 'El nombre del cliente es obligatorio para clientes con NIT.',
+            'cliente_nit.required_if' => 'El NIT es obligatorio para clientes con NIT.',
+            'productos.required' => 'Debe agregar al menos un producto.',
+            'productos.*.lote_id.required' => 'Cada producto debe tener un lote válido.',
+            'productos.*.cantidad_peces.required' => 'Cada producto debe tener una cantidad de peces.',
+            'productos.*.peso_libras.required' => 'Cada producto debe tener un peso en libras.'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // DEBUG: Log de datos recibidos
+            \Illuminate\Support\Facades\Log::info('=== DATOS RECIBIDOS EN STORE MULTIPLE ===', [
+                'tipo_cliente' => $request->tipo_cliente,
+                'cliente_nombre' => $request->cliente_nombre,
+                'cliente_nit' => $request->cliente_nit,
+                'productos_count' => count($request->productos ?? [])
+            ]);
+
+            // Obtener precio por libra actual
+            $precioLibraModel = \App\Models\PrecioLibra::precioActual();
+            if (!$precioLibraModel) {
+                throw new \Exception('No hay precio por libra configurado. Configure el precio en su perfil.');
+            }
+            
+            $precioLibra = $precioLibraModel->precio; // Extraer el valor del precio
+
+            // Generar número de venta único
+            $numeroVenta = $this->generarNumeroVenta();
+            $fechaVenta = now()->toDateString();
+            $userId = Auth::id();
+
+            // Calcular totales
+            $totalVenta = 0;
+            $cosechasCreadas = [];
+
+            // Procesar cada producto como un detalle de la misma venta
+            foreach ($request->productos as $producto) {
+                $lote = Lote::lockForUpdate()->find($producto['lote_id']);
+                
+                if (!$lote) {
+                    throw new \Exception("El lote con ID {$producto['lote_id']} no existe.");
+                }
+
+                if ($lote->cantidad_actual < $producto['cantidad_peces']) {
+                    throw new \Exception("El lote {$lote->codigo_lote} ({$lote->especie}) no tiene suficientes peces. Disponible: {$lote->cantidad_actual}, solicitado: {$producto['cantidad_peces']}");
+                }
+
+                // Calcular subtotal para este producto
+                $pesoLibras = (float) $producto['peso_libras'];
+                $subtotal = $pesoLibras * $precioLibra;
+                $totalVenta += $subtotal;
+
+                // Crear registro de cosecha con el mismo número de venta (SIN UNIQUE)
+                $cosecha = CosechaParcial::create([
+                    'lote_id' => $producto['lote_id'],
+                    'fecha' => $fechaVenta,
+                    'cantidad_cosechada' => $producto['cantidad_peces'],
+                    'peso_cosechado_kg' => $pesoLibras * 0.453592, // Convertir libras a kg
+                    'destino' => 'venta',
+                    'responsable' => Auth::user()->name,
+                    'observaciones' => "Venta #{$numeroVenta} - {$lote->especie} ({$lote->codigo_lote})",
+                    'user_id' => $userId,
+                    'precio_kg' => $precioLibra / 0.453592, // Precio por kg
+                    'total_venta' => $subtotal,
+                    'estado_venta' => 'completada',
+                    'fecha_venta' => now(),
+                    'codigo_venta' => $numeroVenta, // MISMO CÓDIGO PARA TODOS LOS PRODUCTOS
+                    'tipo_cliente' => $request->tipo_cliente,
+                    'cliente_nombre' => $request->tipo_cliente === 'CF' ? 'Consumidor Final' : $request->cliente_nombre,
+                    'cliente_nit' => $request->tipo_cliente === 'CF' ? null : $request->cliente_nit,
+                    'nombre_cliente' => $request->tipo_cliente === 'CF' ? 'Consumidor Final' : $request->cliente_nombre,
+                    'direccion_cliente' => null,
+                    'telefono_cliente' => null
+                ]);
+
+                // Actualizar stock del lote
+                $lote->cantidad_actual -= $producto['cantidad_peces'];
+                $lote->save();
+
+                $cosechasCreadas[] = [
+                    'id' => $cosecha->id,
+                    'lote_codigo' => $lote->codigo_lote,
+                    'especie' => $lote->especie,
+                    'cantidad_peces' => $producto['cantidad_peces'],
+                    'peso_libras' => $pesoLibras,
+                    'precio_libra' => $precioLibra,
+                    'subtotal' => $subtotal
+                ];
+            }
+
+            DB::commit();
+
+            \Illuminate\Support\Facades\Log::info('=== VENTA CREADA EXITOSAMENTE ===', [
+                'numero_venta' => $numeroVenta,
+                'total_productos' => count($cosechasCreadas),
+                'total_venta' => $totalVenta,
+                'cliente' => $request->tipo_cliente === 'CF' ? 'Consumidor Final' : $request->cliente_nombre
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Venta #{$numeroVenta} registrada exitosamente con " . count($cosechasCreadas) . " productos.",
+                'data' => [
+                    'numero_venta' => $numeroVenta,
+                    'total_productos' => count($cosechasCreadas),
+                    'total_venta' => $totalVenta,
+                    'productos' => $cosechasCreadas,
+                    'cliente' => [
+                        'tipo' => $request->tipo_cliente,
+                        'nombre' => $request->tipo_cliente === 'CF' ? 'Consumidor Final' : $request->cliente_nombre,
+                        'nit' => $request->tipo_cliente === 'CF' ? null : $request->cliente_nit
+                    ]
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            \Illuminate\Support\Facades\Log::error('=== ERROR AL CREAR VENTA ===', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al procesar la venta: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function generarNumeroVenta()
+    {
+        $year = date('Y');
+        $lastNumber = CosechaParcial::whereYear('fecha', $year)
+            ->whereNotNull('codigo_venta')
+            ->orderBy('codigo_venta', 'desc')
+            ->value('codigo_venta');
+
+        if ($lastNumber) {
+            $number = intval(substr($lastNumber, -6)) + 1;
+        } else {
+            $number = 1;
+        }
+
+        return $year . str_pad($number, 6, '0', STR_PAD_LEFT);
+    }
+
+    private function extraerProductosDelRequest(Request $request)
+    {
+        $productos = [];
+        
+        if ($request->has('productos')) {
+            foreach ($request->productos as $producto) {
+                $productos[] = [
+                    'lote_id' => $producto['lote_id'],
+                    'cantidad_peces' => $producto['cantidad_peces'],
+                    'peso_libras' => $producto['peso_libras']
+                ];
+            }
+        }
+        
+        return $productos;
     }
 }

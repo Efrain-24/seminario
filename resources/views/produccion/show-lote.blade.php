@@ -215,7 +215,7 @@
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                            Datos Biométricos Iniciales
+                            Datos Biométricos
                         </h3>
                         <div class="space-y-4">
                             @if($lote->peso_promedio_inicial)
@@ -223,7 +223,16 @@
                                     <span class="text-gray-600 dark:text-gray-400">Peso Promedio Inicial:</span>
                                     <span class="text-lg font-semibold text-gray-900 dark:text-gray-100">
                                         {{ number_format($lote->peso_promedio_inicial * 1000, 1) }}g 
-                                        <span class="text-sm text-gray-500">({{ number_format($lote->peso_promedio_inicial, 3) }} kg)</span>
+                                        <span class="text-sm text-gray-500">({{ number_format($lote->peso_promedio_inicial * 2.20462, 3) }} lb)</span>
+                                    </span>
+                                </div>
+                                
+                                <!-- Peso inicial por individuo -->
+                                <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                                    <span class="text-gray-600 dark:text-gray-400 font-medium">Peso Inicial por Individuo:</span>
+                                    <span class="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                                        {{ number_format($lote->peso_promedio_inicial * 1000, 1) }}g/pez 
+                                        <span class="text-sm">({{ number_format($lote->peso_promedio_inicial * 2.20462, 3) }} lb/pez)</span>
                                     </span>
                                 </div>
                             @endif
@@ -233,9 +242,29 @@
                                     <span class="text-gray-600 dark:text-gray-400 font-medium">Peso Promedio Actual:</span>
                                     <span class="text-lg font-semibold text-blue-600 dark:text-blue-400">
                                         {{ number_format($lote->peso_promedio_actual * 1000, 1) }}g 
-                                        <span class="text-sm">({{ number_format($lote->peso_promedio_actual, 3) }} kg)</span>
+                                        <span class="text-sm">({{ number_format($lote->peso_promedio_actual * 2.20462, 3) }} lb)</span>
                                     </span>
                                 </div>
+                                
+                                <!-- Peso actual por individuo -->
+                                <div class="flex justify-between items-center bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg">
+                                    <span class="text-gray-600 dark:text-gray-400 font-medium">Peso Actual por Individuo:</span>
+                                    <span class="text-lg font-semibold text-purple-600 dark:text-purple-400">
+                                        {{ number_format($lote->peso_promedio_actual * 1000, 1) }}g/pez 
+                                        <span class="text-sm">({{ number_format($lote->peso_promedio_actual * 2.20462, 3) }} lb/pez)</span>
+                                    </span>
+                                </div>
+                                
+                                @if($lote->peso_promedio_inicial && $lote->peso_promedio_actual > $lote->peso_promedio_inicial)
+                                    <!-- Crecimiento por individuo -->
+                                    <div class="flex justify-between items-center bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg border-l-4 border-yellow-400">
+                                        <span class="text-gray-600 dark:text-gray-400 font-medium">Crecimiento por Individuo:</span>
+                                        <span class="text-lg font-semibold text-yellow-600 dark:text-yellow-400">
+                                            +{{ number_format(($lote->peso_promedio_actual - $lote->peso_promedio_inicial) * 1000, 1) }}g/pez
+                                            <span class="text-sm">(+{{ number_format(($lote->peso_promedio_actual - $lote->peso_promedio_inicial) * 2.20462, 3) }} lb/pez)</span>
+                                        </span>
+                                    </div>
+                                @endif
                             @endif
                             
                             @if($lote->talla_promedio_inicial)
@@ -248,7 +277,7 @@
                             @if($lote->biomasa > 0)
                                 <div class="flex justify-between items-center bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
                                     <span class="text-gray-600 dark:text-gray-400 font-medium">Biomasa Actual:</span>
-                                    <span class="text-lg font-semibold text-green-600 dark:text-green-400">{{ number_format($lote->biomasa, 2) }} kg</span>
+                                    <span class="text-lg font-semibold text-green-600 dark:text-green-400">{{ number_format($lote->biomasa * 2.20462, 2) }} lb</span>
                                 </div>
                             @endif
 

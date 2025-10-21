@@ -35,13 +35,6 @@
                 <div class="p-6">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Lista de Lotes</h3>
 
-                    @php
-                        // ✅ Se usa with() para traer la relación correctamente y mantener paginación
-                        $lotes = \App\Models\Lote::with('unidadProduccion')
-                            ->orderByDesc('fecha_inicio')
-                            ->paginate(10);
-                    @endphp
-
                     @if($lotes->isNotEmpty())
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -51,6 +44,7 @@
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Especie</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Unidad</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Cantidad</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Peso Actual</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Estado</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Fecha Inicio</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Acciones</th>
@@ -81,7 +75,29 @@
 
                                             <!-- Cantidad -->
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                                {{ number_format($lote->cantidad_inicial ?? 0) }}
+                                                <div class="font-semibold">{{ number_format($lote->cantidad_actual ?? $lote->cantidad_inicial ?? 0) }}</div>
+                                                <div class="text-xs text-gray-500">de {{ number_format($lote->cantidad_inicial ?? 0) }} inicial</div>
+                                            </td>
+
+                                            <!-- Peso Actual -->
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                                @if($lote->peso_promedio_actual && $lote->peso_promedio_actual != $lote->peso_promedio_inicial)
+                                                    <div class="font-semibold text-green-600">
+                                                        {{ number_format($lote->peso_promedio_actual * 1000, 1) }}g
+                                                    </div>
+                                                    <div class="text-xs text-gray-500">
+                                                        actual
+                                                    </div>
+                                                @elseif($lote->peso_promedio_inicial)
+                                                    <div class="font-semibold text-gray-600">
+                                                        {{ number_format($lote->peso_promedio_inicial * 1000, 1) }}g
+                                                    </div>
+                                                    <div class="text-xs text-gray-500">
+                                                        inicial
+                                                    </div>
+                                                @else
+                                                    <span class="text-gray-400 text-sm">Sin datos</span>
+                                                @endif
                                             </td>
 
                                             <!-- Estado -->

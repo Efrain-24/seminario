@@ -180,6 +180,9 @@
                                         Cantidad
                                     </th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Peso Actual
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         Estado
                                     </th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -202,8 +205,26 @@
                                         </td>
                                         <td class="px-4 py-4 whitespace-nowrap">
                                             <div class="text-sm text-gray-900 dark:text-gray-100">
-                                                {{ number_format($lote->cantidad_inicial ?? 0) }}
+                                                {{ number_format($lote->cantidad_actual ?? $lote->cantidad_inicial ?? 0) }}
                                             </div>
+                                            <div class="text-xs text-gray-500">
+                                                de {{ number_format($lote->cantidad_inicial ?? 0) }} inicial
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-4 whitespace-nowrap">
+                                            @if($lote->peso_promedio_actual && $lote->peso_promedio_actual != $lote->peso_promedio_inicial)
+                                                <div class="text-sm font-semibold text-green-600">
+                                                    {{ number_format($lote->peso_promedio_actual * 1000, 1) }}g
+                                                </div>
+                                                <div class="text-xs text-gray-500">actual</div>
+                                            @elseif($lote->peso_promedio_inicial)
+                                                <div class="text-sm text-gray-600">
+                                                    {{ number_format($lote->peso_promedio_inicial * 1000, 1) }}g
+                                                </div>
+                                                <div class="text-xs text-gray-500">inicial</div>
+                                            @else
+                                                <span class="text-gray-400 text-xs">Sin datos</span>
+                                            @endif
                                         </td>
                                         <td class="px-4 py-4 whitespace-nowrap">
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">

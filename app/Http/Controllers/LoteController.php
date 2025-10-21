@@ -15,12 +15,13 @@ class LoteController extends Controller
 {
     public function index()
     {
-        $lotes = Lote::with(['unidadProduccion', 'seguimientos'])
-            ->where('estado', 'activo')
-            ->orderBy('created_at', 'desc')
+        $lotes = Lote::with(['unidadProduccion', 'seguimientos' => function($query) {
+            $query->orderBy('fecha_seguimiento', 'desc')->limit(1);
+        }])
+            ->orderByDesc('fecha_inicio')
             ->paginate(10);
 
-        return view('produccion.lotes', compact('lotes'));
+        return view('lotes.index', compact('lotes'));
     }
 
     public function show(Lote $lote)

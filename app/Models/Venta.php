@@ -5,53 +5,49 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Carbon\Carbon;
 
 class Venta extends Model
 {
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'codigo_venta',
-        'cliente',
-        'telefono_cliente',
-        'email_cliente',
+        'numero_venta',
+        'año',
+        'correlativo',
         'fecha_venta',
-        'cantidad_kg',
-        'precio_kg',
+        'hora_venta',
+        'tipo_cliente',
+        'cliente_nombre',
+        'cliente_nit',
+        'subtotal',
+        'impuestos',
         'total',
-        'tipo_cambio',
-        'total_usd',
         'metodo_pago',
         'estado',
         'observaciones',
-        'cosecha_parcial_id'
+        'user_id'
     ];
 
     protected $casts = [
         'fecha_venta' => 'date',
-        'cantidad_kg' => 'decimal:2',
-        'precio_kg' => 'decimal:2',
+        'hora_venta' => 'datetime:H:i:s',
+        'subtotal' => 'decimal:2',
+        'impuestos' => 'decimal:2',
         'total' => 'decimal:2',
-        'tipo_cambio' => 'decimal:4',
-        'total_usd' => 'decimal:2'
+        'año' => 'integer',
+        'correlativo' => 'integer'
     ];
 
     // Relaciones
-    public function cosechaParcial()
-    {
-        return $this->belongsTo(CosechaParcial::class);
-    }
-
-    public function lote()
-    {
-        return $this->hasOneThrough(Lote::class, CosechaParcial::class, 'id', 'id', 'cosecha_parcial_id', 'lote_id');
-    }
-
-
-    // Relación con detalles de venta
     public function detalles()
     {
         return $this->hasMany(DetalleVenta::class);
+    }
+
+    public function usuario()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     // Scopes
@@ -70,19 +66,29 @@ class Venta extends Model
         return $query->where('estado', 'cancelada');
     }
 
-    // Mutators
-    public function setCodigoVentaAttribute($value)
+    public function scopeDelAño($query, $año = null)
     {
-        if (!$value) {
-            $this->attributes['codigo_venta'] = 'V-' . date('Y') . '-' . str_pad(
-                (static::whereYear('created_at', date('Y'))->count() + 1), 
-                4, 
-                '0', 
-                STR_PAD_LEFT
-            );
-        } else {
-            $this->attributes['codigo_venta'] = $value;
-        }
+        $año = $año ?? date('Y');
+        return $query->where('año', $año);
+    }
+
+    // Métodos estáticos
+    public static function generarNumeroVenta()
+    {
+        $año = date('Y');
+        
+        // Obtener el último correlativo del año
+        $ultimaVenta = self::where('año', $año)->orderBy('correlativo', 'desc')->first();
+        $nuevoCorrelativo = $ultimaVenta ? $ultimaVenta->correlativo + 1 : 1;
+        
+        // Formato: 2025000001 (año + correlativo de 6 dígitos)
+        $numeroVenta = $año . str_pad($nuevoCorrelativo, 6, '0', STR_PAD_LEFT);
+        
+        return [
+            'numero_venta' => $numeroVenta,
+            'año' => $año,
+            'correlativo' => $nuevoCorrelativo
+        ];
     }
 
     // Accessors
@@ -107,5 +113,12 @@ class Venta extends Model
         ];
 
         return $metodos[$this->metodo_pago] ?? 'bg-gray-100 text-gray-800';
+    }
+
+    public function getTipoClienteBadgeAttribute()
+    {
+        return $this->tipo_cliente === 'CF' 
+            ? 'bg-blue-100 text-blue-800' 
+            : 'bg-green-100 text-green-800';
     }
 }

@@ -23,6 +23,7 @@ class Lote extends Model
         'cantidad_actual',
         'peso_promedio_inicial',
         'talla_promedio_inicial',
+        'precio_libra',
         'fecha_inicio',
         'unidad_produccion_id',
         'estado',
@@ -33,6 +34,7 @@ class Lote extends Model
         'fecha_inicio' => 'date',
         'peso_promedio_inicial' => 'decimal:2',
         'talla_promedio_inicial' => 'decimal:2',
+        'precio_libra' => 'decimal:2',
     ];
 
     // Relaciones

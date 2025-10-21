@@ -425,6 +425,9 @@ Route::middleware(['auth'])->group(function () {
     // Rutas para tickets de venta
     Route::get('ventas/{venta}/ticket/descargar', [VentaController::class, 'generarTicket'])->name('ventas.ticket.descargar');
     Route::get('ventas/{venta}/ticket/ver', [VentaController::class, 'verTicket'])->name('ventas.ticket.ver');
+    
+    // Ruta para tickets desde cosechas parciales (ventas)
+    Route::get('cosechas/{id}/ticket', [VentaController::class, 'verTicketCosecha'])->name('cosechas.ticket.ver');
 });
 
 /* Rutas de Trazabilidad de Cosechas (deshabilitadas temporalmente)
@@ -533,6 +536,10 @@ Route::middleware(['auth', 'redirect.temp.password'])->prefix('produccion')->nam
     Route::post('/control/lote/{lote}/peso',   [ControlProduccionController::class, 'predecirParaPeso'])->name('control.pred.peso');
 
     // Registro de Cosechas Parciales
+    // Rutas específicas ANTES del resource para evitar conflictos
+    Route::get('cosechas/crear/factura', [CosechaParcialController::class, 'createFactura'])->name('cosechas.create-factura');
+    Route::post('cosechas/guardar-multiple', [CosechaParcialController::class, 'storeMultiple'])->name('cosechas.guardar-multiple');
+    
     Route::resource('cosechas', CosechaParcialController::class)
         ->parameters(['cosechas' => 'cosecha'])   // para usar {cosecha} en vez de {cosechas}
         ->names('cosechas');
@@ -839,5 +846,27 @@ Route::get('/compras/insumos', function () {
 
         return view('compras.insumos', compact('comprasInsumos'));
     })->name('compras.insumos');
+
+// Rutas para Generador de Datos de Prueba (sin protección de auth)
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('/generador-datos', [App\Http\Controllers\GeneradorDatosController::class, 'index'])->name('generador.index');
+    Route::post('/generador/cosechas', [App\Http\Controllers\GeneradorDatosController::class, 'generarCosechas'])->name('generador.cosechas');
+    Route::post('/generador/ventas', [App\Http\Controllers\GeneradorDatosController::class, 'generarVentas'])->name('generador.ventas');
+    Route::delete('/generador/limpiar-cosechas', [App\Http\Controllers\GeneradorDatosController::class, 'limpiarCosechas'])->name('generador.limpiar-cosechas');
+    Route::delete('/generador/limpiar-ventas', [App\Http\Controllers\GeneradorDatosController::class, 'limpiarVentas'])->name('generador.limpiar-ventas');
+});
+
+// Rutas para gestión de precios por libra
+Route::middleware(['auth', 'redirect.temp.password'])->group(function () {
+    Route::post('/precio-libra', [App\Http\Controllers\PrecioLibraController::class, 'store'])->name('precio-libra.store');
+});
+
+// Ruta temporal para debugging lotes
+Route::get('/debug/lotes', function () {
+    $lotes = \App\Models\Lote::where('estado', 'activo')
+        ->orderBy('codigo_lote')
+        ->get(['id', 'codigo_lote', 'especie', 'cantidad_actual']);
+    return response()->json($lotes);
+});
 
 require __DIR__ . '/auth.php';

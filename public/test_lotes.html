@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test de Lotes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="p-8">
+    <h1 class="text-2xl font-bold mb-4">Test de Datos de Lotes</h1>
+    
+    <div class="mb-4">
+        <label class="block text-sm font-medium mb-2">Seleccionar Lote:</label>
+        <select id="select_lote" class="px-3 py-2 border border-gray-300 rounded-md">
+            <option value="">Agregar artículo...</option>
+        </select>
+        <button onclick="agregarLinea()" class="ml-2 px-4 py-2 bg-green-600 text-white rounded-md">
+            Agregar
+        </button>
+    </div>
+    
+    <div id="info" class="p-4 bg-gray-100 rounded-md">
+        <h3 class="font-bold">Información del lote seleccionado:</h3>
+        <div id="detalles"></div>
+    </div>
+    
+    <table id="tabla_productos" class="w-full mt-4 border">
+        <thead>
+            <tr class="bg-gray-50">
+                <th class="px-4 py-3 border">Código</th>
+                <th class="px-4 py-3 border">Concepto</th>
+                <th class="px-4 py-3 border">Cantidad</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    
+    <script>
+        // Simular los datos que llegan de Laravel
+        let lotes = [
+            {
+                "id": 5,
+                "codigo_lote": "CAR-2025-001",
+                "especie": "Carpa",
+                "cantidad_actual": 1335
+            },
+            {
+                "id": 1,
+                "codigo_lote": "TIL-2025-001",
+                "especie": "Tilapia Nilótica",
+                "cantidad_actual": 450
+            },
+            {
+                "id": 3,
+                "codigo_lote": "TIL-2025-002",
+                "especie": "Tilapia Nilótica",
+                "cantidad_actual": 4800
+            },
+            {
+                "id": 2,
+                "codigo_lote": "TRU-2025-001",
+                "especie": "Trucha Arcoíris",
+                "cantidad_actual": 1480
+            }
+        ];
+        
+        console.log('Datos de lotes:', lotes);
+        
+        // Poblar el select
+        const select = document.getElementById('select_lote');
+        lotes.forEach(lote => {
+            const option = document.createElement('option');
+            option.value = lote.id;
+            option.textContent = `${lote.especie} - ${lote.codigo_lote} (${lote.cantidad_actual} peces)`;
+            option.dataset.nombre = lote.especie || 'Pescado';
+            option.dataset.disponible = lote.cantidad_actual || 0;
+            option.dataset.codigo = lote.codigo_lote || lote.id;
+            option.dataset.especie = lote.especie || 'No especificada';
+            select.appendChild(option);
+        });
+        
+        // Función para mostrar información del lote seleccionado
+        select.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const detalles = document.getElementById('detalles');
+            
+            if (selectedOption.value) {
+                detalles.innerHTML = `
+                    <p><strong>ID:</strong> ${selectedOption.value}</p>
+                    <p><strong>Código:</strong> ${selectedOption.dataset.codigo}</p>
+                    <p><strong>Especie:</strong> ${selectedOption.dataset.especie}</p>
+                    <p><strong>Disponible:</strong> ${selectedOption.dataset.disponible}</p>
+                    <p><strong>Data completo:</strong> ${JSON.stringify(selectedOption.dataset)}</p>
+                `;
+            } else {
+                detalles.innerHTML = 'Ningún lote seleccionado';
+            }
+        });
+        
+        function agregarLinea() {
+            const selectedOption = select.options[select.selectedIndex];
+            
+            if (!selectedOption.value) {
+                alert('Por favor selecciona un artículo');
+                return;
+            }
+            
+            const loteId = selectedOption.value;
+            const especie = selectedOption.dataset.especie || selectedOption.dataset.nombre || 'Pescado';
+            const disponible = parseInt(selectedOption.dataset.disponible);
+            const codigo = selectedOption.dataset.codigo;
+            
+            console.log('Datos del lote seleccionado:', {
+                loteId: loteId,
+                especie: especie,
+                codigo: codigo,
+                disponible: disponible,
+                datasetCompleto: selectedOption.dataset
+            });
+            
+            const tabla = document.getElementById('tabla_productos').getElementsByTagName('tbody')[0];
+            const nuevaFila = document.createElement('tr');
+            nuevaFila.innerHTML = `
+                <td class="px-4 py-3 border">${codigo}</td>
+                <td class="px-4 py-3 border">${especie}</td>
+                <td class="px-4 py-3 border text-center">${disponible}</td>
+            `;
+            tabla.appendChild(nuevaFila);
+        }
+    </script>
+</body>
+</html>

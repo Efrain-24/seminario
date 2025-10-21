@@ -54,6 +54,12 @@
                                         Cantidad
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Peso Actual
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Precio/lb
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         Unidad
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -93,15 +99,50 @@
                                                 <span class="font-semibold">{{ number_format($lote->cantidad_actual) }}</span> 
                                                 <span class="text-gray-500">/ {{ number_format($lote->cantidad_inicial) }}</span>
                                             </div>
-                                            @if($lote->peso_promedio_actual)
-                                                <div class="text-xs text-gray-500">
+                                            @if($lote->peso_promedio_actual && $lote->peso_promedio_actual != $lote->peso_promedio_inicial)
+                                                <div class="text-xs text-green-600 font-medium">
                                                     Peso actual: {{ number_format($lote->peso_promedio_actual * 1000, 1) }}g
                                                 </div>
-                                            @endif
-                                            @if($lote->peso_promedio_inicial)
+                                            @elseif($lote->peso_promedio_inicial)
                                                 <div class="text-xs text-gray-500">
-                                                    Biomasa: {{ number_format($lote->biomasa, 2) }} kg
+                                                    Peso inicial: {{ number_format($lote->peso_promedio_inicial * 1000, 1) }}g
                                                 </div>
+                                            @endif
+                                            @if($lote->biomasa > 0)
+                                                <div class="text-xs text-blue-600">
+                                                    Biomasa: {{ number_format($lote->biomasa * 2.20462, 2) }} lb
+                                                </div>
+                                            @endif
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                            @if($lote->peso_promedio_actual && $lote->peso_promedio_actual != $lote->peso_promedio_inicial)
+                                                <div class="font-semibold text-green-600">
+                                                    {{ number_format($lote->peso_promedio_actual * 1000, 1) }}g
+                                                </div>
+                                                <div class="text-xs text-gray-500">
+                                                    actual (vs {{ number_format($lote->peso_promedio_inicial * 1000, 1) }}g inicial)
+                                                </div>
+                                            @elseif($lote->peso_promedio_inicial)
+                                                <div class="font-semibold text-gray-600">
+                                                    {{ number_format($lote->peso_promedio_inicial * 1000, 1) }}g
+                                                </div>
+                                                <div class="text-xs text-gray-500">
+                                                    peso inicial
+                                                </div>
+                                            @else
+                                                <span class="text-gray-400 text-sm">Sin datos</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                            @if($lote->precio_libra)
+                                                <div class="font-semibold text-green-600">
+                                                    Q{{ number_format($lote->precio_libra, 2) }}
+                                                </div>
+                                                <div class="text-xs text-gray-500">
+                                                    por libra
+                                                </div>
+                                            @else
+                                                <span class="text-gray-400 text-sm">Sin precio</span>
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
@@ -146,7 +187,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="px-6 py-4 text-center text-gray-500 dark:text-gray-300">
+                                        <td colspan="8" class="px-6 py-4 text-center text-gray-500 dark:text-gray-300">
                                             No hay lotes registrados.
                                         </td>
                                     </tr>

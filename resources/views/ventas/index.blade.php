@@ -20,7 +20,7 @@
             </p>
         </div>
         <div class="flex space-x-3">
-            <a href="{{ route('ventas.create') }}" 
+            <a href="{{ route('produccion.cosechas.create') }}" 
                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition duration-200 flex items-center">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -98,117 +98,199 @@
                 </thead>
                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     @forelse($ventas as $venta)
-                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors" 
-                            onclick="window.location.href='{{ route('ventas.show', $venta) }}'">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div>
-                                    <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                        {{ $venta->codigo_venta }}
-                                    </div>
-                                    <div class="text-sm text-gray-500 dark:text-gray-400">
-                                        {{ $venta->cliente }}
-                                    </div>
-                                    @if($venta->telefono_cliente)
-                                        <div class="text-xs text-gray-400">
-                                            📞 {{ $venta->telefono_cliente }}
+                        @if(isset($venta->es_venta_agrupada) && $venta->es_venta_agrupada)
+                            <!-- Venta Agrupada -->
+                            <tr class="bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div>
+                                        <div class="text-sm font-bold text-blue-900 dark:text-blue-100">
+                                            <strong>Venta {{ $venta->codigo_venta }}</strong>
                                         </div>
+                                        <div class="text-sm text-blue-700 dark:text-blue-300">
+                                            {{ $venta->cliente }}
+                                        </div>
+                                        @if($venta->cliente_tipo && $venta->cliente_nit)
+                                            <div class="text-xs">
+                                                <span class="inline-flex px-2 py-1 rounded-full text-xs font-semibold
+                                                    {{ $venta->cliente_tipo === 'nit' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
+                                                    {{ $venta->cliente_tipo === 'nit' ? 'NIT: ' . $venta->cliente_nit : 'CF' }}
+                                                </span>
+                                            </div>
+                                        @endif
+                                        @if($venta->telefono_cliente)
+                                            <div class="text-xs text-gray-400">
+                                                📞 {{ $venta->telefono_cliente }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-blue-900 dark:text-blue-100">
+                                        <strong>{{ $venta->total_productos }} productos</strong>
+                                    </div>
+                                    <div class="text-xs text-blue-700 dark:text-blue-300">
+                                        Múltiples especies
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-900 dark:text-blue-100">
+                                    {{ $venta->fecha_venta ? \Carbon\Carbon::parse($venta->fecha_venta)->format('d/m/Y') : 'Sin fecha' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-blue-900 dark:text-blue-100">
+                                        {{ $venta->productos->sum('cantidad_cosechada') }} peces
+                                    </div>
+                                    <div class="text-xs text-blue-700 dark:text-blue-300">
+                                        {{ number_format($venta->productos->sum('peso_cosechado_kg') * 2.20462, 2) }} lb
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-bold text-blue-900 dark:text-blue-100">
+                                        Q{{ number_format($venta->total_venta, 2) }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
+                                        {{ ($venta->estado_venta ?? 'completada') === 'completada' ? 'bg-green-100 text-green-800' : 
+                                           (($venta->estado_venta ?? 'completada') === 'cancelada' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
+                                        {{ ucfirst($venta->estado_venta ?? 'completada') }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                                        Efectivo
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div class="flex justify-end space-x-2">
+                                        <button onclick="toggleDetalles('{{ $venta->codigo_venta }}')" 
+                                                class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                                                title="Ver Detalles">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        </button>
+                                        <a href="{{ route('cosechas.ticket.ver', $venta->id) }}" 
+                                           target="_blank"
+                                           class="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300"
+                                           title="Ver Ticket">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                        </a>
+                                        <span class="text-sm text-blue-700">{{ $venta->estado_venta ?? 'completada' }}</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <!-- Detalles de productos (ocultos por defecto) -->
+                            <tr id="detalles-{{ $venta->codigo_venta }}" class="hidden bg-blue-25 dark:bg-blue-950/10">
+                                <td colspan="8" class="px-6 py-4">
+                                    <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border-l-4 border-blue-500">
+                                        <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                                            Productos de la Venta {{ $venta->codigo_venta }}
+                                        </h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            @foreach($venta->productos as $producto)
+                                                <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-3">
+                                                    <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                        {{ $producto->lote->codigo_lote ?? 'N/A' }} - {{ $producto->lote->especie ?? 'Sin especie' }}
+                                                    </div>
+                                                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                        <div>{{ $producto->cantidad_cosechada }} peces</div>
+                                                        <div>{{ number_format($producto->peso_cosechado_kg * 2.20462, 2) }} lb</div>
+                                                        <div class="font-semibold">Q{{ number_format($producto->total_venta, 2) }}</div>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        @else
+                            <!-- Cosecha Individual -->
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                            {{ $venta->codigo_venta ?? 'Sin código' }}
+                                        </div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                                            {{ $venta->cliente ?? 'Sin cliente' }}
+                                        </div>
+                                        @if($venta->telefono_cliente)
+                                            <div class="text-xs text-gray-400">
+                                                📞 {{ $venta->telefono_cliente }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if($venta->lote)
+                                        <div class="text-sm text-gray-900 dark:text-gray-100">
+                                            {{ $venta->lote->codigo_lote ?? 'N/A' }} - {{ $venta->lote->especie ?? 'Sin especie' }}
+                                        </div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                                            {{ \Carbon\Carbon::parse($venta->fecha)->format('d/m/Y') }}
+                                        </div>
+                                    @else
+                                        <span class="text-gray-400">Sin lote</span>
                                     @endif
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                @if($venta->cosechaParcial)
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                    {{ $venta->fecha_venta ? \Carbon\Carbon::parse($venta->fecha_venta)->format('d/m/Y') : 'Sin fecha' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-900 dark:text-gray-100">
-                                        {{ $venta->cosechaParcial->lote->codigo_lote ?? 'N/A' }}
+                                        {{ $venta->cantidad_cosechada ?? 0 }} peces
                                     </div>
                                     <div class="text-xs text-gray-500 dark:text-gray-400">
-                                        {{ $venta->cosechaParcial->fecha->format('d/m/Y') }}
+                                        {{ number_format(($venta->peso_cosechado_kg ?? 0) * 2.20462, 2) }} lb
                                     </div>
-                                @else
-                                    <span class="text-gray-400">Sin cosecha</span>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                {{ $venta->fecha_venta->format('d/m/Y') }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900 dark:text-gray-100">
-                                    {{ number_format($venta->cantidad_kg, 2) }} kg
-                                </div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">
-                                    Q{{ number_format($venta->precio_kg, 2) }}/kg
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                    Q{{ number_format($venta->total, 2) }}
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $venta->estado_badge }}">
-                                    {{ ucfirst($venta->estado) }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $venta->metodo_pago_badge }}">
-                                    {{ ucfirst(str_replace('_', ' ', $venta->metodo_pago)) }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <div class="flex justify-end space-x-2">
-                                    <!-- Botones de Ticket -->
-                                    <a href="{{ route('ventas.ticket.ver', $venta) }}" 
-                                       target="_blank"
-                                       class="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300"
-                                       onclick="event.stopPropagation()" 
-                                       title="Ver Ticket">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                        </svg>
-                                    </a>
-                                    <a href="{{ route('ventas.ticket.descargar', $venta) }}" 
-                                       class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
-                                       onclick="event.stopPropagation()" 
-                                       title="Descargar Ticket">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                                  d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
-                                        </svg>
-                                    </a>
-                                    <a href="{{ route('ventas.edit', $venta) }}" 
-                                       class="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300"
-                                       onclick="event.stopPropagation()" 
-                                       title="Editar">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                        </svg>
-                                    </a>
-                                    @if($venta->estado === 'pendiente')
-                                        <form action="{{ route('ventas.completar', $venta) }}" method="POST" class="inline"
-                                              onclick="event.stopPropagation()">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button type="submit" 
-                                                    class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
-                                                    title="Completar">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                                </svg>
-                                            </button>
-                                        </form>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        Q{{ number_format($venta->total_venta ?? 0, 2) }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
+                                        {{ ($venta->estado_venta ?? 'pendiente') === 'completada' ? 'bg-green-100 text-green-800' : 
+                                           (($venta->estado_venta ?? 'pendiente') === 'cancelada' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
+                                        {{ ucfirst($venta->estado_venta ?? 'pendiente') }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                                        Efectivo
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div class="flex justify-end space-x-2">
+                                        <a href="{{ route('cosechas.ticket.ver', $venta->id) }}" 
+                                           target="_blank"
+                                           class="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300"
+                                           title="Ver Ticket">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                        </a>
+                                        <span class="text-sm text-gray-500">{{ $venta->estado_venta ?? 'completada' }}</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endif
                     @empty
                         <tr>
                             <td colspan="8" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                                 <h3 class="mt-4 text-lg font-medium">No hay ventas registradas</h3>
                                 <p class="mt-2">Comienza registrando tu primera venta.</p>
                                 <div class="mt-6">
-                                    <a href="{{ route('ventas.create') }}" 
+                                    <a href="{{ route('produccion.cosechas.create') }}" 
                                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
                                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -257,5 +339,16 @@
             resultados.classList.add('hidden');
         }
     });
+
+    function toggleDetalles(codigoVenta) {
+        const detalles = document.getElementById(`detalles-${codigoVenta}`);
+        if (detalles) {
+            if (detalles.classList.contains('hidden')) {
+                detalles.classList.remove('hidden');
+            } else {
+                detalles.classList.add('hidden');
+            }
+        }
+    }
 </script>
 @endsection
