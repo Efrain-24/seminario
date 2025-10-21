@@ -427,7 +427,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('ventas/{venta}/ticket/ver', [VentaController::class, 'verTicket'])->name('ventas.ticket.ver');
 });
 
-// Rutas de Trazabilidad de Cosechas
+/* Rutas de Trazabilidad de Cosechas (deshabilitadas temporalmente)
 Route::middleware(['auth'])->group(function () {
     Route::get('/cosechas/trazabilidad', [TrazabilidadCosechaController::class, 'index'])->name('cosechas.trazabilidad.index');
     Route::get('/cosechas/trazabilidad/crear', [TrazabilidadCosechaController::class, 'create'])->name('cosechas.trazabilidad.create');
@@ -437,6 +437,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/cosechas/trazabilidad/{trazabilidad}', [TrazabilidadCosechaController::class, 'update'])->name('cosechas.trazabilidad.update');
     Route::delete('/cosechas/trazabilidad/{trazabilidad}', [TrazabilidadCosechaController::class, 'destroy'])->name('cosechas.trazabilidad.destroy');
 });
+*/
 
 Route::middleware(['auth', 'redirect.temp.password'])->group(function () {
     Route::delete('mantenimientos/eliminar/{id}', [App\Http\Controllers\LimpiezaController::class, 'eliminarMantenimiento'])->name('mantenimientos.eliminar');

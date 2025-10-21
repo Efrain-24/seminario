@@ -1,5 +1,4 @@
-<x-app-layo        </div>
-    </x-slot>
+<x-app-layout>
 
     <!-- Notificaciones -->
     <x-notification type="success" :message="session('success')" />
@@ -7,7 +6,7 @@
     <x-notification type="warning" :message="session('warning')" />
 
     <div class="py-8 max-w-7xl mx-auto px-4 space-y-6">
-        <!-- Filtros -->x-slot name="header">
+        <x-slot name="header">
         <div class="flex justify-between items-center">
             <div class="flex items-center">
                 <a href="{{ route('acciones-correctivas.panel') }}" class="mr-4 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">

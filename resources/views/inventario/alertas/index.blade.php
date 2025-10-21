@@ -11,7 +11,6 @@
     <x-notification type="warning" :message="session('warning')" />
 
     <div class="py-8 max-w-7xl mx-auto px-4 space-y-6">
-        @endif
 
         {{-- Filtros --}}
         <form method="GET" class="flex flex-wrap gap-3 items-end">

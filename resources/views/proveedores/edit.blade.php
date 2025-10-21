@@ -1,13 +1,5 @@
 <x-app-layout>
-    <x-slot name=        </div>
-    </x-slot>
-    
-    <!-- Notificaciones -->
-    <x-notification type="success" :message="session('success')" />
-    <x-notification type="error" :message="session('error')" />
-    <x-notification type="warning" :message="session('warning')" />
-
-    <div class="py-12">der">
+    <x-slot name="header">
         <div class="flex justify-between items-center">
             <div class="flex items-center">
                 <a href="{{ route('proveedores.index') }}" class="mr-4 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
@@ -41,6 +33,11 @@
             </div>
         </div>
     </x-slot>
+
+    <!-- Notificaciones --> 
+    <x-notification type="success" :message="session('success')" />
+    <x-notification type="error" :message="session('error')" />
+    <x-notification type="warning" :message="session('warning')" />
 
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">

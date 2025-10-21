@@ -200,8 +200,8 @@
                                         </h4>
                                         <p class="text-gray-600 dark:text-gray-400 text-sm">
                                             {{ $mantenimiento->fecha_mantenimiento->format('d/m/Y') }}
-                                            @if($mantenimiento->fecha_fin)
-                                                - Completado el {{ $mantenimiento->fecha_fin->format('d/m/Y') }}
+                                            @if($mantenimiento->hora_fin)
+                                                - Completado el {{ $mantenimiento->fecha_mantenimiento->format('d/m/Y') }} a las {{ \Carbon\Carbon::parse($mantenimiento->hora_fin)->format('H:i') }}
                                             @endif
                                         </p>
                                     </div>
@@ -239,10 +239,10 @@
                                         <p class="text-gray-900 dark:text-gray-100">${{ number_format($mantenimiento->costo_mantenimiento, 2) }}</p>
                                     </div>
                                     @endif
-                                    @if($mantenimiento->fecha_inicio && $mantenimiento->fecha_fin)
+                                    @if($mantenimiento->hora_inicio && $mantenimiento->hora_fin)
                                     <div>
                                         <span class="font-medium text-gray-600 dark:text-gray-400">Duración:</span>
-                                        <p class="text-gray-900 dark:text-gray-100">{{ $mantenimiento->fecha_inicio->diffInHours($mantenimiento->fecha_fin) }} horas</p>
+                                        <p class="text-gray-900 dark:text-gray-100">{{ \Carbon\Carbon::parse($mantenimiento->hora_inicio)->diffInHours(\Carbon\Carbon::parse($mantenimiento->hora_fin)) }} horas</p>
                                     </div>
                                     @endif
                                 </div>

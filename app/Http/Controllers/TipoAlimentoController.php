@@ -66,7 +66,7 @@ class TipoAlimentoController extends Controller
 
         $tipoAlimento = TipoAlimento::create($validated);
 
-        return redirect()->route('tipos-alimento.index')
+    return redirect()->route('alimentacion.tipos-alimento.index')
                         ->with('success', 'Tipo de alimento creado exitosamente.');
     }
 
@@ -113,7 +113,7 @@ class TipoAlimentoController extends Controller
 
         $tipoAlimento->update($validated);
 
-        return redirect()->route('tipos-alimento.show', $tipoAlimento)
+    return redirect()->route('alimentacion.tipos-alimento.show', $tipoAlimento)
                         ->with('success', 'Tipo de alimento actualizado exitosamente.');
     }
 
@@ -121,13 +121,13 @@ class TipoAlimentoController extends Controller
     {
         // Verificar si el tipo de alimento está siendo usado
         if ($tipoAlimento->alimentaciones()->exists()) {
-            return redirect()->route('tipos-alimento.index')
+            return redirect()->route('alimentacion.tipos-alimento.index')
                            ->with('error', 'No se puede eliminar este tipo de alimento porque está siendo usado en registros de alimentación.');
         }
 
         $tipoAlimento->delete();
 
-        return redirect()->route('tipos-alimento.index')
+    return redirect()->route('alimentacion.tipos-alimento.index')
                         ->with('success', 'Tipo de alimento eliminado exitosamente.');
     }
 

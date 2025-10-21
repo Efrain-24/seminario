@@ -726,9 +726,9 @@ class ProduccionController extends Controller
             $query->where('unidad_produccion_id', $request->unidad_id);
         }
 
-        $mantenimientos = $query->orderBy('fecha_fin', 'desc')
-                               ->orderBy('fecha_mantenimiento', 'desc')
-                               ->paginate(10);
+    $mantenimientos = $query->orderBy('fecha_mantenimiento', 'desc')
+                   ->orderBy('hora_fin', 'desc')
+                   ->paginate(10);
         
         // Estadísticas para el historial
         $estadisticas = [
@@ -844,10 +844,12 @@ class ProduccionController extends Controller
         // Actualizar cantidad_actual y total_peso en el lote
         $peso_promedio = $request->peso_promedio ?? $lote->peso_promedio_inicial;
         $total_peso = round($nueva_cantidad * $peso_promedio, 2);
-        $lote->update([
-            'cantidad_actual' => $nueva_cantidad,
-            'total_peso' => $total_peso
-        ]);
+        $updateData = ['cantidad_actual' => $nueva_cantidad];
+        if (\Illuminate\Support\Facades\Schema::hasColumn('lotes', 'total_peso')) {
+            $updateData['total_peso'] = $total_peso;
+        }
+
+        $lote->update($updateData);
 
         return redirect()->route('produccion.seguimiento.lotes')
                         ->with('success', 'Seguimiento registrado exitosamente.');

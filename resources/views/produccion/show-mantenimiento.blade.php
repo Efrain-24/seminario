@@ -352,22 +352,30 @@
                 <div class="p-6">
                     <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Seguimiento y Resultados</h3>
                     
-                    @if($mantenimiento->fecha_inicio)
+                    @if($mantenimiento->fecha_mantenimiento || $mantenimiento->hora_inicio)
                     <div class="mb-4">
                         <p class="text-gray-700 dark:text-gray-300">
-                            <strong>Fecha de inicio:</strong> {{ $mantenimiento->fecha_inicio->format('d/m/Y \a \l\a\s H:i') }}
+                            <strong>Fecha de inicio:</strong>
+                            @if($mantenimiento->fecha_mantenimiento)
+                                {{ $mantenimiento->fecha_mantenimiento->format('d/m/Y') }}
+                            @endif
+                            @if($mantenimiento->hora_inicio)
+                                a las {{ \Carbon\Carbon::parse($mantenimiento->hora_inicio)->format('H:i') }}
+                            @endif
                         </p>
                     </div>
                     @endif
 
-                    @if($mantenimiento->fecha_fin)
+                    @if($mantenimiento->hora_fin)
                     <div class="mb-4">
                         <p class="text-gray-700 dark:text-gray-300">
-                            <strong>Fecha de finalización:</strong> {{ $mantenimiento->fecha_fin->format('d/m/Y \a \l\a\s H:i') }}
+                            <strong>Fecha de finalización:</strong>
+                            {{ $mantenimiento->fecha_mantenimiento ? $mantenimiento->fecha_mantenimiento->format('d/m/Y') : '' }}
+                            a las {{ \Carbon\Carbon::parse($mantenimiento->hora_fin)->format('H:i') }}
                         </p>
-                        @if($mantenimiento->fecha_inicio)
+                        @if($mantenimiento->hora_inicio)
                         <p class="text-sm text-gray-600 dark:text-gray-400">
-                            Duración total: {{ $mantenimiento->fecha_inicio->diffInHours($mantenimiento->fecha_fin) }} horas
+                            Duración total: {{ \Carbon\Carbon::parse($mantenimiento->hora_inicio)->diffInHours(\Carbon\Carbon::parse($mantenimiento->hora_fin)) }} horas
                         </p>
                         @endif
                     </div>

@@ -97,11 +97,16 @@ class Lote extends Model
         $mortalidad = $this->seguimientos()->sum('mortalidad');
         $venta = $this->ventas()->sum('cantidad_cosechada');
 
-        if ($ultimoSeguimiento && $ultimoSeguimiento->cantidad_actual) {
-            return $ultimoSeguimiento->cantidad_actual - $mortalidad - $venta;
+        // If there's a latest seguimiento with an explicit cantidad_actual, treat it as authoritative
+        // (it already reflects mortalidad/ventas up to that seguimiento), so return it directly.
+        if ($ultimoSeguimiento && !is_null($ultimoSeguimiento->cantidad_actual)) {
+            return max(0, (int) $ultimoSeguimiento->cantidad_actual);
         }
 
-        return $cantidadInicial - $mortalidad - $venta;
+        // Otherwise compute from initial counts minus totals recorded in seguimientos and ventas
+        $calculated = $cantidadInicial - (int) $mortalidad - (int) $venta;
+
+        return max(0, (int) $calculated);
     }
 
     /**

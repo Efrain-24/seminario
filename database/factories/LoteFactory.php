@@ -26,7 +26,7 @@ class LoteFactory extends Factory
     {
         return [
             'codigo_lote' => 'TEST-' . fake()->year() . '-' . fake()->numberBetween(100, 999),
-            'fecha_siembra' => fake()->dateTimeBetween('-6 months', '-1 month'),
+            'fecha_inicio' => fake()->dateTimeBetween('-6 months', '-1 month'),
             'cantidad_inicial' => $cantidadInicial = fake()->numberBetween(500, 2000),
             'cantidad_actual' => fake()->numberBetween(200, $cantidadInicial),
             'especie' => fake()->randomElement(['Tilapia', 'Carpa', 'Bagre', 'Mojarra']),
