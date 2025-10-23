@@ -564,6 +564,14 @@ function agregarLinea() {
     select.value = '';
     document.getElementById('buscar_lote').value = '';
     
+    // Mostrar el precio por libra inmediatamente en la nueva fila (usar precio del lote si existe)
+    const precioUsadoInicial = precioLibraLote > 0 ? precioLibraLote : (window.precioLibraActual || 0);
+    const precioSpan = nuevaFila.querySelector('.precio-libra');
+    if (precioSpan) {
+        precioSpan.textContent = precioUsadoInicial.toFixed(2);
+    }
+
+    // Actualizar totales
     actualizarTotal();
 }
 

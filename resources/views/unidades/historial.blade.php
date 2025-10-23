@@ -77,7 +77,7 @@
                         </div>
                         <div class="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg">
                             <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                                {{ now()->diffInDays($unidad->created_at) }}
+                                {{ max(0, now()->diffInDays($unidad->created_at)) }}
                             </div>
                             <div class="text-sm text-gray-600 dark:text-gray-400">Días en Servicio</div>
                         </div>

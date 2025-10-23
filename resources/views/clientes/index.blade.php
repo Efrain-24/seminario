@@ -10,6 +10,9 @@
 <x-notification type="warning" :message="session('warning')" />
 
 <div class="max-w-4xl mx-auto py-8">
+    <div class="mb-4">
+        <a href="{{ route('ventas.index') }}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded">&larr; Regresar</a>
+    </div>
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold">Clientes</h2>
         <a href="{{ route('clientes.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold">Nuevo Cliente</a>

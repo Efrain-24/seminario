@@ -340,9 +340,6 @@
                                 </td>
                             </tr>
                         @endif
-                                            </svg>
-                                        </a>
-                                    @endif
                                     
                                     <a href="{{ route('produccion.cosechas.edit', $c) }}" 
                                        class="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300"

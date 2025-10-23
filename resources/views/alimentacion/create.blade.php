@@ -252,7 +252,7 @@
                     option.dataset.stockMinimo = item.stock_minimo;
                     option.dataset.unidad = item.unidad;
                     option.dataset.costoUnitario = item.costo_unitario;
-                    option.dataset.moneda = item.moneda;
+                    option.dataset.moneda = item.moneda ? item.moneda : 'Q';
                     option.dataset.tieneCosto = item.tiene_costo;
                     
                     // Mostrar nombre con información del inventario
@@ -267,7 +267,8 @@
                     
                     // Mostrar costo si está disponible
                     if (item.tiene_costo && item.costo_unitario > 0) {
-                        texto += ` - ${item.moneda} ${item.costo_unitario}/${item.unidad}`;
+                        const moneda = item.moneda ? item.moneda : 'Q';
+                        texto += ` - ${moneda} ${item.costo_unitario}/${item.unidad}`;
                     }
                     
                     // Alerta si está por debajo del stock mínimo
