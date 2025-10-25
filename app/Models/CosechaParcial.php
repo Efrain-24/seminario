@@ -26,6 +26,7 @@ class CosechaParcial extends Model
         'observaciones',
         'user_id',
         // Campos de venta
+        'cliente_id',
         'codigo_venta',
         'cliente',
         'tipo_cliente',
@@ -66,6 +67,11 @@ class CosechaParcial extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function cliente()
+    {
+        return $this->belongsTo(Cliente::class);
     }
 
     public function ventas()

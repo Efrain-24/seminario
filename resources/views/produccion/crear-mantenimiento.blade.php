@@ -477,7 +477,7 @@
                         <script>
                         var todosInsumosFactura = [
                             @foreach(App\Models\InventarioItem::all() as $insumo)
-                                {id: {{ $insumo->id }}, nombre: "{{ $insumo->nombre }}", unidad: "{{ $insumo->unidad }}", costo_unitario: {{ $insumo->costo_unitario }}},
+                                {id: {{ $insumo->id }}, nombre: "{{ $insumo->nombre }}", unidad: "{{ $insumo->unidad_base }}", costo_unitario: {{ $insumo->costo_unitario ?? 0 }}},
                             @endforeach
                         ];
                         var insumosFacturaSeleccionados = [];

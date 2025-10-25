@@ -57,6 +57,14 @@ class ProtocoloSanidad extends Model
         return $this->hasMany(ProtocoloInsumo::class);
     }
 
+    // Relación many-to-many con inventario items a través de tabla protocolo_insumos
+    public function inventarioItems()
+    {
+        return $this->belongsToMany(InventarioItem::class, 'protocolo_insumos')
+                    ->withPivot('cantidad_necesaria', 'es_obligatorio', 'unidad', 'notas')
+                    ->withTimestamps();
+    }
+
     // Método para crear nueva versión
     public function crearNuevaVersion($data)
     {

@@ -45,15 +45,20 @@ class ProduccionController extends Controller
             'peso_promedio_inicial_gramos' => 'nullable|numeric|min:11|max:990',
             'talla_promedio_inicial' => 'nullable|numeric|min:0',
             'precio_libra' => 'nullable|numeric|min:0',
+            'precio_unitario_pez' => 'nullable|numeric|min:0',
             'fecha_inicio' => 'required|date',
+            'fecha_siembra' => 'nullable|date',
             'unidad_produccion_id' => 'nullable|exists:unidad_produccions,id',
             'observaciones' => 'nullable|string'
         ], [
             'peso_promedio_inicial_gramos.numeric' => 'El peso debe ser un número válido.',
             'peso_promedio_inicial_gramos.min' => 'El peso debe ser de al menos 11 gramos.',
             'peso_promedio_inicial_gramos.max' => 'El peso no puede ser mayor a 990 gramos.',
-            'precio_libra.numeric' => 'El precio debe ser un número válido.',
-            'precio_libra.min' => 'El precio no puede ser negativo.'
+            'precio_libra.numeric' => 'El precio por libra debe ser un número válido.',
+            'precio_libra.min' => 'El precio por libra no puede ser negativo.',
+            'precio_unitario_pez.numeric' => 'El precio de alevín debe ser un número válido.',
+            'precio_unitario_pez.min' => 'El precio de alevín no puede ser negativo.',
+            'fecha_siembra.date' => 'La fecha de siembra debe ser una fecha válida.'
         ]);
 
         // Generar código automáticamente
@@ -109,14 +114,24 @@ class ProduccionController extends Controller
                 'cantidad_inicial' => 'sometimes|integer|min:1',
                 // gramos entre 11 y 990
                 'peso_promedio_inicial_gramos' => 'nullable|numeric|min:11|max:990',
+                'peso_promedio_actual_gramos' => 'nullable|numeric|min:0',
                 'talla_promedio_inicial' => 'nullable|numeric|min:0',
+                'precio_libra' => 'nullable|numeric|min:0',
+                'precio_unitario_pez' => 'nullable|numeric|min:0',
                 'fecha_inicio' => 'required|date',
+                'fecha_siembra' => 'nullable|date',
                 'unidad_produccion_id' => 'nullable|exists:unidad_produccions,id',
                 'observaciones' => 'nullable|string'
             ], [
-                'peso_promedio_inicial_gramos.numeric' => 'El peso debe ser un número válido.',
-                'peso_promedio_inicial_gramos.min' => 'El peso debe ser de al menos 11 gramos.',
-                'peso_promedio_inicial_gramos.max' => 'El peso no puede ser mayor a 990 gramos.'
+                'peso_promedio_inicial_gramos.numeric' => 'El peso inicial debe ser un número válido.',
+                'peso_promedio_inicial_gramos.min' => 'El peso inicial debe ser de al menos 11 gramos.',
+                'peso_promedio_inicial_gramos.max' => 'El peso inicial no puede ser mayor a 990 gramos.',
+                'peso_promedio_actual_gramos.numeric' => 'El peso actual debe ser un número válido.',
+                'precio_libra.numeric' => 'El precio por libra debe ser un número válido.',
+                'precio_libra.min' => 'El precio por libra no puede ser negativo.',
+                'precio_unitario_pez.numeric' => 'El precio de alevín debe ser un número válido.',
+                'precio_unitario_pez.min' => 'El precio de alevín no puede ser negativo.',
+                'fecha_siembra.date' => 'La fecha de siembra debe ser una fecha válida.'
             ]);
 
             // Asegurar que no intenten modificar el código
@@ -127,10 +142,16 @@ class ProduccionController extends Controller
                 $validated['cantidad_inicial'] = $lote->cantidad_inicial;
             }
             
-            // Convertir peso de gramos a kilogramos para almacenar en la BD
+            // Convertir peso inicial de gramos a kilogramos para almacenar en la BD
             if (isset($validated['peso_promedio_inicial_gramos'])) {
                 $validated['peso_promedio_inicial'] = round($validated['peso_promedio_inicial_gramos'] / 1000, 6);
                 unset($validated['peso_promedio_inicial_gramos']); // Remover el campo en gramos
+            }
+            
+            // Convertir peso actual de gramos a kilogramos para almacenar en la BD
+            if (isset($validated['peso_promedio_actual_gramos'])) {
+                $validated['peso_promedio_actual'] = round($validated['peso_promedio_actual_gramos'] / 1000, 6);
+                unset($validated['peso_promedio_actual_gramos']); // Remover el campo en gramos
             }
 
             // Ya viene en kg, no se convierte

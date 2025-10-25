@@ -85,7 +85,7 @@ class CosechaParcialController extends Controller
         // Obtener lotes activos con código y especie
         $lotes = Lote::where('estado', 'activo')
             ->orderBy('codigo_lote')
-            ->get(['id', 'codigo_lote', 'especie', 'cantidad_actual']);
+            ->get(['id', 'codigo_lote', 'especie', 'cantidad_actual', 'precio_libra']);
 
         // Obtener tipo de cambio actual GTQ a USD
         $tipoCambio = TipoCambio::actual()?->valor ?? 7.8;
@@ -174,14 +174,17 @@ class CosechaParcialController extends Controller
             
             Log::info('Stock actualizado');
             
-            // Mensaje según el tipo
-            $mensaje = $request->destino === 'venta' 
-                ? '✅ Venta registrada y completada exitosamente!'
-                : '✅ Cosecha registrada correctamente!';
-            
-            return redirect()
-                ->route('produccion.cosechas.index')
-                ->with('success', $mensaje);
+            // Redirección según el tipo
+            if ($request->destino === 'venta') {
+                return redirect()
+                    ->route('ventas.index')
+                    ->with('success', '✅ Venta registrada y completada exitosamente!')
+                    ->with('ticket_disponible', true);
+            } else {
+                return redirect()
+                    ->route('produccion.cosechas.index')
+                    ->with('success', '✅ Cosecha registrada correctamente!');
+            }
             
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Error de validación: ', $e->errors());
@@ -359,11 +362,17 @@ class CosechaParcialController extends Controller
             return back()->with('error', 'No se puede ver el ticket para esta cosecha.');
         }
 
-        // Cargar relaciones necesarias
-        $cosecha->load('lote');
+        // Cargar relaciones necesarias de forma explícita
+        $cosecha = $cosecha->load('lote');
         
-        // Generar el PDF
-        $pdf = PDF::loadView('cosechas.ticket', compact('cosecha'));
+        // Verificar que la relación se cargó correctamente
+        if (!$cosecha->lote) {
+            \Illuminate\Support\Facades\Log::warning('Relación lote no encontrada para cosecha: ' . $cosecha->id);
+        }
+        
+        // Generar el PDF - usar la variable $venta para consistencia con la vista
+        $venta = $cosecha;
+        $pdf = PDF::loadView('ventas.ticket', compact('venta'));
         $pdf->setPaper('letter', 'portrait');
         
         // Mostrar en el navegador
@@ -429,7 +438,7 @@ class CosechaParcialController extends Controller
             ]);
 
             return redirect()
-                ->route('produccion.cosechas.show', $cosecha)
+                ->route('ventas.index')
                 ->with('success', 'Venta completada exitosamente.')
                 ->with('ticket_disponible', true);
         }
@@ -477,7 +486,7 @@ class CosechaParcialController extends Controller
         ]);
 
         return redirect()
-            ->route('produccion.cosechas.show', $cosecha)
+            ->route('ventas.index')
             ->with('success', 'Venta completada exitosamente.')
             ->with('ticket_disponible', true);
     }
@@ -546,6 +555,52 @@ class CosechaParcialController extends Controller
             $fechaVenta = now()->toDateString();
             $userId = Auth::id();
 
+            // Guardar/actualizar cliente si tiene NIT
+            $clienteId = null;
+            
+            \Illuminate\Support\Facades\Log::info('=== DEBUG CLIENTE ANTES DE GUARDAR ===', [
+                'tipo_cliente' => $request->tipo_cliente,
+                'cliente_nit' => $request->cliente_nit,
+                'cliente_nombre' => $request->cliente_nombre,
+                'condicion_nit' => $request->tipo_cliente === 'NIT',
+                'condicion_nit_valor' => !empty($request->cliente_nit)
+            ]);
+            
+            if ($request->tipo_cliente === 'NIT' && $request->cliente_nit) {
+                try {
+                    $cliente = \App\Models\Cliente::updateOrCreate(
+                        ['documento' => $request->cliente_nit],
+                        [
+                            'nombre' => $request->cliente_nombre,
+                            // Campos opcionales que pueden no estar presentes
+                            'telefono' => null,
+                            'email' => null,
+                            'direccion' => null,
+                        ]
+                    );
+                    $clienteId = $cliente->id;
+                    
+                    \Illuminate\Support\Facades\Log::info('=== CLIENTE GUARDADO/ACTUALIZADO ===', [
+                        'cliente_id' => $clienteId,
+                        'nit' => $request->cliente_nit,
+                        'nombre' => $request->cliente_nombre,
+                        'accion' => $cliente->wasRecentlyCreated ? 'creado' : 'actualizado'
+                    ]);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('=== ERROR AL GUARDAR CLIENTE ===', [
+                        'error' => $e->getMessage(),
+                        'nit' => $request->cliente_nit,
+                        'nombre' => $request->cliente_nombre
+                    ]);
+                }
+            } else {
+                \Illuminate\Support\Facades\Log::info('=== CLIENTE NO GUARDADO ===', [
+                    'razon' => 'No cumple condiciones',
+                    'tipo_cliente' => $request->tipo_cliente,
+                    'tiene_nit' => !empty($request->cliente_nit)
+                ]);
+            }
+
             // Calcular totales
             $totalVenta = 0;
             $cosechasCreadas = [];
@@ -588,6 +643,7 @@ class CosechaParcialController extends Controller
                     'fecha_venta' => now(),
                     'codigo_venta' => $numeroVenta, // MISMO CÓDIGO PARA TODOS LOS PRODUCTOS
                     'tipo_cliente' => $request->tipo_cliente,
+                    'cliente_id' => $clienteId, // Referencia al cliente guardado
                     'cliente' => $request->tipo_cliente === 'CF' ? 'Consumidor Final' : $request->cliente_nombre,
                     'cliente_nombre' => $request->tipo_cliente === 'CF' ? 'Consumidor Final' : $request->cliente_nombre,
                     'cliente_nit' => $request->tipo_cliente === 'CF' ? null : $request->cliente_nit,

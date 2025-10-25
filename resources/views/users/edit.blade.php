@@ -73,15 +73,12 @@
                 'unidades' => 'Unidades',
                 'produccion' => 'Producción',
                 'inventarios' => 'Inventarios',
-                'usuarios' => 'Usuarios',
-                'roles' => 'Roles',
+                'usuarios_roles' => 'Usuarios y Roles',
                 'acciones_correctivas' => 'Acciones Correctivas',
-                'protocolos' => 'Protocolos',
-                'limpieza' => 'Limpieza',
-                'ventas' => 'Ventas',
-                'compras' => 'Compras',
-                'proveedores' => 'Proveedores',
-                'bitacora' => 'Bitácora',
+                'protocolos_limpieza' => 'Protocolos y Limpieza',
+                'ventas' => 'Ventas (Cosechas)',
+                'compras_proveedores' => 'Compras y Proveedores',
+                'reportes' => 'Reportes',
             ];
             $userModules = $user->modules ? $user->modules->pluck('module')->toArray() : [];
         @endphp

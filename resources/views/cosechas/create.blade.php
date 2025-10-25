@@ -45,6 +45,9 @@
         <form action="{{ route('produccion.cosechas.guardar-multiple') }}" method="POST" id="factura-form">
             @csrf
             
+            <!-- Campo oculto para indicar que es venta -->
+            <input type="hidden" name="destino" value="venta">
+            
             <!-- Información del Cliente -->
             <div class="p-6 border-b border-gray-200">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">Cliente</h3>
@@ -159,6 +162,8 @@
                                     {{ $lote->especie ?? 'Pescado' }} - {{ $lote->codigo_lote }} ({{ $lote->cantidad_actual ?? 0 }} peces)
                                     @if($lote->precio_libra)
                                         - Q{{ number_format($lote->precio_libra, 2) }}/lb
+                                    @else
+                                        <span style="color: #ef4444;"> - Sin precio configurado</span>
                                     @endif
                                 </option>
                             @endforeach
@@ -242,9 +247,6 @@ let busquedaTimeout = null;
 let tipoCliente = 'CF'; // Por defecto CF (Consumidor Final)
 window.tipoCliente = 'CF'; // Variable global como respaldo
 
-// Variable global para el precio por libra
-window.precioLibraActual = 0;
-
 // Función para buscar cliente por NIT - DEBE ESTAR AQUÍ PARA EL HTML
 function buscarClientePorNit(nit) {
     // Limpiar timeout anterior
@@ -319,61 +321,6 @@ function realizarBusquedaCliente(nit) {
         const nitField = document.getElementById('cliente_nit');
         if (nitField) nitField.value = nit;
     });
-}
-
-// Cargar precio por libra al inicializar la página
-document.addEventListener('DOMContentLoaded', function() {
-    cargarPrecioLibra();
-});
-
-// Función para cargar el precio por libra actual
-function cargarPrecioLibra() {
-    fetch('/api/precio-libra/actual')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                window.precioLibraActual = parseFloat(data.precio);
-                console.log('Precio por libra cargado: Q' + window.precioLibraActual);
-                
-                // Mostrar el precio en algún lugar de la interfaz si es necesario
-                mostrarPrecioLibraEnInterfaz(data);
-            } else {
-                console.warn('No se pudo cargar el precio por libra:', data.message);
-                alert('⚠️ No hay precio por libra configurado. Configure el precio en su perfil antes de realizar ventas.');
-            }
-        })
-        .catch(error => {
-            console.error('Error al cargar precio por libra:', error);
-            alert('Error al cargar el precio por libra. Verifique su conexión.');
-        });
-}
-
-// Función para mostrar el precio en la interfaz
-function mostrarPrecioLibraEnInterfaz(data) {
-    // Podríamos agregar un indicador en la interfaz
-    const precioInfo = document.createElement('div');
-    precioInfo.className = 'mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg';
-    precioInfo.innerHTML = `
-        <div class="flex items-center">
-            <svg class="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.293l-3-3a1 1 0 00-1.414 1.414L10.586 9.5 9.293 10.793a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd"></path>
-            </svg>
-            <div>
-                <p class="text-sm font-medium text-blue-800">
-                    Precio actual: <span class="font-bold">Q${data.precio}/libra</span>
-                </p>
-                <p class="text-xs text-blue-600">
-                    Registrado el: ${data.fecha_registro} | Por: ${data.usuario}
-                </p>
-            </div>
-        </div>
-    `;
-    
-    // Insertar antes del formulario de cliente
-    const formulario = document.querySelector('.bg-white.shadow.rounded-lg');
-    if (formulario) {
-        formulario.parentNode.insertBefore(precioInfo, formulario);
-    }
 }
 
 // Función para seleccionar tipo de cliente (CF o NIT)
@@ -547,7 +494,6 @@ function agregarLinea() {
                    placeholder="Peso en libras"
                    onchange="calcularLineaTotal(this)" onkeyup="calcularLineaTotal(this)">
             <div class="text-xs text-gray-500">Precio: Q<span class="precio-libra">0.00</span>/lb</div>
-            ${precioLibraLote > 0 ? `<div class="text-xs text-green-600 font-semibold">Q${precioLibraLote.toFixed(2)}/lb (del lote)</div>` : ''}
         </td>
         <td class="px-4 py-3 border-b text-center font-bold total-linea">Q0.00</td>
         <td class="px-4 py-3 border-b text-center">
@@ -573,7 +519,7 @@ function calcularLineaTotal(input) {
     const cantidad = parseFloat(fila.querySelector('.cantidad-input').value) || 0;
     const pesoLibras = parseFloat(fila.querySelector('.peso-input').value) || 0;
     
-    // Usar precio del lote si está disponible, sino usar precio global
+    // Usar precio del lote específico
     const precioLibraLote = parseFloat(fila.dataset.precioLibraLote) || 0;
     let precioLibra;
     
@@ -581,8 +527,10 @@ function calcularLineaTotal(input) {
         // Usar precio del lote directamente (ya está en libras)
         precioLibra = precioLibraLote;
     } else {
-        // Usar precio global
-        precioLibra = window.precioLibraActual || 0;
+        // Mostrar error si el lote no tiene precio configurado
+        console.error('ERROR: Lote sin precio configurado. precioLibraLote:', precioLibraLote);
+        alert('Error: El lote seleccionado no tiene precio configurado. Configure el precio del lote antes de continuar.');
+        return;
     }
     
     // Actualizar el precio mostrado
@@ -690,12 +638,6 @@ function procesarVenta() {
         }
     }
 
-    // Validar precio por libra
-    if (!window.precioLibraActual || window.precioLibraActual <= 0) {
-        mostrarMensaje('error', 'No hay precio por libra configurado. Configure el precio en su perfil.');
-        return;
-    }
-
     // Recopilar datos de productos
     const productos = [];
     let totalVenta = 0;
@@ -704,9 +646,10 @@ function procesarVenta() {
         const loteId = fila.dataset.loteId;
         const cantidadPeces = parseInt(fila.querySelector('.cantidad-input').value) || 0;
         const pesoLibras = parseFloat(fila.querySelector('.peso-input').value) || 0;
+        const precioLibraLote = parseFloat(fila.dataset.precioLibraLote) || 0;
 
-        if (cantidadPeces > 0 && pesoLibras > 0) {
-            const subtotal = pesoLibras * window.precioLibraActual;
+        if (cantidadPeces > 0 && pesoLibras > 0 && precioLibraLote > 0) {
+            const subtotal = pesoLibras * precioLibraLote;
             totalVenta += subtotal;
 
             productos.push({
@@ -745,8 +688,10 @@ function procesarVenta() {
         // Para NIT, tomar los valores del formulario
         const nombreClienteForm = document.getElementById('cliente_nombre').value;
         const nitClienteForm = document.getElementById('cliente_nit').value;
+        
         formData.append('cliente_nombre', nombreClienteForm);
         formData.append('cliente_nit', nitClienteForm);
+        
         console.log('DEBUG: Enviando NIT - Cliente:', nombreClienteForm, 'NIT:', nitClienteForm);
     }
 
@@ -773,7 +718,14 @@ function procesarVenta() {
         if (response.redirected || response.headers.get('content-type')?.includes('text/html')) {
             mostrarMensaje('success', 'Venta procesada exitosamente. Redirigiendo...');
             setTimeout(() => {
-                window.location.href = response.url || '{{ route("produccion.cosechas.index") }}';
+                // Verificar si es venta para redirigir correctamente
+                const destino = document.querySelector('input[name="destino"]:checked')?.value || 
+                               document.querySelector('input[name="destino"]')?.value || 
+                               'venta'; // Por defecto asumir venta en esta página
+                const redirectUrl = destino === 'venta' 
+                    ? '{{ route("ventas.index") }}' 
+                    : '{{ route("produccion.cosechas.index") }}';
+                window.location.href = response.url || redirectUrl;
             }, 1500);
             return null;
         }
@@ -785,7 +737,14 @@ function procesarVenta() {
             if (response.ok) {
                 mostrarMensaje('success', 'Venta registrada exitosamente.');
                 setTimeout(() => {
-                    window.location.href = '{{ route("produccion.cosechas.index") }}';
+                    // Verificar si es venta para redirigir correctamente
+                    const destino = document.querySelector('input[name="destino"]:checked')?.value || 
+                                   document.querySelector('input[name="destino"]')?.value || 
+                                   'venta'; // Por defecto asumir venta en esta página
+                    const redirectUrl = destino === 'venta' 
+                        ? '{{ route("ventas.index") }}' 
+                        : '{{ route("produccion.cosechas.index") }}';
+                    window.location.href = redirectUrl;
                 }, 1500);
                 return null;
             }
@@ -801,7 +760,14 @@ function procesarVenta() {
             mostrarMensaje('success', data.message || 'Venta registrada exitosamente.');
             // Limpiar formulario después de un tiempo
             setTimeout(() => {
-                window.location.href = '{{ route("produccion.cosechas.index") }}';
+                // Verificar si es venta para redirigir correctamente
+                const destino = document.querySelector('input[name="destino"]:checked')?.value || 
+                               document.querySelector('input[name="destino"]')?.value || 
+                               'venta'; // Por defecto asumir venta en esta página
+                const redirectUrl = destino === 'venta' 
+                    ? '{{ route("ventas.index") }}' 
+                    : '{{ route("produccion.cosechas.index") }}';
+                window.location.href = redirectUrl;
             }, 2000);
         } else if (data.errors) {
             let errorMsg = 'Errores de validación:\n';

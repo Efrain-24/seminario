@@ -130,8 +130,8 @@ class ProveedorController extends Controller
                 'estado' => ['required', 'in:activo,inactivo,suspendido'],
                 
                 // Contacto
-                'telefono_principal' => ['nullable', 'string', 'max:20'],
-                'telefono_secundario' => ['nullable', 'string', 'max:20'],
+                'telefono_principal' => ['required', 'string', 'max:25', 'regex:/^[\d\s\-\+\(\)]{7,25}$/'],
+                'telefono_secundario' => ['nullable', 'string', 'max:25', 'regex:/^[\d\s\-\+\(\)]{7,25}$/'],
                 'email' => ['nullable', 'email', 'max:100'],
                 'sitio_web' => ['nullable', 'url', 'max:150'],
                 
@@ -263,8 +263,8 @@ class ProveedorController extends Controller
                 'estado' => ['required', 'in:activo,inactivo,suspendido'],
                 
                 // Contacto
-                'telefono_principal' => ['nullable', 'string', 'max:20'],
-                'telefono_secundario' => ['nullable', 'string', 'max:20'],
+                'telefono_principal' => ['required', 'string', 'max:25', 'regex:/^[\d\s\-\+\(\)]{7,25}$/'],
+                'telefono_secundario' => ['nullable', 'string', 'max:25', 'regex:/^[\d\s\-\+\(\)]{7,25}$/'],
                 'email' => ['nullable', 'email', 'max:100'],
                 'sitio_web' => ['nullable', 'url', 'max:150'],
                 

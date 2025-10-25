@@ -142,7 +142,8 @@
                                                     por libra
                                                 </div>
                                             @else
-                                                <span class="text-gray-400 text-sm">Sin precio</span>
+                                                <span class="text-red-500 text-sm font-medium">Sin precio</span>
+                                                <div class="text-xs text-red-400">Configure precio</div>
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">

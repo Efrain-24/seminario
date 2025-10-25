@@ -10,30 +10,6 @@ use Illuminate\View\View;
 class RoleController extends Controller
 {
     /**
-     * Mostrar formulario para ocultar módulos de aplicación por rol
-     */
-    public function ocultarModulos(Role $role)
-    {
-        // Obtener módulos actuales del rol
-        $roleModules = $role->modules()->pluck('module')->toArray();
-        return view('roles.ocultar-modulos', compact('role', 'roleModules'));
-    }
-
-    /**
-     * Actualizar módulos visibles para el rol
-     */
-    public function actualizarModulos(Request $request, Role $role)
-    {
-        $modules = $request->input('modules', []);
-        // Limpiar módulos actuales
-        $role->modules()->delete();
-        // Insertar nuevos módulos
-        foreach ($modules as $module) {
-            $role->modules()->create(['module' => $module]);
-        }
-        return redirect()->route('roles.show', $role)->with('success', 'Módulos actualizados correctamente.');
-    }
-    /**
      * Display a listing of the roles.
      */
     public function index(): View
@@ -122,16 +98,17 @@ class RoleController extends Controller
         $userPermissions = $role->getPermissionsArray();
         
         $modules = [
-            'gestionar_usuarios' => 'Gestión de Usuarios',
-            'gestionar_roles' => 'Gestión de Roles', 
+            'dashboard' => 'Dashboard',
+            'usuarios_roles' => 'Usuarios y Roles',
             'unidades' => 'Unidades de Producción',
-            'lotes' => 'Gestión de Lotes',
-            'mantenimientos' => 'Mantenimientos',
-            'alimentacion' => 'Alimentación',
-            'sanidad' => 'Sanidad',
-            'crecimiento' => 'Crecimiento',
-            'costos' => 'Costos',
-            'monitoreo' => 'Monitoreo Ambiental'
+            'produccion' => 'Producción',
+            'inventarios' => 'Inventarios',
+            'tipos_alimentos' => 'Tipos de Alimentos',
+            'acciones_correctivas' => 'Acciones Correctivas',
+            'protocolos_limpieza' => 'Protocolos y Limpieza',
+            'ventas' => 'Ventas (Cosechas)',
+            'compras_proveedores' => 'Compras y Proveedores',
+            'reportes' => 'Reportes',
         ];
         
         $permissionLevels = [
@@ -269,19 +246,17 @@ class RoleController extends Controller
     private function getAvailablePermissions(): array
     {
         return [
-            // Usuarios
-            'gestionar_usuarios' => 'Gestionar usuarios',
-            'ver_usuarios' => 'Ver usuarios',
-            'crear_usuarios' => 'Crear usuarios',
-            'editar_usuarios' => 'Editar usuarios',
-            'eliminar_usuarios' => 'Eliminar usuarios',
+            // Dashboard
+            'ver_dashboard' => 'Ver dashboard',
+            'crear_dashboard' => 'Crear dashboard',
+            'editar_dashboard' => 'Editar dashboard',
+            'eliminar_dashboard' => 'Eliminar dashboard',
             
-            // Roles
-            'gestionar_roles' => 'Gestionar roles',
-            'ver_roles' => 'Ver roles',
-            'crear_roles' => 'Crear roles',
-            'editar_roles' => 'Editar roles',
-            'eliminar_roles' => 'Eliminar roles',
+            // Usuarios y Roles
+            'ver_usuarios_roles' => 'Ver usuarios y roles',
+            'crear_usuarios_roles' => 'Crear usuarios y roles',
+            'editar_usuarios_roles' => 'Editar usuarios y roles',
+            'eliminar_usuarios_roles' => 'Eliminar usuarios y roles',
             
             // Unidades de Producción
             'ver_unidades' => 'Ver unidades',
@@ -289,47 +264,53 @@ class RoleController extends Controller
             'editar_unidades' => 'Editar unidades',
             'eliminar_unidades' => 'Eliminar unidades',
             
-            // Lotes
-            'ver_lotes' => 'Ver lotes',
-            'crear_lotes' => 'Crear lotes',
-            'editar_lotes' => 'Editar lotes',
-            'eliminar_lotes' => 'Eliminar lotes',
+            // Producción
+            'ver_produccion' => 'Ver producción',
+            'crear_produccion' => 'Crear producción',
+            'editar_produccion' => 'Editar producción',
+            'eliminar_produccion' => 'Eliminar producción',
             
-            // Mantenimientos
-            'ver_mantenimientos' => 'Ver mantenimientos',
-            'crear_mantenimientos' => 'Crear mantenimientos',
-            'editar_mantenimientos' => 'Editar mantenimientos',
-            'eliminar_mantenimientos' => 'Eliminar mantenimientos',
+            // Inventarios
+            'ver_inventarios' => 'Ver inventarios',
+            'crear_inventarios' => 'Crear inventarios',
+            'editar_inventarios' => 'Editar inventarios',
+            'eliminar_inventarios' => 'Eliminar inventarios',
             
-            // Alimentación
-            'ver_alimentacion' => 'Ver alimentación',
-            'crear_alimentacion' => 'Crear alimentación',
-            'editar_alimentacion' => 'Editar alimentación',
-            'eliminar_alimentacion' => 'Eliminar alimentación',
+            // Tipos de Alimentos (parte de inventarios)
+            'ver_tipos_alimentos' => 'Ver tipos de alimentos',
+            'crear_tipos_alimentos' => 'Crear tipos de alimentos',
+            'editar_tipos_alimentos' => 'Editar tipos de alimentos',
+            'eliminar_tipos_alimentos' => 'Eliminar tipos de alimentos',
             
-            // Sanidad
-            'ver_sanidad' => 'Ver sanidad',
-            'crear_sanidad' => 'Crear sanidad',
-            'editar_sanidad' => 'Editar sanidad',
-            'eliminar_sanidad' => 'Eliminar sanidad',
+            // Acciones Correctivas
+            'ver_acciones_correctivas' => 'Ver acciones correctivas',
+            'crear_acciones_correctivas' => 'Crear acciones correctivas',
+            'editar_acciones_correctivas' => 'Editar acciones correctivas',
+            'eliminar_acciones_correctivas' => 'Eliminar acciones correctivas',
             
-            // Monitoreo Ambiental
-            'ver_monitoreo' => 'Ver monitoreo',
-            'crear_monitoreo' => 'Crear monitoreo',
-            'editar_monitoreo' => 'Editar monitoreo',
-            'eliminar_monitoreo' => 'Eliminar monitoreo',
+            // Protocolos y Limpieza
+            'ver_protocolos_limpieza' => 'Ver protocolos y limpieza',
+            'crear_protocolos_limpieza' => 'Crear protocolos y limpieza',
+            'editar_protocolos_limpieza' => 'Editar protocolos y limpieza',
+            'eliminar_protocolos_limpieza' => 'Eliminar protocolos y limpieza',
             
-            // Crecimiento
-            'ver_crecimiento' => 'Ver crecimiento',
-            'crear_crecimiento' => 'Crear crecimiento',
-            'editar_crecimiento' => 'Editar crecimiento',
-            'eliminar_crecimiento' => 'Eliminar crecimiento',
+            // Ventas (Cosechas)
+            'ver_ventas' => 'Ver ventas',
+            'crear_ventas' => 'Crear ventas',
+            'editar_ventas' => 'Editar ventas',
+            'eliminar_ventas' => 'Eliminar ventas',
             
-            // Costos
-            'ver_costos' => 'Ver costos',
-            'crear_costos' => 'Crear costos',
-            'editar_costos' => 'Editar costos',
-            'eliminar_costos' => 'Eliminar costos',
+            // Compras y Proveedores
+            'ver_compras_proveedores' => 'Ver compras y proveedores',
+            'crear_compras_proveedores' => 'Crear compras y proveedores',
+            'editar_compras_proveedores' => 'Editar compras y proveedores',
+            'eliminar_compras_proveedores' => 'Eliminar compras y proveedores',
+            
+            // Reportes
+            'ver_reportes' => 'Ver reportes',
+            'crear_reportes' => 'Crear reportes',
+            'editar_reportes' => 'Editar reportes',
+            'eliminar_reportes' => 'Eliminar reportes',
         ];
     }
 }

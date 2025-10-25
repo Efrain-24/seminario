@@ -110,6 +110,20 @@
                                 @enderror
                             </div>
 
+                            <!-- Fecha de Siembra -->
+                            <div>
+                                <label for="fecha_siembra" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Fecha de Siembra
+                                </label>
+                                <input type="date" name="fecha_siembra" id="fecha_siembra" 
+                                       value="{{ old('fecha_siembra') }}"
+                                       class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
+                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Fecha cuando se sembraron los peces en el lote (necesaria para reportes de ganancia)</p>
+                                @error('fecha_siembra')
+                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+
                             <!-- Peso Promedio Inicial -->
                             <div>
                                 <label for="peso_promedio_inicial_gramos" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -140,16 +154,30 @@
                             </div>
 
                             <!-- Precio por Libra -->
+                            <!-- Precio por Libra -->
                             <div>
                                 <label for="precio_libra" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Precio por Libra (Q)
                                 </label>
                                 <input type="number" step="0.01" name="precio_libra" id="precio_libra" 
                                        value="{{ old('precio_libra') }}"
-                                       class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
-                                       placeholder="15.00" min="0">
-                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Precio de venta sugerido por libra para este lote</p>
+                                       class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-gray-100"
+                                       placeholder="Ej: 15.00"
+                                       min="0.01">
                                 @error('precio_libra')
+                                    <span class="text-red-500 text-sm">{{ $message }}</span>
+                                @enderror
+                            </div>                            <!-- Precio de Alevín -->
+                            <div>
+                                <label for="precio_unitario_pez" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Precio de Alevín (Q)
+                                </label>
+                                <input type="number" step="0.01" name="precio_unitario_pez" id="precio_unitario_pez" 
+                                       value="{{ old('precio_unitario_pez') }}"
+                                       class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                       placeholder="5.00" min="0">
+                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Costo de compra por cada alevín en el lote (necesario para reportes de ganancia)</p>
+                                @error('precio_unitario_pez')
                                     <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
                             </div>

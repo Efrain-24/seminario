@@ -15,7 +15,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getAllowedModules(): array
     {
-        // Si es admin, mostrar siempre los 9 módulos principales
+        // Si es admin, mostrar siempre todos los módulos principales
         if ($this->isAdmin()) {
             return [
                 'unidades',
@@ -29,17 +29,14 @@ class User extends Authenticatable implements MustVerifyEmail
                 'reportes',
             ];
         }
-        // Si el usuario tiene módulos personalizados, usar esos
+        
+        // Para usuarios no-admin, usar solo su configuración personal de módulos
         $modules = $this->modules()->pluck('module')->toArray();
         if (!empty($modules)) {
             return $modules;
         }
-        // Si no tiene configuración personalizada, usar los módulos del rol (definidos por el admin)
-        $role = $this->roleModel;
-        if ($role && $role->modules()->count() > 0) {
-            return $role->modules()->pluck('module')->toArray();
-        }
-        // Si el rol tampoco tiene configuración, no mostrar nada
+        
+        // Si no tiene módulos configurados, no mostrar ningún módulo
         return [];
     }
     /**

@@ -346,10 +346,6 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/limpieza/historial-unidad/{codigo}', [App\Http\Controllers\LimpiezaController::class, 'historialUnidad'])->name('limpieza.historial_unidad');
 
 
-// Ocultar módulos de aplicación por rol
-Route::get('/roles/{role}/ocultar-modulos', [RoleController::class, 'ocultarModulos'])->name('roles.ocultar-modulos');
-Route::put('/roles/{role}/ocultar-modulos', [RoleController::class, 'actualizarModulos'])->name('roles.ocultar-modulos.update');
-
 Route::get('/produccion/unidades/{unidad}/mortalidad-log', [MortalidadController::class, 'logPorUnidad'])->name('produccion.unidades.mortalidad_log');
 Route::get('produccion/lotes/{lote}/mortalidad-log', [\App\Http\Controllers\MortalidadLogController::class, 'show'])->name('produccion.lotes.mortalidad_log')->middleware('auth');
 
@@ -666,6 +662,7 @@ Route::middleware(['auth', 'redirect.temp.password'])->group(function () {
     Route::resource('limpieza', LimpiezaController::class);
     Route::post('limpieza/completar', [LimpiezaController::class, 'completar'])->name('limpieza.completar');
     Route::get('limpieza/protocolo/{protocolo}/actividades', [LimpiezaController::class, 'getProtocoloActividades'])->name('limpieza.protocolo.actividades');
+    Route::get('limpieza/protocolo/{protocolo}/insumos', [LimpiezaController::class, 'obtenerInsumosProtocolo'])->name('limpieza.protocolo.insumos');
 });
 
 // Rutas de Unidades de Producción (independientes)
@@ -713,8 +710,9 @@ Route::delete('/seguimientos/{seguimiento}', [App\Http\Controllers\SeguimientoCo
 
 // Rutas de Reportes
 Route::middleware(['auth', 'redirect.temp.password'])->prefix('reportes')->name('reportes.')->group(function () {
-    // Reportes de Ganancias (usando funciones temporalmente)
+    // Reportes de Ganancias (usando controlador)
     Route::get('/ganancias', [\App\Http\Controllers\Reportes\ReporteGananciasController::class, 'index'])->name('ganancias');
+    Route::get('/ganancias/{lote?}', [\App\Http\Controllers\Reportes\ReporteGananciasController::class, 'reporte'])->name('ganancias.reporte');
     
     Route::get('/ganancias/{lote?}', function (Request $request, $lote = null) {
         $unidades = \App\Models\UnidadProduccion::all();

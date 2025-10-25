@@ -120,6 +120,50 @@
                 field.addEventListener('blur', function() { if (this.value.trim() === '') { this.classList.remove('border-gray-300', 'dark:border-gray-600'); this.classList.add('border-red-300', 'focus:border-red-500'); } else { this.classList.remove('border-red-300', 'focus:border-red-500'); this.classList.add('border-gray-300', 'dark:border-gray-600'); } });
                 field.addEventListener('input', function() { if (this.classList.contains('border-red-300') && this.value.trim() !== '') { this.classList.remove('border-red-300', 'focus:border-red-500'); this.classList.add('border-gray-300', 'dark:border-gray-600'); } });
             });
+            
+            // Formatear teléfonos automáticamente
+            const phoneFields = document.querySelectorAll('#telefono_principal, #telefono_secundario');
+            phoneFields.forEach(function(field) {
+                field.addEventListener('input', function(e) {
+                    let value = e.target.value;
+                    
+                    // Remover todo excepto números
+                    let numbers = value.replace(/\D/g, '');
+                    
+                    // Formatear según la longitud
+                    let formatted = '';
+                    if (numbers.length >= 8) {
+                        // Formato Guatemala: 2234-5678 o 5512-3456
+                        formatted = numbers.slice(0, 4) + '-' + numbers.slice(4, 8);
+                        if (numbers.length > 8) {
+                            formatted += numbers.slice(8);
+                        }
+                    } else if (numbers.length >= 4) {
+                        formatted = numbers.slice(0, 4) + '-' + numbers.slice(4);
+                    } else {
+                        formatted = numbers;
+                    }
+                    
+                    e.target.value = formatted;
+                });
+                
+                // Permitir algunos caracteres especiales al pegar
+                field.addEventListener('paste', function(e) {
+                    setTimeout(function() {
+                        let value = field.value;
+                        // Limpiar y formatear después del paste
+                        let numbers = value.replace(/\D/g, '');
+                        if (numbers.length >= 4) {
+                            let formatted = numbers.slice(0, 4) + '-' + numbers.slice(4, 8);
+                            if (numbers.length > 8) {
+                                formatted += numbers.slice(8);
+                            }
+                            field.value = formatted;
+                        }
+                    }, 10);
+                });
+            });
+            
             if (form) {
                 form.addEventListener('submit', function(e) {
                     let isValid = true; requiredFields.forEach(function(field) { if (field.value.trim() === '') { field.classList.remove('border-gray-300', 'dark:border-gray-600'); field.classList.add('border-red-300', 'focus:border-red-500'); isValid = false; } });

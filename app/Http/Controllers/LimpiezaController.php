@@ -34,6 +34,7 @@ class LimpiezaController extends Controller
     public function completar(Request $request)
     {
         $id = $request->input('limpieza_id');
+        $insumosReales = $request->input('insumos_reales', []);
 
         // Intentar encontrar el registro en Limpieza
         $limpieza = Limpieza::find($id);
@@ -41,21 +42,37 @@ class LimpiezaController extends Controller
             if ($limpieza->estado === 'completado') {
                 return redirect()->route('limpieza.index')->with('error', 'Registro ya completado.');
             }
-            $limpieza->estado = 'completado';
-            $limpieza->save();
-            // Registrar en bitácora
-            \App\Models\Bitacora::create([
-                'user_id' => Auth::id(),
-                'accion' => 'completado limpieza',
-                'detalles' => "modulo: Limpieza | documento: Limpieza #{$limpieza->id} | estado: completado | fecha: " . now()->format('Y-m-d H:i:s'),
-            ]);
-            // Descontar inventario según protocolo planificado
-            if ($limpieza->protocoloSanidad) {
-                // foreach ($limpieza->protocoloSanidad->insumos as $insumo) {
-                //     InventarioExistencia::descontar($insumo->id, $insumo->cantidad_planificada);
-                // }
+
+            try {
+                // Si hay insumos reales, usar el nuevo método
+                if (!empty($insumosReales)) {
+                    $limpieza->ejecutarConConsumoReal($insumosReales, $request->input('observaciones'));
+                    
+                    // Registrar en bitácora
+                    \App\Models\Bitacora::create([
+                        'user_id' => Auth::id(),
+                        'accion' => 'completado limpieza con insumos',
+                        'detalles' => "modulo: Limpieza | documento: Limpieza #{$limpieza->id} | estado: completado | insumos: " . count($insumosReales) . " | fecha: " . now()->format('Y-m-d H:i:s'),
+                    ]);
+                    
+                    return redirect()->route('limpieza.index')->with('success', 'Limpieza completada con consumo real de insumos registrado.');
+                } else {
+                    // Método anterior para compatibilidad
+                    $limpieza->estado = 'completado';
+                    $limpieza->save();
+                    
+                    // Registrar en bitácora
+                    \App\Models\Bitacora::create([
+                        'user_id' => Auth::id(),
+                        'accion' => 'completado limpieza',
+                        'detalles' => "modulo: Limpieza | documento: Limpieza #{$limpieza->id} | estado: completado | fecha: " . now()->format('Y-m-d H:i:s'),
+                    ]);
+                    
+                    return redirect()->route('limpieza.index')->with('success', 'Limpieza completada.');
+                }
+            } catch (\Exception $e) {
+                return redirect()->route('limpieza.index')->with('error', 'Error al completar limpieza: ' . $e->getMessage());
             }
-            return redirect()->route('limpieza.index')->with('success', 'Limpieza completada y descuento realizado en inventario.');
         }
 
         // Si no existe en Limpieza, intentar en MantenimientoUnidad
@@ -78,6 +95,10 @@ class LimpiezaController extends Controller
 
         return redirect()->route('limpieza.index')->with('error', 'Registro no encontrado.');
     }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
 
     public function historialUnidad($codigo)
     {
@@ -313,6 +334,9 @@ class LimpiezaController extends Controller
                 ->with('error', 'No se puede editar un registro de limpieza completado.');
         }
 
+        // Cargar relación con protocolo e insumos
+        $limpieza->load(['protocoloSanidad.insumos.inventarioItem']);
+
         $protocolos = ProtocoloSanidad::vigentes()->get();
         $usuarios = User::active()->get();
         
@@ -320,7 +344,23 @@ class LimpiezaController extends Controller
         $unidades = UnidadProduccion::where('estado', 'activo')->get();
         $bodegas = Bodega::all();
         
-        return view('limpieza.edit', compact('limpieza', 'protocolos', 'usuarios', 'unidades', 'bodegas'));
+        // Obtener insumos del protocolo si existe y tiene insumos
+        $insumosProtocolo = collect([]);
+        if ($limpieza->protocoloSanidad && $limpieza->protocoloSanidad->insumos->isNotEmpty()) {
+            $insumosProtocolo = $limpieza->protocoloSanidad->insumos->map(function($insumo) {
+                return [
+                    'id' => $insumo->inventarioItem->id,
+                    'nombre' => $insumo->inventarioItem->nombre,
+                    'unidad' => $insumo->unidad,
+                    'cantidad_planificada' => $insumo->cantidad_necesaria,
+                    'stock_disponible' => $insumo->inventarioItem->stockTotal(),
+                    'costo_unitario' => $insumo->inventarioItem->costo_unitario ?? 0,
+                    'es_obligatorio' => $insumo->es_obligatorio,
+                ];
+            });
+        }
+        
+        return view('limpieza.edit', compact('limpieza', 'protocolos', 'usuarios', 'unidades', 'bodegas', 'insumosProtocolo'));
     }
 
     public function update(Request $request, Limpieza $limpieza)
@@ -331,20 +371,53 @@ class LimpiezaController extends Controller
                 ->with('error', 'No se puede modificar un registro de limpieza completado.');
         }
 
-        $request->validate([
-            'fecha' => 'required|date',
-            'area' => 'required',
-            'responsable' => 'required',
-            'protocolo_sanidad_id' => 'required|exists:protocolo_sanidads,id',
-            'actividades_ejecutadas' => 'nullable|array',
-            'estado' => 'required|in:no_ejecutado,en_progreso,completado',
-        ]);
+        try {
+            $request->validate([
+                'fecha' => 'required|date',
+                'area' => 'required',
+                'responsable' => 'required',
+                'protocolo_sanidad_id' => 'required|exists:protocolo_sanidads,id',
+                'actividades_ejecutadas' => 'nullable|array',
+                'estado' => 'required|in:no_ejecutado,en_progreso,completado',
+            ]);
 
-        $data = $request->only(['fecha', 'area', 'responsable', 'protocolo_sanidad_id', 'observaciones', 'estado']);
-        $data['actividades_ejecutadas'] = $request->actividades_ejecutadas ?? [];
+            $data = $request->only(['fecha', 'area', 'responsable', 'protocolo_sanidad_id', 'observaciones', 'estado']);
+            $data['actividades_ejecutadas'] = $request->actividades_ejecutadas ?? [];
 
-        $limpieza->update($data);
-        return redirect()->route('limpieza.index');
+            // Si se está completando la limpieza y hay insumos reales válidos, procesarlos
+            if ($request->estado === 'completado' && $request->has('insumos_reales') && is_array($request->insumos_reales) && !empty($request->insumos_reales)) {
+                try {
+                    // Filtrar solo insumos con datos válidos
+                    $insumosValidos = array_filter($request->insumos_reales, function($insumo) {
+                        return isset($insumo['inventario_item_id']) && isset($insumo['cantidad_real']) && is_numeric($insumo['cantidad_real']);
+                    });
+
+                    if (!empty($insumosValidos)) {
+                        $costoTotal = $limpieza->ejecutarConConsumoReal($insumosValidos);
+                        $data['costo_total'] = $costoTotal;
+                        $data['insumos_consumidos'] = json_encode($insumosValidos);
+                        
+                        $limpieza->update($data);
+                        
+                        return redirect()->route('limpieza.index')
+                            ->with('success', 'Limpieza completada exitosamente. Costo total: Q' . number_format($costoTotal, 2));
+                    }
+                } catch (\Exception $e) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->with('error', 'Error al procesar insumos: ' . $e->getMessage());
+                }
+            }
+
+            $limpieza->update($data);
+            return redirect()->route('limpieza.index')
+                ->with('success', 'Limpieza actualizada exitosamente.');
+                
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Error al actualizar limpieza: ' . $e->getMessage());
+        }
     }
 
     public function destroy(Limpieza $limpieza)
@@ -398,5 +471,41 @@ class LimpiezaController extends Controller
         return response()->json([
             'actividades' => $actividades
         ]);
+    }
+
+    /**
+     * Obtener insumos de un protocolo específico
+     */
+    public function obtenerInsumosProtocolo($protocoloId)
+    {
+        try {
+            $protocolo = ProtocoloSanidad::with(['insumos.inventarioItem'])->find($protocoloId);
+            
+            if (!$protocolo) {
+                return response()->json(['error' => 'Protocolo no encontrado'], 404);
+            }
+
+            $insumos = [];
+            if ($protocolo->insumos && $protocolo->insumos->isNotEmpty()) {
+                $insumos = $protocolo->insumos->map(function($insumo) {
+                    return [
+                        'id' => $insumo->inventarioItem->id,
+                        'nombre' => $insumo->inventarioItem->nombre,
+                        'unidad' => $insumo->unidad,
+                        'cantidad_planificada' => $insumo->cantidad_necesaria,
+                        'stock_disponible' => $insumo->inventarioItem->stockTotal(),
+                        'costo_unitario' => $insumo->inventarioItem->costo_unitario ?? 0,
+                        'es_obligatorio' => $insumo->es_obligatorio,
+                    ];
+                });
+            }
+
+            return response()->json([
+                'insumos' => $insumos
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al obtener insumos'], 500);
+        }
     }
 }

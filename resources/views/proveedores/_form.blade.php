@@ -131,7 +131,8 @@
                 <input type="tel" 
                        class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 {{ $errors->has('telefono_principal') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500' }}" 
                        id="telefono_principal" name="telefono_principal" value="{{ old('telefono_principal', $proveedor->telefono_principal ?? '') }}" 
-                       placeholder="Ej: 2234-5678" required maxlength="20">
+                       placeholder="Ej: 2234-5678, 5512-3456, +502 2234-5678" required maxlength="25">
+                <div class="text-xs text-gray-500 mt-1">Acepta formatos: 2234-5678, 22345678, +502 2234-5678</div>
                 @error('telefono_principal')
                     <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                 @enderror
@@ -139,12 +140,13 @@
 
             <div>
                 <label for="telefono_secundario" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Teléfono Secundario
+                    Teléfono Secundario / Celular
                 </label>
                 <input type="tel" 
                        class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 {{ $errors->has('telefono_secundario') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500' }}" 
                        id="telefono_secundario" name="telefono_secundario" value="{{ old('telefono_secundario', $proveedor->telefono_secundario ?? '') }}" 
-                       placeholder="Ej: 5678-9012" maxlength="20">
+                       placeholder="Ej: 5678-9012, 4123-4567" maxlength="25">
+                <div class="text-xs text-gray-500 mt-1">Teléfono adicional, celular o WhatsApp</div>
                 @error('telefono_secundario')
                     <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                 @enderror

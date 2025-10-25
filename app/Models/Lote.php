@@ -22,9 +22,13 @@ class Lote extends Model
         'cantidad_inicial',
         'cantidad_actual',
         'peso_promedio_inicial',
+        'peso_promedio_actual',
         'talla_promedio_inicial',
         'precio_libra',
+        'precio_unitario_pez',
         'fecha_inicio',
+        'fecha_siembra',
+        'fecha_cosecha',
         'unidad_produccion_id',
         'estado',
         'observaciones'
@@ -32,6 +36,8 @@ class Lote extends Model
 
     protected $casts = [
         'fecha_inicio' => 'date',
+        'fecha_siembra' => 'date',
+        'fecha_cosecha' => 'date',
         'peso_promedio_inicial' => 'decimal:2',
         'talla_promedio_inicial' => 'decimal:2',
         'precio_libra' => 'decimal:2',

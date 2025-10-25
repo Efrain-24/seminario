@@ -180,6 +180,7 @@
                                         <p class="text-lg font-semibold text-emerald-600 dark:text-emerald-400">Q{{ number_format($lote->precio_libra, 2) }}/lb</p>
                                     @else
                                         <p class="text-lg font-semibold text-red-500 dark:text-red-400">Sin precio configurado</p>
+                                        <p class="text-xs text-red-400 mt-1">Configure el precio en la edición del lote</p>
                                     @endif
                                 </div>
                             </div>

@@ -15,5 +15,14 @@ class EventServiceProvider extends ServiceProvider
         \App\Events\EnfermedadRegistrada::class => [
             \App\Listeners\EvaluarRegistroEnfermedad::class,
         ],
+        \App\Events\StockBajoDetectado::class => [
+            \App\Listeners\CrearNotificacionStock::class,
+        ],
+        \App\Events\LimpiezaCompletada::class => [
+            \App\Listeners\CrearNotificacionLimpieza::class,
+        ],
+        \App\Events\ConsumoCriticoDetectado::class => [
+            \App\Listeners\CrearNotificacionConsumo::class,
+        ],
     ];
 }

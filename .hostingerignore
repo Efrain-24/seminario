@@ -1,0 +1,23 @@
+# Archivos que NO debes subir a Hostinger
+.git/
+node_modules/
+.env
+.env.local
+.env.example
+tests/
+storage/logs/*.log
+bootstrap/cache/*.php
+.phpunit.result.cache
+composer.lock (opcional)
+package-lock.json (opcional)
+
+# Archivos de desarrollo
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Debugging
+debug_*.php
+crear_clientes_prueba.php

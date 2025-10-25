@@ -132,16 +132,17 @@
                             
                             @php
                                 $modules = [
-                                    'gestionar_usuarios' => 'Gestión de Usuarios',
-                                    'gestionar_roles' => 'Gestión de Roles', 
+                                    'dashboard' => 'Dashboard',
+                                    'usuarios_roles' => 'Usuarios y Roles',
                                     'unidades' => 'Unidades de Producción',
-                                    'lotes' => 'Gestión de Lotes',
-                                    'mantenimientos' => 'Mantenimientos',
-                                    'alimentacion' => 'Alimentación',
-                                    'sanidad' => 'Sanidad',
-                                    'crecimiento' => 'Crecimiento',
-                                    'costos' => 'Costos',
-                                    'monitoreo' => 'Monitoreo Ambiental'
+                                    'produccion' => 'Producción',
+                                    'inventarios' => 'Inventarios',
+                                    'tipos_alimentos' => 'Tipos de Alimentos',
+                                    'acciones_correctivas' => 'Acciones Correctivas',
+                                    'protocolos_limpieza' => 'Protocolos y Limpieza',
+                                    'ventas' => 'Ventas (Cosechas)',
+                                    'compras_proveedores' => 'Compras y Proveedores',
+                                    'reportes' => 'Reportes'
                                 ];
                                 
                                 $permissionLevels = [
@@ -257,16 +258,17 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Lista de módulos
         const modules = {
-            'gestionar_usuarios': 'Gestión de Usuarios',
-            'gestionar_roles': 'Gestión de Roles', 
+            'dashboard': 'Dashboard',
+            'usuarios_roles': 'Usuarios y Roles',
             'unidades': 'Unidades de Producción',
-            'lotes': 'Gestión de Lotes',
-            'mantenimientos': 'Mantenimientos',
-            'alimentacion': 'Alimentación',
-            'sanidad': 'Sanidad',
-            'crecimiento': 'Crecimiento',
-            'costos': 'Costos',
-            'monitoreo': 'Monitoreo Ambiental'
+            'produccion': 'Producción',
+            'inventarios': 'Inventarios',
+            'tipos_alimentos': 'Tipos de Alimentos',
+            'acciones_correctivas': 'Acciones Correctivas',
+            'protocolos_limpieza': 'Protocolos y Limpieza',
+            'ventas': 'Ventas (Cosechas)',
+            'compras_proveedores': 'Compras y Proveedores',
+            'reportes': 'Reportes'
         };
         
         // Verificar cada módulo si tiene permisos preseleccionados

@@ -36,15 +36,6 @@
                                 </svg>
                                 Ver Rol
                             </a>
-
-                            <a href="{{ route('roles.ocultar-modulos', $role) }}"
-                               style="background-color: #f59e42 !important; color: white !important;"
-                               class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded inline-flex items-center ml-2">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4.477-10-10 0-1.657.403-3.221 1.125-4.575M15 9h.01M19.938 19.938A10.05 10.05 0 0021 12c0-5.523-4.477-10-10-10S1 6.477 1 12c0 2.21.715 4.25 1.938 5.938M9 15h.01" />
-                                </svg>
-                                Ocultar módulos de aplicación
-                            </a>
                         </div>
                     </div>
 
@@ -111,7 +102,7 @@
                     @endif
 
                     <!-- Formulario -->
-                    <form action="{{ route('roles.update', $role) }}" method="POST">
+                    <form action="{{ route('roles.update', $role) }}" method="POST" id="form-actualizar-rol">
                         @csrf
                         @method('PUT')
 
@@ -122,16 +113,17 @@
                             </label>
                             @php
                                 $modules = [
-                                    'gestionar_usuarios' => 'Gestión de Usuarios',
-                                    'gestionar_roles' => 'Gestión de Roles', 
+                                    'dashboard' => 'Dashboard',
+                                    'usuarios_roles' => 'Usuarios y Roles',
                                     'unidades' => 'Unidades de Producción',
-                                    'lotes' => 'Gestión de Lotes',
-                                    'mantenimientos' => 'Mantenimientos',
-                                    'alimentacion' => 'Alimentación',
-                                    'sanidad' => 'Sanidad',
-                                    'crecimiento' => 'Crecimiento',
-                                    'costos' => 'Costos',
-                                    'monitoreo' => 'Monitoreo Ambiental'
+                                    'produccion' => 'Producción',
+                                    'inventarios' => 'Inventarios',
+                                    'tipos_alimentos' => 'Tipos de Alimentos',
+                                    'acciones_correctivas' => 'Acciones Correctivas',
+                                    'protocolos_limpieza' => 'Protocolos y Limpieza',
+                                    'ventas' => 'Ventas (Cosechas)',
+                                    'compras_proveedores' => 'Compras y Proveedores',
+                                    'reportes' => 'Reportes'
                                 ];
                                 $permissionLevels = [
                                     'view' => 'Ver',
@@ -201,7 +193,8 @@
                                class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded-lg transition duration-200">
                                 Cancelar
                             </a>
-                            <button type="submit" 
+                            <button type="button" 
+                                    onclick="confirmarActualizacion()"
                                     style="background-color: #9333ea !important; color: white !important;"
                                     class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg transition duration-200">
                                 Actualizar Rol
@@ -214,6 +207,18 @@
     </div>
 
     <script>
+    // Función para confirmar la actualización del rol
+    function confirmarActualizacion() {
+        const roleName = "{{ $role->display_name }}";
+        const mensaje = `¿Está seguro de que desea actualizar el rol "${roleName}"?\n\nEsta acción modificará los permisos del rol y puede afectar a todos los usuarios que lo tengan asignado.`;
+        
+        if (confirm(mensaje)) {
+            // Si confirma, enviar el formulario
+            document.getElementById('form-actualizar-rol').submit();
+        }
+        // Si cancela, no hacer nada
+    }
+
     // Habilita/deshabilita los checkboxes de permisos según el estado del toggle de módulo
     function toggleModulePermissions(moduleKey) {
         const toggle = document.querySelector(`input[data-module='${moduleKey}']`);

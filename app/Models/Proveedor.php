@@ -157,6 +157,18 @@ class Proveedor extends Model
         $this->attributes['nit'] = $value ? preg_replace('/[^0-9A-Za-z]/', '', $value) : null;
     }
 
+    public function setTelefonoPrincipalAttribute($value)
+    {
+        // Limpiar y formatear teléfono principal
+        $this->attributes['telefono_principal'] = $value ? trim($value) : null;
+    }
+
+    public function setTelefonoSecundarioAttribute($value)
+    {
+        // Limpiar y formatear teléfono secundario
+        $this->attributes['telefono_secundario'] = $value ? trim($value) : null;
+    }
+
     // Accessors
     public function getNombreCompletoAttribute()
     {

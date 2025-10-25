@@ -37,6 +37,25 @@
                 <input type="date" name="fecha_inicio" value="{{ old('fecha_inicio', $lote->fecha_inicio ? $lote->fecha_inicio->format('Y-m-d') : '') }}" class="w-full border rounded px-3 py-2" required>
             </div>
             <div>
+                <label class="block mb-2 font-semibold">Fecha de Siembra</label>
+                <input type="date" name="fecha_siembra" value="{{ old('fecha_siembra', $lote->fecha_siembra ? $lote->fecha_siembra->format('Y-m-d') : '') }}" class="w-full border rounded px-3 py-2">
+                <p class="text-xs text-gray-500 mt-1">Fecha cuando se sembraron los peces (necesaria para reportes)</p>
+            </div>
+            <div>
+                <label class="block mb-2 font-semibold">Peso Promedio Actual (gramos)</label>
+                <input type="number" step="0.1" name="peso_promedio_actual_gramos" 
+                       value="{{ old('peso_promedio_actual_gramos', $lote->peso_promedio_actual ? $lote->peso_promedio_actual * 1000 : '') }}" 
+                       class="w-full border rounded px-3 py-2" placeholder="250.0" min="0">
+                <p class="text-xs text-gray-500 mt-1">Peso promedio actual de los peces en gramos</p>
+            </div>
+            <div>
+                <label class="block mb-2 font-semibold">Precio de Alevín (Q)</label>
+                <input type="number" step="0.01" name="precio_unitario_pez" 
+                       value="{{ old('precio_unitario_pez', $lote->precio_unitario_pez) }}" 
+                       class="w-full border rounded px-3 py-2" placeholder="5.00" min="0">
+                <p class="text-xs text-gray-500 mt-1">Costo de compra por cada alevín (necesario para reportes de ganancia)</p>
+            </div>
+            <div>
                 <label class="block mb-2 font-semibold">Unidad de Producción</label>
                 <select name="unidad_produccion_id" class="w-full border rounded px-3 py-2">
                     <option value="">-- Selecciona --</option>

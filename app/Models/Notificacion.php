@@ -20,6 +20,7 @@ class Notificacion extends Model
         'icono',
         'url',
         'leida',
+        'resuelta',
         'fecha_vencimiento',
         'user_id'
     ];
@@ -27,6 +28,7 @@ class Notificacion extends Model
     protected $casts = [
         'datos' => 'array',
         'leida' => 'boolean',
+        'resuelta' => 'boolean',
         'fecha_vencimiento' => 'datetime'
     ];
 
@@ -42,6 +44,11 @@ class Notificacion extends Model
         return $query->where('leida', false);
     }
 
+    public function scopeNoResueltas($query)
+    {
+        return $query->where('resuelta', false);
+    }
+
     public function scopeParaUsuario($query, $userId)
     {
         return $query->where(function ($q) use ($userId) {
@@ -54,7 +61,7 @@ class Notificacion extends Model
         return $query->where(function ($q) {
             $q->whereNull('fecha_vencimiento')
               ->orWhere('fecha_vencimiento', '>', now());
-        });
+        })->where('resuelta', false);
     }
 
     // Métodos auxiliares
@@ -83,6 +90,11 @@ class Notificacion extends Model
         return $this->update(['leida' => true]);
     }
 
+    public function marcarComoResuelta(): bool
+    {
+        return $this->update(['resuelta' => true]);
+    }
+
     // Métodos estáticos para crear notificaciones
     public static function crearAlertaInventario(array $datos): void
     {
@@ -92,7 +104,7 @@ class Notificacion extends Model
             'mensaje' => $datos['mensaje'],
             'datos' => $datos,
             'icono' => 'package-x',
-            'url' => route('produccion.inventario.alertas.index')
+            'url' => route('produccion.inventario.index')
         ]);
     }
 
@@ -104,7 +116,46 @@ class Notificacion extends Model
             'mensaje' => $datos['mensaje'],
             'datos' => $datos,
             'icono' => 'alert-triangle',
-            'url' => route('produccion.alertas.index')
+            'url' => route('produccion.lotes')
+        ]);
+    }
+
+    public static function crearNotificacionLimpieza(array $datos): self
+    {
+        return self::create([
+            'tipo' => $datos['tipo'] ?? 'info',
+            'titulo' => $datos['titulo'],
+            'mensaje' => $datos['mensaje'],
+            'datos' => $datos,
+            'icono' => $datos['icono'] ?? 'droplets',
+            'url' => $datos['url'] ?? null,
+            'user_id' => $datos['user_id'] ?? null,
+        ]);
+    }
+
+    public static function crearNotificacionStock(array $datos): self
+    {
+        return self::create([
+            'tipo' => $datos['tipo'] ?? 'warning',
+            'titulo' => $datos['titulo'],
+            'mensaje' => $datos['mensaje'],
+            'datos' => $datos,
+            'icono' => $datos['icono'] ?? 'package-x',
+            'url' => $datos['url'] ?? null,
+            'user_id' => $datos['user_id'] ?? null,
+        ]);
+    }
+
+    public static function crearNotificacionConsumo(array $datos): self
+    {
+        return self::create([
+            'tipo' => $datos['tipo'] ?? 'warning',
+            'titulo' => $datos['titulo'],
+            'mensaje' => $datos['mensaje'],
+            'datos' => $datos,
+            'icono' => $datos['icono'] ?? 'trending-up',
+            'url' => $datos['url'] ?? null,
+            'user_id' => $datos['user_id'] ?? null,
         ]);
     }
 }

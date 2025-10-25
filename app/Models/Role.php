@@ -7,13 +7,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Role extends Model
 {
-    /**
-     * Relación con los módulos visibles para el rol
-     */
+    // NOTA: La gestión de módulos por rol se deshabilitó
+    // Los módulos se manejan únicamente a nivel de usuario individual
+    /*
     public function modules()
     {
         return $this->hasMany(\App\Models\RoleModule::class);
     }
+    */
+    
     use HasFactory;
 
     protected $fillable = [

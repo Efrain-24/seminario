@@ -148,7 +148,7 @@
         <!-- VENTA INDIVIDUAL -->
         <div class="bold">PRODUCTO:</div>
         
-        @if($venta->lote)
+        @if(isset($venta->lote) && $venta->lote)
         <div class="row">
             <span>Lote:</span>
             <span>{{ $venta->lote->codigo_lote ?? 'N/A' }}</span>
@@ -157,6 +157,11 @@
         <div class="row">
             <span>Especie:</span>
             <span>{{ $venta->lote->especie ?? 'Sin especie' }}</span>
+        </div>
+        @else
+        <div class="row">
+            <span>Lote:</span>
+            <span>{{ $venta->lote_id ?? 'N/A' }}</span>
         </div>
         @endif
         
