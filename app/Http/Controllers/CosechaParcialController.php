@@ -539,13 +539,7 @@ class CosechaParcialController extends Controller
                 'productos_count' => count($request->productos ?? [])
             ]);
 
-            // Obtener precio por libra actual
-            $precioLibraModel = \App\Models\PrecioLibra::precioActual();
-            if (!$precioLibraModel) {
-                throw new \Exception('No hay precio por libra configurado. Configure el precio en su perfil.');
-            }
-            
-            $precioLibra = $precioLibraModel->precio; // Extraer el valor del precio
+            // El precio debe estar configurado en cada lote individualmente
 
             // Generar número de venta único
             $numeroVenta = $this->generarNumeroVenta();
@@ -568,7 +562,12 @@ class CosechaParcialController extends Controller
                     throw new \Exception("El lote {$lote->codigo_lote} ({$lote->especie}) no tiene suficientes peces. Disponible: {$lote->cantidad_actual}, solicitado: {$producto['cantidad_peces']}");
                 }
 
-                // Calcular subtotal para este producto
+                // El lote debe tener precio configurado
+                $precioLibra = $lote->precio_libra;
+
+                if (!$precioLibra || $precioLibra <= 0) {
+                    throw new \Exception("El lote {$lote->codigo_lote} no tiene precio configurado. Configure el precio del lote antes de realizar ventas.");
+                }                // Calcular subtotal para este producto
                 $pesoLibras = (float) $producto['peso_libras'];
                 $subtotal = $pesoLibras * $precioLibra;
                 $totalVenta += $subtotal;
@@ -589,6 +588,7 @@ class CosechaParcialController extends Controller
                     'fecha_venta' => now(),
                     'codigo_venta' => $numeroVenta, // MISMO CÓDIGO PARA TODOS LOS PRODUCTOS
                     'tipo_cliente' => $request->tipo_cliente,
+                    'cliente' => $request->tipo_cliente === 'CF' ? 'Consumidor Final' : $request->cliente_nombre,
                     'cliente_nombre' => $request->tipo_cliente === 'CF' ? 'Consumidor Final' : $request->cliente_nombre,
                     'cliente_nit' => $request->tipo_cliente === 'CF' ? null : $request->cliente_nit,
                     'nombre_cliente' => $request->tipo_cliente === 'CF' ? 'Consumidor Final' : $request->cliente_nombre,

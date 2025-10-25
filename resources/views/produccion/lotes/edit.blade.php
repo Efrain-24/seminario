@@ -15,28 +15,6 @@
     <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-6">
     <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Editar Lote <span class="text-sm font-normal text-gray-500 dark:text-gray-400">ID: {{ $lote->id }}</span></h2>
 
-    @if(session('success'))
-        <div class="mb-4 bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded">
-            {{ session('success') }}
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="mb-4 bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded">
-            {{ session('error') }}
-        </div>
-    @endif
-
-    @if ($errors->any())
-        <div class="mb-4 bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded">
-            <p class="font-semibold mb-2">Corrige los siguientes errores:</p>
-            <ul class="list-disc list-inside text-sm">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
     <form action="{{ route('produccion.lotes.update', $lote) }}" method="POST">
         @csrf
         @method('PUT')
@@ -68,17 +46,25 @@
                 <input type="number" step="0.01" name="talla_promedio_inicial" value="{{ old('talla_promedio_inicial', $lote->talla_promedio_inicial) }}" class="w-full border rounded px-3 py-2">
             </div>
             <div>
+                <label class="block mb-2 font-semibold">Precio por Libra (Q) <span class="text-red-500">*</span></label>
+                <input type="number" step="0.01" name="precio_libra" value="{{ old('precio_libra', $lote->precio_libra) }}" class="w-full border rounded px-3 py-2" placeholder="Ej: 20.50" min="0.01" required>
+                <p class="text-xs text-gray-500 mt-1">Precio obligatorio para realizar ventas de este lote.</p>
+                @error('precio_libra')
+                    <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+            <div>
                 <label class="block mb-2 font-semibold">Fecha de Inicio</label>
                 <input type="date" name="fecha_inicio" value="{{ old('fecha_inicio', $lote->fecha_inicio ? $lote->fecha_inicio->format('Y-m-d') : '') }}" class="w-full border rounded px-3 py-2" required>
             </div>
             <div>
                 <label class="block mb-2 font-semibold">Unidad de Producción</label>
-                <select name="unidad_produccion_id" class="w-full border rounded px-3 py-2">
-                    <option value="">-- Selecciona --</option>
-                    @foreach($unidades as $unidad)
-                        <option value="{{ $unidad->id }}" {{ old('unidad_produccion_id', $lote->unidad_produccion_id) == $unidad->id ? 'selected' : '' }}>{{ $unidad->nombre }}</option>
-                    @endforeach
-                </select>
+                <input type="text" 
+                       value="{{ $lote->unidadProduccion ? $lote->unidadProduccion->nombre : 'Sin asignar' }}" 
+                       readonly 
+                       class="w-full border rounded px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 cursor-not-allowed">
+                <input type="hidden" name="unidad_produccion_id" value="{{ $lote->unidad_produccion_id }}">
+                <p class="text-xs text-gray-500 mt-1">Para cambiar la ubicación del lote, use la función "Programar Traslado".</p>
             </div>
             <div class="md:col-span-2">
                 <label class="block mb-2 font-semibold">Observaciones</label>

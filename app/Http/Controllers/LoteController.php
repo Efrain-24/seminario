@@ -33,7 +33,12 @@ class LoteController extends Controller
 
     public function create()
     {
-        $unidades = UnidadProduccion::where('estado', 'activo')->get();
+        // Solo mostrar unidades de producción activas que NO tengan lotes activos
+        $unidades = UnidadProduccion::where('estado', 'activo')
+            ->whereDoesntHave('lotes', function($query) {
+                $query->where('estado', 'activo');
+            })
+            ->get();
         
         return view('produccion.create-lote', compact('unidades'));
     }
@@ -50,6 +55,17 @@ class LoteController extends Controller
             'unidad_produccion_id' => 'required|exists:unidad_produccions,id',
             'observaciones' => 'nullable|string'
         ]);
+
+        // Validar que la unidad de producción no tenga ya un lote activo
+        $loteExistente = Lote::where('unidad_produccion_id', $validated['unidad_produccion_id'])
+                            ->where('estado', 'activo')
+                            ->first();
+
+        if ($loteExistente) {
+            return back()->withErrors([
+                'unidad_produccion_id' => 'Esta unidad de producción ya tiene un lote activo (' . $loteExistente->codigo_lote . '). No se pueden tener múltiples lotes activos en la misma unidad.'
+            ])->withInput();
+        }
 
         $validated['cantidad_actual'] = $validated['cantidad_inicial'];
         $validated['estado'] = 'activo';
@@ -195,18 +211,46 @@ class LoteController extends Controller
 
     public function update(Request $request, Lote $lote)
     {
+        // DEBUG TEMPORAL - escribir a archivo
+        file_put_contents(storage_path('debug_update.txt'), 
+            "=== LOTE UPDATE DEBUG ===\n" .
+            "Request data: " . json_encode($request->all()) . "\n" .
+            "Precio en request: " . ($request->precio_libra ?? 'NULL') . "\n" .
+            "Lote ID: " . $lote->id . "\n" .
+            "Precio actual del lote: " . ($lote->precio_libra ?? 'NULL') . "\n\n",
+            FILE_APPEND
+        );
+        
         $validated = $request->validate([
             'codigo_lote' => 'required|string|unique:lotes,codigo_lote,' . $lote->id,
             'especie' => 'required|string',
             'cantidad_inicial' => 'required|integer|min:1',
             'peso_promedio_inicial' => 'required|numeric|min:0',
             'talla_promedio_inicial' => 'required|numeric|min:0',
+            'precio_libra' => 'required|numeric|min:0.01',
             'fecha_inicio' => 'required|date',
-            'unidad_produccion_id' => 'required|exists:unidad_produccions,id',
             'observaciones' => 'nullable|string'
         ]);
 
-        $lote->update($validated);
+        // Mantener la unidad de producción original (no editable)
+        $validated['unidad_produccion_id'] = $lote->unidad_produccion_id;
+
+        file_put_contents(storage_path('debug_update.txt'), 
+            "Datos validados: " . json_encode($validated) . "\n" .
+            "Precio validado: " . ($validated['precio_libra'] ?? 'NULL') . "\n",
+            FILE_APPEND
+        );
+        
+        $resultado = $lote->update($validated);
+        
+        $lote->refresh();
+        file_put_contents(storage_path('debug_update.txt'), 
+            "Resultado update: " . ($resultado ? 'TRUE' : 'FALSE') . "\n" .
+            "Precio después del update: " . ($lote->precio_libra ?? 'NULL') . "\n" .
+            "Updated_at: " . $lote->updated_at . "\n" .
+            "=====================================\n\n",
+            FILE_APPEND
+        );
 
         return redirect()->route('lotes.show', $lote)
             ->with('success', 'Lote actualizado exitosamente.');

@@ -31,13 +31,6 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            {{-- Mensajes flash --}}
-            @if(session('success'))
-                <div class="mb-6 bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded">
-                    {{ session('success') }}
-                </div>
-            @endif
-
             <!-- Información General del Lote -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6">
@@ -169,6 +162,25 @@
                                             {{ $dias }} días
                                         @endif
                                     </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Precio por Libra -->
+                        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="bg-emerald-500 rounded-full p-2 mr-3">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Precio por Libra</p>
+                                    @if($lote->precio_libra && $lote->precio_libra > 0)
+                                        <p class="text-lg font-semibold text-emerald-600 dark:text-emerald-400">Q{{ number_format($lote->precio_libra, 2) }}/lb</p>
+                                    @else
+                                        <p class="text-lg font-semibold text-red-500 dark:text-red-400">Sin precio configurado</p>
+                                    @endif
                                 </div>
                             </div>
                         </div>
